@@ -36,15 +36,9 @@
     </description>
 
     <scm>
-        <connection>
-            scm:svn:http://svn.apache.org/repos/asf/sling/trunk/bundles/jcr/resource
-        </connection>
-        <developerConnection>
-            scm:svn:https://svn.apache.org/repos/asf/sling/trunk/bundles/jcr/resource
-        </developerConnection>
-        <url>
-            http://svn.apache.org/viewvc/sling/trunk/bundles/jcr/resource
-        </url>
+        <connection>scm:git:https://gitbox.apache.org/repos/asf/sling-org-apache-sling-jcr-resource.git</conncetion>
+        <developerConnection>scm:git:https://gitbox.apache.org/repos/asf/sling-org-apache-sling-jcr-resource.git</developerConnection>
+        <url>https://gitbox.apache.org/repos/asf?p=sling-org-apache-sling-jcr-resource.git</url>
     </scm>
 
     <properties>
