@@ -35,7 +35,7 @@ import javax.jcr.SimpleCredentials;
 import org.apache.sling.api.resource.LoginException;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ResourceResolverFactory;
-import org.apache.sling.api.resource.URIProvider;
+import org.apache.sling.api.resource.external.URIProvider;
 import org.apache.sling.commons.classloader.DynamicClassLoaderManager;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.api.JcrResourceConstants;

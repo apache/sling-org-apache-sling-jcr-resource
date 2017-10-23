@@ -32,7 +32,7 @@ import javax.jcr.Session;
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceMetadata;
-import org.apache.sling.api.resource.URIProvider;
+import org.apache.sling.api.resource.external.URIProvider;
 import org.apache.sling.commons.classloader.DynamicClassLoaderManager;
 import org.apache.sling.jcr.resource.api.JcrResourceConstants;
 import org.apache.sling.jcr.resource.internal.HelperData;

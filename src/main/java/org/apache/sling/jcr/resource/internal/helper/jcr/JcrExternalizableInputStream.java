@@ -18,7 +18,8 @@
 package org.apache.sling.jcr.resource.internal.helper.jcr;
 
 
-import org.apache.sling.api.resource.ExternalizableInputStream;
+
+import org.apache.sling.api.resource.external.ExternalizableInputStream;
 
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
@@ -32,7 +33,7 @@ import java.net.URI;
  * can be used without consuming any local IO resources.
  *
  * If a non any other form of URI is require, (ie Internal) then the URIProvider should be used directly. This
- * class is written intentionally to *only* support public URIs.
+ * class is written intentionally to *only* support URIs that may be used where the client is external and/or internal.
  */
 public class JcrExternalizableInputStream extends InputStream implements ExternalizableInputStream {
     private final Property data;
@@ -77,8 +78,4 @@ public class JcrExternalizableInputStream extends InputStream implements Externa
         return uri;
     }
 
-    @Override
-    public URI getPrivateURI() {
-        return null;
-    }
 }

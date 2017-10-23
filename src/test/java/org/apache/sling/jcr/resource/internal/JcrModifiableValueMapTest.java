@@ -45,8 +45,8 @@ import javax.jcr.nodetype.NodeType;
 import org.apache.commons.io.IOUtils;
 import org.apache.jackrabbit.util.Text;
 import org.apache.sling.api.resource.ModifiableValueMap;
-import org.apache.sling.api.resource.URIProvider;
 import org.apache.sling.api.resource.ValueMap;
+import org.apache.sling.api.resource.external.URIProvider;
 import org.apache.sling.commons.classloader.DynamicClassLoaderManager;
 import org.apache.sling.commons.testing.jcr.RepositoryTestBase;
 

@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
-import org.apache.sling.api.resource.URIProvider;
+import org.apache.sling.api.resource.external.URIProvider;
 import org.apache.sling.commons.classloader.DynamicClassLoaderManager;
 
 /**
