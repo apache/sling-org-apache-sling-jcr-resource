@@ -82,6 +82,16 @@ public class JcrSystemUserValidator implements ServiceUserValidator, ServicePrin
 
     private boolean allowOnlySystemUsers;
 
+    /*
+    * We have to prevent a cycle if we are trying to login ourselves
+    */
+    private final ThreadLocal<Boolean> cycleDetection = new ThreadLocal<Boolean>() {
+        @Override
+        protected Boolean initialValue() {
+            return false;
+        }
+    };
+
     public JcrSystemUserValidator() {
         Method m = null;
         try {
@@ -99,6 +109,9 @@ public class JcrSystemUserValidator implements ServiceUserValidator, ServicePrin
 
     @Override
     public boolean isValid(final String serviceUserId, final String serviceName, final String subServiceName) {
+        if (cycleDetection.get()) {
+            return true;
+        }
         if (serviceUserId == null) {
             log.debug("The provided service user id is null");
             return false;
@@ -111,22 +124,20 @@ public class JcrSystemUserValidator implements ServiceUserValidator, ServicePrin
             log.debug("The provided service user id '{}' has been already validated and is a known JCR system user id", serviceUserId);
             return true;
         } else {
-            Session administrativeSession = null;
+            Session session = null;
             try {
                 try {
                     /*
-                     * TODO: Instead of using the deprecated loginAdministrative
-                     * method, this bundle could be configured with an appropriate
-                     * user for service authentication and do:
-                     *     tmpSession = repository.loginService(null, workspace);
-                     * For now, we keep loginAdministrative as switching to a service user
-                     * will result in a endless recursion (this method checks if
-                     * a service user is allowed, so using a service user here
-                     * calls this method again...and again...and again)
+                     * We have to prevent a cycle if we are trying to login ourselves
                      */
-                    administrativeSession = repository.loginAdministrative(null);
-                    if (administrativeSession instanceof JackrabbitSession) {
-                        final UserManager userManager = ((JackrabbitSession) administrativeSession).getUserManager();
+                    cycleDetection.set(true);
+                    try {
+                        session = repository.loginService(null, null);
+                    } finally {
+                        cycleDetection.set(false);
+                    }
+                    if (session instanceof JackrabbitSession) {
+                        final UserManager userManager = ((JackrabbitSession) session).getUserManager();
                         final Authorizable authorizable = userManager.getAuthorizable(serviceUserId);
                         if (isValidSystemUser(authorizable)) {
                             validIds.add(serviceUserId);
@@ -138,8 +149,8 @@ public class JcrSystemUserValidator implements ServiceUserValidator, ServicePrin
                     log.warn("Could not get user information", e);
                 }
             } finally {
-                if (administrativeSession != null) {
-                    administrativeSession.logout();
+                if (session != null) {
+                    session.logout();
                 }
             }
             log.warn("The provided service user id '{}' is not a known JCR system user id and therefore not allowed in the Sling Service User Mapper.", serviceUserId);
@@ -149,6 +160,9 @@ public class JcrSystemUserValidator implements ServiceUserValidator, ServicePrin
 
     @Override
     public boolean isValid(Iterable<String> servicePrincipalNames, String serviceName, String subServiceName) {
+        if (cycleDetection.get()) {
+            return true;
+        }
         if (servicePrincipalNames == null) {
             log.debug("The provided service principal names are null");
             return false;
@@ -157,7 +171,8 @@ public class JcrSystemUserValidator implements ServiceUserValidator, ServicePrin
             log.debug("There is no enforcement of JCR system users, therefore service principal names '{}' are valid", servicePrincipalNames);
             return true;
         }
-        Session administrativeSession = null;
+
+        Session session = null;
         UserManager userManager = null;
         Set<String> invalid = new HashSet<>();
         try {
@@ -165,20 +180,18 @@ public class JcrSystemUserValidator implements ServiceUserValidator, ServicePrin
                 if (validPrincipalNames.contains(pName)) {
                     log.debug("The provided service principal name '{}' has been already validated and is a known JCR system user", pName);
                 } else {
-                    /*
-                     * TODO: Instead of using the deprecated loginAdministrative
-                     * method, this bundle could be configured with an appropriate
-                     * user for service authentication and do:
-                     *     tmpSession = repository.loginService(null, workspace);
-                     * For now, we keep loginAdministrative as switching to a service user
-                     * will result in a endless recursion (this method checks if
-                     * a sservice user is allowed, so using a service user here
-                     * calls this method again...and again...and again)
-                     */
-                    if (administrativeSession == null) {
-                        administrativeSession = repository.loginAdministrative(null);
-                        if (administrativeSession instanceof JackrabbitSession) {
-                            userManager = ((JackrabbitSession) administrativeSession).getUserManager();
+                    if (session == null) {
+                        /*
+                         * We have to prevent a cycle if we are trying to login ourselves
+                        */
+                        cycleDetection.set(true);
+                        try {
+                            session = repository.loginService(null, null);
+                        } finally {
+                            cycleDetection.set(false);
+                        }
+                        if (session instanceof JackrabbitSession) {
+                            userManager = ((JackrabbitSession) session).getUserManager();
                         } else {
                             log.debug("Unable to validate service user principals, JackrabbitSession expected.");
                             return false;
@@ -203,8 +216,8 @@ public class JcrSystemUserValidator implements ServiceUserValidator, ServicePrin
         } catch (final RepositoryException e) {
             log.warn("Could not get user information", e);
         } finally {
-            if (administrativeSession != null) {
-                administrativeSession.logout();
+            if (session != null) {
+                session.logout();
             }
         }
         return invalid.isEmpty();

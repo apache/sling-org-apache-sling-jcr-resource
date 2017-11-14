@@ -19,10 +19,16 @@ package org.apache.sling.jcr.resource.internal;
 import java.lang.reflect.Field;
 import java.util.Collections;
 
+import javax.jcr.Credentials;
+import javax.jcr.LoginException;
+import javax.jcr.NoSuchWorkspaceException;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.Value;
 import javax.naming.NamingException;
 
 import org.apache.sling.commons.testing.jcr.RepositoryTestBase;
+import org.apache.sling.jcr.api.SlingRepository;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -38,7 +44,75 @@ public class JcrSystemUserValidatorTest extends RepositoryTestBase {
         jcrSystemUserValidator = new JcrSystemUserValidator();
         Field repositoryField = jcrSystemUserValidator.getClass().getDeclaredField("repository");
         repositoryField.setAccessible(true);
-        repositoryField.set(jcrSystemUserValidator, getRepository());
+        final SlingRepository delegate = getRepository();
+
+        SlingRepository repository = new SlingRepository() {
+            @Override
+            public String getDefaultWorkspace() {
+                return delegate.getDefaultWorkspace();
+            }
+
+            @Override
+            public Session loginAdministrative(String s) throws LoginException, RepositoryException {
+                return delegate.loginAdministrative(s);
+            }
+
+            @Override
+            public Session loginService(String s, String s1) throws LoginException, RepositoryException {
+                return delegate.loginAdministrative(s1);
+            }
+
+            @Override
+            public String[] getDescriptorKeys() {
+                return delegate.getDescriptorKeys();
+            }
+
+            @Override
+            public boolean isStandardDescriptor(String s) {
+                return delegate.isStandardDescriptor(s);
+            }
+
+            @Override
+            public boolean isSingleValueDescriptor(String s) {
+                return delegate.isSingleValueDescriptor(s);
+            }
+
+            @Override
+            public Value getDescriptorValue(String s) {
+                return delegate.getDescriptorValue(s);
+            }
+
+            @Override
+            public Value[] getDescriptorValues(String s) {
+                return delegate.getDescriptorValues(s);
+            }
+
+            @Override
+            public String getDescriptor(String s) {
+                return delegate.getDescriptor(s);
+            }
+
+            @Override
+            public Session login(Credentials credentials, String s) throws LoginException, NoSuchWorkspaceException, RepositoryException {
+                return delegate.login(credentials, s);
+            }
+
+            @Override
+            public Session login(Credentials credentials) throws LoginException, RepositoryException {
+                return delegate.login(credentials);
+            }
+
+            @Override
+            public Session login(String s) throws LoginException, NoSuchWorkspaceException, RepositoryException {
+                return delegate.login(s);
+            }
+
+            @Override
+            public Session login() throws LoginException, RepositoryException {
+                return delegate.login();
+            }
+        };
+        repositoryField.set(jcrSystemUserValidator, repository);
     }
     
     @Test
