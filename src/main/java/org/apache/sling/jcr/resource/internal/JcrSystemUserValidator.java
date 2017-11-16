@@ -58,6 +58,8 @@ import org.slf4j.LoggerFactory;
            })
 public class JcrSystemUserValidator implements ServiceUserValidator, ServicePrincipalsValidator {
 
+    public static final String VALIDATION_SERVICE_USER = "validation";
+
     @ObjectClassDefinition(
             name = "Apache Sling JCR System User Validator",
             description = "Enforces the usage of JCR system users for all user mappings being used in the 'Sling Service User Mapper Service'")
@@ -83,7 +85,11 @@ public class JcrSystemUserValidator implements ServiceUserValidator, ServicePrin
     private boolean allowOnlySystemUsers;
 
     /*
-    * We have to prevent a cycle if we are trying to login ourselves
+    * We have to prevent a cycle if we are trying to login ourselves. The main idea is that we set the
+    * cycleDetection to true for the current thread before we try to loginService('validation', null).
+    * That way, if we are asked if a user is valid and the cycleDetection is true we know we are in a
+    * cycle and have to shotcut by allowing the user. This should make it so that we use a service user
+    * to valid all service users except our own.
     */
     private final ThreadLocal<Boolean> cycleDetection = new ThreadLocal<Boolean>() {
         @Override
@@ -110,6 +116,7 @@ public class JcrSystemUserValidator implements ServiceUserValidator, ServicePrin
     @Override
     public boolean isValid(final String serviceUserId, final String serviceName, final String subServiceName) {
         if (cycleDetection.get()) {
+            // We are being asked to valid our own service user - hence, allow.
             return true;
         }
         if (serviceUserId == null) {
@@ -132,7 +139,7 @@ public class JcrSystemUserValidator implements ServiceUserValidator, ServicePrin
                      */
                     cycleDetection.set(true);
                     try {
-                        session = repository.loginService(null, null);
+                        session = repository.loginService(VALIDATION_SERVICE_USER, null);
                     } finally {
                         cycleDetection.set(false);
                     }
@@ -161,6 +168,7 @@ public class JcrSystemUserValidator implements ServiceUserValidator, ServicePrin
     @Override
     public boolean isValid(Iterable<String> servicePrincipalNames, String serviceName, String subServiceName) {
         if (cycleDetection.get()) {
+            // We are being asked to valid our own service user - hence, allow.
             return true;
         }
         if (servicePrincipalNames == null) {
@@ -186,7 +194,7 @@ public class JcrSystemUserValidator implements ServiceUserValidator, ServicePrin
                         */
                         cycleDetection.set(true);
                         try {
-                            session = repository.loginService(null, null);
+                            session = repository.loginService(VALIDATION_SERVICE_USER, null);
                         } finally {
                             cycleDetection.set(false);
                         }
