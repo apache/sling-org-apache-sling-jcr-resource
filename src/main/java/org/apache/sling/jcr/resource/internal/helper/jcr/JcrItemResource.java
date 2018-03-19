@@ -38,8 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 abstract class JcrItemResource<T extends Item> // this should be package private, see SLING-1414
-    extends AbstractResource
-    implements Resource {
+    extends AbstractResource {
 
     /**
      * default log
