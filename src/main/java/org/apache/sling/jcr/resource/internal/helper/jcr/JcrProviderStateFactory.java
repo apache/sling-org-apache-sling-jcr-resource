@@ -140,14 +140,17 @@ public class JcrProviderStateFactory {
     }
 
     private JcrProviderState createJcrProviderState(
-            @Nonnull final Session s,
+            @Nonnull final Session session,
             final boolean logoutSession,
             @Nonnull final Map<String, Object> authenticationInfo,
             @Nullable final BundleContext ctx
     ) throws LoginException {
-        final Session session = handleImpersonation(s, authenticationInfo, logoutSession);
+        final Session impersonatedSession = handleImpersonation(session, authenticationInfo, logoutSession);
+        // if we're actually impersonating, we're responsible for closing the session we've created, regardless
+        // of what the original logoutSession value was.
+        boolean doLogoutSession = logoutSession || (impersonatedSession != session);
         final HelperData data = new HelperData(this.dynamicClassLoaderManagerReference, this.uriProviderReference);
-        return new JcrProviderState(session, data, logoutSession, ctx, ctx == null ? null : repositoryReference);
+        return new JcrProviderState(impersonatedSession, data, doLogoutSession, ctx, ctx == null ? null : repositoryReference);
     }
 
     /**
