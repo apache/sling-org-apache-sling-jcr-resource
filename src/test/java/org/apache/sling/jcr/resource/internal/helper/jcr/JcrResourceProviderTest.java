@@ -62,18 +62,18 @@ public class JcrResourceProviderTest extends RepositoryTestBase {
     }
     
     public void testLeakOnSudo() throws LoginException, RepositoryException, NamingException {
-    	Repository repo = getRepository();
-    	ComponentContext ctx = Mockito.mock(ComponentContext.class);
-    	Mockito.when(ctx.locateService(Mockito.anyString(), Mockito.any(ServiceReference.class))).thenReturn(repo);
-    	jcrResourceProvider = new JcrResourceProvider();
-    	jcrResourceProvider.activate(ctx);
-    	Map<String, Object> authInfo = new HashMap<String, Object>();
-    	authInfo.put(JcrResourceConstants.AUTHENTICATION_INFO_SESSION, session);
-    	authInfo.put(ResourceResolverFactory.USER_IMPERSONATION, "anonymous");
-		JcrProviderState providerState = jcrResourceProvider.authenticate(authInfo);
-		Assert.assertNotEquals("Impersonation didn't start new session", session, providerState.getSession());
-		jcrResourceProvider.logout(providerState);
-		assertFalse("Impersonated session wasn't closed.", providerState.getSession().isLive());
+        Repository repo = getRepository();
+        ComponentContext ctx = Mockito.mock(ComponentContext.class);
+        Mockito.when(ctx.locateService(Mockito.anyString(), Mockito.any(ServiceReference.class))).thenReturn(repo);
+        jcrResourceProvider = new JcrResourceProvider();
+        jcrResourceProvider.activate(ctx);
+        Map<String, Object> authInfo = new HashMap<String, Object>();
+        authInfo.put(JcrResourceConstants.AUTHENTICATION_INFO_SESSION, session);
+        authInfo.put(ResourceResolverFactory.USER_IMPERSONATION, "anonymous");
+        JcrProviderState providerState = jcrResourceProvider.authenticate(authInfo);
+        Assert.assertNotEquals("Impersonation didn't start new session", session, providerState.getSession());
+        jcrResourceProvider.logout(providerState);
+        assertFalse("Impersonated session wasn't closed.", providerState.getSession().isLive());
     }
 }
 
