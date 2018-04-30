@@ -32,6 +32,7 @@ import org.apache.sling.api.resource.ResourceResolverFactory;
 import org.apache.sling.commons.testing.jcr.RepositoryTestBase;
 import org.apache.sling.jcr.resource.api.JcrResourceConstants;
 import org.apache.sling.spi.resource.provider.ResolveContext;
+import org.apache.sling.spi.resource.provider.ResourceProvider;
 import org.junit.Assert;
 import org.mockito.Mockito;
 import org.osgi.framework.ServiceReference;
@@ -47,26 +48,26 @@ public class JcrResourceProviderTest extends RepositoryTestBase {
         super.setUp();
         // create the session
         session = getSession();
-    }
-
-    @Override
-    protected void tearDown() throws Exception {
-        super.tearDown();
-    }
-
-    public void testAdaptTo_Principal() {
-        jcrResourceProvider = new JcrResourceProvider();
-        ResolveContext ctx = Mockito.mock(ResolveContext.class);
-        Mockito.when(ctx.getProviderState()).thenReturn(new JcrProviderState(session, null, false));
-        Assert.assertNotNull(jcrResourceProvider.adaptTo(ctx, Principal.class));
-    }
-    
-    public void testLeakOnSudo() throws LoginException, RepositoryException, NamingException {
         Repository repo = getRepository();
         ComponentContext ctx = Mockito.mock(ComponentContext.class);
         Mockito.when(ctx.locateService(Mockito.anyString(), Mockito.any(ServiceReference.class))).thenReturn(repo);
         jcrResourceProvider = new JcrResourceProvider();
         jcrResourceProvider.activate(ctx);
+    }
+
+    @Override
+    protected void tearDown() throws Exception {
+        jcrResourceProvider.deactivate();
+        super.tearDown();
+    }
+
+    public void testAdaptTo_Principal() {
+        ResolveContext ctx = Mockito.mock(ResolveContext.class);
+        Mockito.when(ctx.getProviderState()).thenReturn(new JcrProviderState(session, null, false));
+        Assert.assertNotNull(jcrResourceProvider.adaptTo(ctx, Principal.class));
+    }
+
+    public void testLeakOnSudo() throws LoginException, RepositoryException, NamingException {
         Map<String, Object> authInfo = new HashMap<String, Object>();
         authInfo.put(JcrResourceConstants.AUTHENTICATION_INFO_SESSION, session);
         authInfo.put(ResourceResolverFactory.USER_IMPERSONATION, "anonymous");
@@ -74,6 +75,15 @@ public class JcrResourceProviderTest extends RepositoryTestBase {
         Assert.assertNotEquals("Impersonation didn't start new session", session, providerState.getSession());
         jcrResourceProvider.logout(providerState);
         assertFalse("Impersonated session wasn't closed.", providerState.getSession().isLive());
+    }
+
+    public void testNoSessionSharing() throws LoginException {
+        Map<String, Object> authInfo = new HashMap<String, Object>();
+        authInfo.put(JcrResourceConstants.AUTHENTICATION_INFO_SESSION, session);
+        authInfo.put(ResourceProvider.AUTH_CLONE, true);
+        JcrProviderState providerState = jcrResourceProvider.authenticate(authInfo);
+        Assert.assertNotEquals("Cloned resolver didn't clone session.", session, providerState.getSession());
+        jcrResourceProvider.logout(providerState);
     }
 }
 
