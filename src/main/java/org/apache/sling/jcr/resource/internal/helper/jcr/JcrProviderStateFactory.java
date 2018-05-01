@@ -181,7 +181,9 @@ public class JcrProviderStateFactory {
     private static Session handleImpersonation(final Session session, final Map<String, Object> authenticationInfo,
             final boolean logoutSession, boolean explicitSessionUsed) throws LoginException {
         final String sudoUser = getSudoUser(authenticationInfo);
+        // Do we need session.impersonate() because we are asked to impersonate another user?
         boolean needsSudo = (sudoUser != null) && !session.getUserID().equals(sudoUser);
+        // Do we need session.impersonate() to get an independent copy of the session we were given in the auth info?
         boolean needsCloning = !needsSudo && explicitSessionUsed && authenticationInfo.containsKey(ResourceProvider.AUTH_CLONE);
         if (needsCloning || needsSudo) {
             // If we just need to clone the session, we impersonate with the same user ID and not set an impersonator attribute.
