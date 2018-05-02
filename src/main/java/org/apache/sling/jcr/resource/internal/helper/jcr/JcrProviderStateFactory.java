@@ -185,22 +185,22 @@ public class JcrProviderStateFactory {
         boolean needsSudo = (sudoUser != null) && !session.getUserID().equals(sudoUser);
         // Do we need session.impersonate() to get an independent copy of the session we were given in the auth info?
         boolean needsCloning = !needsSudo && explicitSessionUsed && authenticationInfo.containsKey(ResourceProvider.AUTH_CLONE);
-        if (needsCloning || needsSudo) {
-            // If we just need to clone the session, we impersonate with the same user ID and not set an impersonator attribute.
-            // In all other cases, it's a "proper" sudo to the given user.
-            try {
-                final SimpleCredentials creds = new SimpleCredentials(needsSudo ? sudoUser : session.getUserID(), new char[0]);
+        try {
+            if (needsSudo) {
+                SimpleCredentials creds = new SimpleCredentials(sudoUser, new char[0]);
                 copyAttributes(creds, authenticationInfo);
-                if (needsSudo) {
-                    creds.setAttribute(ResourceResolver.USER_IMPERSONATOR, session.getUserID());
-                }
+                creds.setAttribute(ResourceResolver.USER_IMPERSONATOR, session.getUserID());
                 return session.impersonate(creds);
-            } catch (final RepositoryException re) {
-                throw getLoginException(re);
-            } finally {
-                if (logoutSession) {
-                    session.logout();
-                }
+            } else if (needsCloning) {
+                SimpleCredentials creds = new SimpleCredentials(session.getUserID(), new char[0]);
+                copyAttributes(creds, authenticationInfo);
+                return session.impersonate(creds);
+            }
+        } catch (final RepositoryException re) {
+            throw getLoginException(re);
+        } finally {
+            if (logoutSession) {
+                session.logout();
             }
         }
         return session;
