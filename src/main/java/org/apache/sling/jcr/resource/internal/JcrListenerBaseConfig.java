@@ -130,7 +130,7 @@ public class JcrListenerBaseConfig implements Closeable {
             // nt:file handling
             filter.withNodeTypeAggregate(new String[] {"nt:file"}, new String[] {"", "jcr:content"});
 
-            // anchestor removes
+            // ancestors remove
             filter.withIncludeAncestorsRemove();
 
             ((JackrabbitObservationManager)mgr).addEventListener(listener, filter);
@@ -141,7 +141,7 @@ public class JcrListenerBaseConfig implements Closeable {
     }
 
     /**
-     * Get the event types based on the configuraiton
+     * Get the event types based on the configuration
      * @param c The configuration
      * @return The event type mask
      */
