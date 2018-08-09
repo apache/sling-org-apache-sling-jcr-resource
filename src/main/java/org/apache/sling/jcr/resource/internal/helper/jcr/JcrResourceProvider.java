@@ -30,8 +30,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 import javax.jcr.AccessDeniedException;
 import javax.jcr.Item;
 import javax.jcr.Node;
@@ -299,18 +299,18 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
      * authentication info in order to create a new resolver as needed.
      */
     @Override
-    @Nonnull public JcrProviderState authenticate(final @Nonnull Map<String, Object> authenticationInfo)
+    @NotNull public JcrProviderState authenticate(final @NotNull Map<String, Object> authenticationInfo)
     throws LoginException {
         return stateFactory.createProviderState(authenticationInfo);
     }
 
     @Override
-    public void logout(final @Nonnull JcrProviderState state) {
+    public void logout(final @NotNull JcrProviderState state) {
         state.logout();
     }
 
     @Override
-    public boolean isLive(final @Nonnull ResolveContext<JcrProviderState> ctx) {
+    public boolean isLive(final @NotNull ResolveContext<JcrProviderState> ctx) {
         return ctx.getProviderState().getSession().isLive();
     }
 
@@ -349,7 +349,7 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     }
 
     @Override
-    public @CheckForNull Resource getParent(final @Nonnull ResolveContext<JcrProviderState> ctx, final @Nonnull Resource child) {
+    public @Nullable Resource getParent(final @NotNull ResolveContext<JcrProviderState> ctx, final @NotNull Resource child) {
         if (child instanceof JcrItemResource<?>) {
             try {
                 String version = null;
@@ -380,7 +380,7 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     }
 
     @Override
-    public Collection<String> getAttributeNames(final @Nonnull ResolveContext<JcrProviderState> ctx) {
+    public Collection<String> getAttributeNames(final @NotNull ResolveContext<JcrProviderState> ctx) {
         final Set<String> names = new HashSet<String>();
         final String[] sessionNames = ctx.getProviderState().getSession().getAttributeNames();
         for(final String name : sessionNames) {
@@ -392,7 +392,7 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     }
 
     @Override
-    public Object getAttribute(final @Nonnull ResolveContext<JcrProviderState> ctx, final @Nonnull String name) {
+    public Object getAttribute(final @NotNull ResolveContext<JcrProviderState> ctx, final @NotNull String name) {
         if (isAttributeVisible(name)) {
             if (ResourceResolverFactory.USER.equals(name)) {
                 return ctx.getProviderState().getSession().getUserID();
@@ -403,7 +403,7 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     }
 
     @Override
-    public Resource create(final @Nonnull ResolveContext<JcrProviderState> ctx, final String path, final Map<String, Object> properties)
+    public Resource create(final @NotNull ResolveContext<JcrProviderState> ctx, final String path, final Map<String, Object> properties)
     throws PersistenceException {
         // check for node type
         final Object nodeObj = (properties != null ? properties.get(NodeUtil.NODE_TYPE) : null);
@@ -482,7 +482,7 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     }
 
     @Override
-    public void delete(final @Nonnull ResolveContext<JcrProviderState> ctx, final @Nonnull Resource resource)
+    public void delete(final @NotNull ResolveContext<JcrProviderState> ctx, final @NotNull Resource resource)
     throws PersistenceException {
         // try to adapt to Item
         Item item = resource.adaptTo(Item.class);
@@ -502,7 +502,7 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     }
 
     @Override
-    public void revert(final @Nonnull ResolveContext<JcrProviderState> ctx) {
+    public void revert(final @NotNull ResolveContext<JcrProviderState> ctx) {
         try {
             ctx.getProviderState().getSession().refresh(false);
         } catch (final RepositoryException ignore) {
@@ -511,7 +511,7 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     }
 
     @Override
-    public void commit(final @Nonnull ResolveContext<JcrProviderState> ctx)
+    public void commit(final @NotNull ResolveContext<JcrProviderState> ctx)
     throws PersistenceException {
         try {
             ctx.getProviderState().getSession().save();
@@ -521,7 +521,7 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     }
 
     @Override
-    public boolean hasChanges(final @Nonnull ResolveContext<JcrProviderState> ctx) {
+    public boolean hasChanges(final @NotNull ResolveContext<JcrProviderState> ctx) {
         try {
             return ctx.getProviderState().getSession().hasPendingChanges();
         } catch (final RepositoryException ignore) {
@@ -531,7 +531,7 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     }
 
     @Override
-    public void refresh(final @Nonnull ResolveContext<JcrProviderState> ctx) {
+    public void refresh(final @NotNull ResolveContext<JcrProviderState> ctx) {
         try {
             ctx.getProviderState().getSession().refresh(true);
         } catch (final RepositoryException ignore) {
@@ -541,8 +541,8 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
 
     @SuppressWarnings("unchecked")
     @Override
-    public @CheckForNull <AdapterType> AdapterType adaptTo(final @Nonnull ResolveContext<JcrProviderState> ctx,
-            final @Nonnull Class<AdapterType> type) {
+    public @Nullable <AdapterType> AdapterType adaptTo(final @NotNull ResolveContext<JcrProviderState> ctx,
+            final @NotNull Class<AdapterType> type) {
         Session session = ctx.getProviderState().getSession();
         if (type == Session.class) {
             return (AdapterType) session;
@@ -567,14 +567,14 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     }
 
     @Override
-    public boolean copy(final  @Nonnull ResolveContext<JcrProviderState> ctx,
+    public boolean copy(final  @NotNull ResolveContext<JcrProviderState> ctx,
             final String srcAbsPath,
             final String destAbsPath) throws PersistenceException {
         return false;
     }
 
     @Override
-    public boolean move(final  @Nonnull ResolveContext<JcrProviderState> ctx,
+    public boolean move(final  @NotNull ResolveContext<JcrProviderState> ctx,
             final String srcAbsPath,
             final String destAbsPath) throws PersistenceException {
         final String srcNodePath = srcAbsPath;
@@ -588,7 +588,7 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     }
 
     @Override
-    public @CheckForNull QueryLanguageProvider<JcrProviderState> getQueryLanguageProvider() {
+    public @Nullable QueryLanguageProvider<JcrProviderState> getQueryLanguageProvider() {
         final ProviderContext ctx = this.getProviderContext();
         if ( ctx != null ) {
             return new BasicQueryLanguageProvider(ctx);

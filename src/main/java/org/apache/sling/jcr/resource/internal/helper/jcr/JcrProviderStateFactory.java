@@ -24,9 +24,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.jcr.Credentials;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
@@ -41,6 +38,8 @@ import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.api.JcrResourceConstants;
 import org.apache.sling.jcr.resource.internal.HelperData;
 import org.apache.sling.spi.resource.provider.ResourceProvider;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
@@ -71,8 +70,8 @@ public class JcrProviderStateFactory {
     /** Get the calling Bundle from auth info, fail if not provided
      *  @throws LoginException if no calling bundle info provided
      */
-    @CheckForNull
-    private Bundle extractCallingBundle(@Nonnull Map<String, Object> authenticationInfo) throws LoginException {
+    @Nullable
+    private Bundle extractCallingBundle(@NotNull Map<String, Object> authenticationInfo) throws LoginException {
         final Object obj = authenticationInfo.get(ResourceProvider.AUTH_SERVICE_BUNDLE);
         if(obj != null && !(obj instanceof Bundle)) {
             throw new LoginException("Invalid calling bundle object in authentication info");
@@ -81,7 +80,7 @@ public class JcrProviderStateFactory {
     }
 
     @SuppressWarnings("deprecation")
-    JcrProviderState createProviderState(final @Nonnull Map<String, Object> authenticationInfo) throws LoginException {
+    JcrProviderState createProviderState(final @NotNull Map<String, Object> authenticationInfo) throws LoginException {
         boolean isLoginAdministrative = Boolean.TRUE.equals(authenticationInfo.get(ResourceProvider.AUTH_ADMIN));
 
         // check whether a session is provided in the authenticationInfo
@@ -140,9 +139,9 @@ public class JcrProviderStateFactory {
     }
 
     private JcrProviderState createJcrProviderState(
-            @Nonnull final Session session,
+            @NotNull final Session session,
             final boolean logoutSession,
-            @Nonnull final Map<String, Object> authenticationInfo,
+            @NotNull final Map<String, Object> authenticationInfo,
             @Nullable final BundleContext ctx
     ) throws LoginException {
         final Session impersonatedSession = handleImpersonation(session, authenticationInfo, logoutSession);
