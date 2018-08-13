@@ -210,7 +210,7 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- Findbugs annotations -->
+        <!-- Nullability annotations -->
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
