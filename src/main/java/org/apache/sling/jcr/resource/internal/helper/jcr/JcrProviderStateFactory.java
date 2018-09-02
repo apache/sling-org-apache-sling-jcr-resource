@@ -144,7 +144,12 @@ public class JcrProviderStateFactory {
             @NotNull final Map<String, Object> authenticationInfo,
             @Nullable final BundleContext ctx
     ) throws LoginException {
-        final Session impersonatedSession = handleImpersonation(session, authenticationInfo, logoutSession);
+        boolean explicitSessionUsed = (getSession(authenticationInfo) != null);
+        final Session impersonatedSession = handleImpersonation(session, authenticationInfo, logoutSession, explicitSessionUsed);
+        if (impersonatedSession != session && explicitSessionUsed) {
+            // update the session in the auth info map in case the resolver gets cloned in the future
+            authenticationInfo.put(JcrResourceConstants.AUTHENTICATION_INFO_SESSION, impersonatedSession);
+        }
         // if we're actually impersonating, we're responsible for closing the session we've created, regardless
         // of what the original logoutSession value was.
         boolean doLogoutSession = logoutSession || (impersonatedSession != session);
@@ -166,25 +171,35 @@ public class JcrProviderStateFactory {
      * @param logoutSession
      *            whether to logout the <code>session</code> after impersonation
      *            or not.
+     * @param explicitSessionUsed
+     *            whether the JCR session was explicitly given in the auth info or not.
      * @return The original session or impersonated session.
      * @throws LoginException
      *             If something goes wrong.
      */
     private static Session handleImpersonation(final Session session, final Map<String, Object> authenticationInfo,
-            final boolean logoutSession) throws LoginException {
+            final boolean logoutSession, boolean explicitSessionUsed) throws LoginException {
         final String sudoUser = getSudoUser(authenticationInfo);
-        if (sudoUser != null && !session.getUserID().equals(sudoUser)) {
-            try {
-                final SimpleCredentials creds = new SimpleCredentials(sudoUser, new char[0]);
+        // Do we need session.impersonate() because we are asked to impersonate another user?
+        boolean needsSudo = (sudoUser != null) && !session.getUserID().equals(sudoUser);
+        // Do we need session.impersonate() to get an independent copy of the session we were given in the auth info?
+        boolean needsCloning = !needsSudo && explicitSessionUsed && authenticationInfo.containsKey(ResourceProvider.AUTH_CLONE);
+        try {
+            if (needsSudo) {
+                SimpleCredentials creds = new SimpleCredentials(sudoUser, new char[0]);
                 copyAttributes(creds, authenticationInfo);
                 creds.setAttribute(ResourceResolver.USER_IMPERSONATOR, session.getUserID());
                 return session.impersonate(creds);
-            } catch (final RepositoryException re) {
-                throw getLoginException(re);
-            } finally {
-                if (logoutSession) {
-                    session.logout();
-                }
+            } else if (needsCloning) {
+                SimpleCredentials creds = new SimpleCredentials(session.getUserID(), new char[0]);
+                copyAttributes(creds, authenticationInfo);
+                return session.impersonate(creds);
+            }
+        } catch (final RepositoryException re) {
+            throw getLoginException(re);
+        } finally {
+            if (logoutSession) {
+                session.logout();
             }
         }
         return session;
