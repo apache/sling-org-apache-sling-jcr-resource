@@ -184,13 +184,18 @@ public class JcrProviderStateFactory {
         boolean needsSudo = (sudoUser != null) && !session.getUserID().equals(sudoUser);
         // Do we need session.impersonate() to get an independent copy of the session we were given in the auth info?
         boolean needsCloning = !needsSudo && explicitSessionUsed && authenticationInfo.containsKey(ResourceProvider.AUTH_CLONE);
+        if (!needsSudo && !needsCloning) {
+            // Nothing to do, but we need to make sure not to enter the try-finally below because it could close the session.
+            return session;
+        }
         try {
             if (needsSudo) {
                 SimpleCredentials creds = new SimpleCredentials(sudoUser, new char[0]);
                 copyAttributes(creds, authenticationInfo);
                 creds.setAttribute(ResourceResolver.USER_IMPERSONATOR, session.getUserID());
                 return session.impersonate(creds);
-            } else if (needsCloning) {
+            } else {
+                assert needsCloning;
                 SimpleCredentials creds = new SimpleCredentials(session.getUserID(), new char[0]);
                 copyAttributes(creds, authenticationInfo);
                 return session.impersonate(creds);
@@ -202,7 +207,6 @@ public class JcrProviderStateFactory {
                 session.logout();
             }
         }
-        return session;
     }
 
     /**
