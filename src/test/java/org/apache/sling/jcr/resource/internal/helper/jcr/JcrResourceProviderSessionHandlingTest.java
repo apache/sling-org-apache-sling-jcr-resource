@@ -36,7 +36,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.jcr.Credentials;
+import javax.jcr.LoginException;
+import javax.jcr.NoSuchWorkspaceException;
+import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.Value;
 
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ResourceResolverFactory;
@@ -52,14 +57,17 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
+import org.mockito.Matchers;
 import org.mockito.Mockito;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
 
 @RunWith(Parameterized.class)
 public class JcrResourceProviderSessionHandlingTest {
 
-    private enum LoginStyle {USER, SESSION};
+    private enum LoginStyle {USER, SESSION, SERVICE};
 
     private static final String AUTH_USER = "admin";
     private static final char[] AUTH_PASSWORD = "admin".toCharArray();
@@ -103,9 +111,91 @@ public class JcrResourceProviderSessionHandlingTest {
     private JcrResourceProvider jcrResourceProvider;
     private JcrProviderState jcrProviderState;
 
+    private static class SlingRepositoryWithDummyServiceUsers implements SlingRepository {
+        private final SlingRepository wrapped;
+        
+        SlingRepositoryWithDummyServiceUsers(SlingRepository wrapped) {
+            this.wrapped = wrapped;
+        }
+        
+        @SuppressWarnings("deprecation")
+        @Override
+        public Session loginService(String subServiceName, String workspace)
+                throws LoginException, RepositoryException {
+            // just fake service logins by doing administrative logins instead
+            return wrapped.loginAdministrative(workspace);
+        }
+
+        // the rest of the methods just delegate to wrapped
+
+        @Override
+        public String[] getDescriptorKeys() {
+            return wrapped.getDescriptorKeys();
+        }
+
+        @Override
+        public boolean isStandardDescriptor(String key) {
+            return wrapped.isStandardDescriptor(key);
+        }
+
+        @Override
+        public boolean isSingleValueDescriptor(String key) {
+            return wrapped.isSingleValueDescriptor(key);
+        }
+
+        @Override
+        public Value getDescriptorValue(String key) {
+            return wrapped.getDescriptorValue(key);
+        }
+
+        @Override
+        public Value[] getDescriptorValues(String key) {
+            return wrapped.getDescriptorValues(key);
+        }
+
+        @Override
+        public String getDescriptor(String key) {
+            return wrapped.getDescriptor(key);
+        }
+
+        @Override
+        public Session login(Credentials credentials, String workspaceName)
+                throws LoginException, NoSuchWorkspaceException, RepositoryException {
+            return wrapped.login(credentials, workspaceName);
+        }
+
+        @Override
+        public Session login(Credentials credentials) throws LoginException, RepositoryException {
+            return wrapped.login(credentials);
+        }
+
+        @Override
+        public Session login(String workspaceName)
+                throws LoginException, NoSuchWorkspaceException, RepositoryException {
+            return wrapped.login(workspaceName);
+        }
+
+        @Override
+        public Session login() throws LoginException, RepositoryException {
+            return wrapped.login();
+        }
+
+        @Override
+        public String getDefaultWorkspace() {
+            return wrapped.getDefaultWorkspace();
+        }
+
+        @SuppressWarnings("deprecation")
+        @Override
+        public Session loginAdministrative(String workspace) throws LoginException, RepositoryException {
+            return wrapped.loginAdministrative(workspace);
+        }
+        
+    }
+
     @Before
     public void setUp() throws Exception {
-        SlingRepository repo = RepositoryProvider.instance().getRepository();
+        final SlingRepository repo = new SlingRepositoryWithDummyServiceUsers(RepositoryProvider.instance().getRepository());
         Map<String, Object> authInfo = new HashMap<>();
         switch (loginStyle) {
         case USER:
@@ -116,6 +206,13 @@ public class JcrResourceProviderSessionHandlingTest {
             explicitSession = repo.loginAdministrative(null);
             authInfo.put(JcrResourceConstants.AUTHENTICATION_INFO_SESSION, explicitSession);
             break;
+        case SERVICE:
+            Bundle mockBundle = mock(Bundle.class);
+            BundleContext mockBundleContext = mock(BundleContext.class);
+            when(mockBundle.getBundleContext()).thenReturn(mockBundleContext);
+            when(mockBundleContext.getService(Matchers.<ServiceReference<Object>>any())).thenReturn(repo);
+            authInfo.put(ResourceResolverFactory.SUBSERVICE, "dummy-service");
+            authInfo.put(ResourceProvider.AUTH_SERVICE_BUNDLE, mockBundle);
         }
 
         if (useSudo) {
@@ -148,6 +245,11 @@ public class JcrResourceProviderSessionHandlingTest {
         if (explicitSession != null) {
             explicitSession.logout();
         }
+    }
+
+    @Test
+    public void returnedSessionIsLive() {
+        assertTrue(jcrProviderState.getSession().isLive());
     }
 
     @Test
