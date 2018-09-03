@@ -107,6 +107,11 @@ public class JcrResourceProviderSessionHandlingTest {
 
     // Session we're using when loginStyle == SESSION, null otherwise.
     private Session explicitSession;
+    // TransientRepository has a bug that makes it ignore sessions created
+    // by calling Session.impersonate(). To prevent the repo from closing
+    // prematurely, have this dummy session open during the whole lifetime
+    // of the test.
+    private Session footInDoor;
 
     private JcrResourceProvider jcrResourceProvider;
     private JcrProviderState jcrProviderState;
@@ -196,6 +201,9 @@ public class JcrResourceProviderSessionHandlingTest {
     @Before
     public void setUp() throws Exception {
         final SlingRepository repo = new SlingRepositoryWithDummyServiceUsers(RepositoryProvider.instance().getRepository());
+
+        footInDoor = repo.loginAdministrative(null);
+
         Map<String, Object> authInfo = new HashMap<>();
         switch (loginStyle) {
         case USER:
@@ -246,6 +254,8 @@ public class JcrResourceProviderSessionHandlingTest {
         if (explicitSession != null) {
             explicitSession.logout();
         }
+
+        footInDoor.logout();
     }
 
     @Test
