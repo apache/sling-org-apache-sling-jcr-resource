@@ -213,6 +213,7 @@ public class JcrResourceProviderSessionHandlingTest {
             when(mockBundleContext.getService(Matchers.<ServiceReference<Object>>any())).thenReturn(repo);
             authInfo.put(ResourceResolverFactory.SUBSERVICE, "dummy-service");
             authInfo.put(ResourceProvider.AUTH_SERVICE_BUNDLE, mockBundle);
+            break;
         }
 
         if (useSudo) {
