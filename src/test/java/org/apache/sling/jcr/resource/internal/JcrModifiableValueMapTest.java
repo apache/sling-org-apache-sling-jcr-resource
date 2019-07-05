@@ -25,6 +25,8 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -33,6 +35,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.jcr.Node;
@@ -72,7 +75,7 @@ public class JcrModifiableValueMapTest extends RepositoryTestBase {
         }
         getSession().save();
     }
-    
+
     private void setProperty(final Node node,
             final String propertyName,
             final Object propertyValue)
@@ -91,7 +94,7 @@ public class JcrModifiableValueMapTest extends RepositoryTestBase {
             node.setProperty(propertyName, createValue(propertyValue, node.getSession()));
         }
     }
-    
+
     Value createValue(final Object value, final Session session)
             throws RepositoryException {
                 Value val;
@@ -396,6 +399,54 @@ public class JcrModifiableValueMapTest extends RepositoryTestBase {
         // read properties
         assertEqualsCalendar(calendarValue1, testNode.getProperty(PROP1).getDate());
         assertEqualsCalendar(calendarValue3, testNode.getProperty(PROP3).getDate());
+
+    }
+
+    /**
+     * Test conversions involving ZonedDateTime
+     */
+    public void testZonedDateTimeConversions() throws Exception {
+        this.rootNode.getSession().refresh(false);
+
+        String dateAsIso8601 = "2019-07-04T14:05:37.123+02:00";
+        ZonedDateTime zonedDateTime = ZonedDateTime.parse(dateAsIso8601, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone(zonedDateTime.getOffset()));
+        calendar.setTimeInMillis(zonedDateTime.toInstant().toEpochMilli());
+
+        // write property
+        final Node testNode = this.rootNode.addNode("dateConversionTest" + System.currentTimeMillis());
+        testNode.setProperty(PROP1, calendar);
+        testNode.getSession().save();
+
+        // write with property map
+        final ModifiableValueMap pvm = new JcrModifiableValueMap(testNode, getHelperData());
+        pvm.put(PROP2, zonedDateTime);
+        pvm.put(PROP3, dateAsIso8601);
+        getSession().save();
+
+        // read with property map
+        final ValueMap vm = new JcrModifiableValueMap(testNode, getHelperData());
+
+        // check types
+        assertTrue(vm.get(PROP1) instanceof Calendar);
+        assertTrue(vm.get(PROP2) instanceof Calendar);
+        assertTrue(vm.get(PROP3) instanceof String);
+
+        // to ZonedDateTime
+        assertEquals(zonedDateTime, vm.get(PROP1, ZonedDateTime.class)); // from Calendar
+        assertEquals(zonedDateTime, vm.get(PROP2, ZonedDateTime.class)); // from ZonedDateTime
+        assertEquals(zonedDateTime, vm.get(PROP3, ZonedDateTime.class)); // from ISO-8601 String
+
+        // from ZonedDateTime
+        assertEqualsCalendar(calendar, vm.get(PROP2, Calendar.class)); // to Calendar
+        assertEquals(calendar.getTime(), vm.get(PROP2, Date.class));   // to Date
+        assertEquals(dateAsIso8601, vm.get(PROP2, String.class));      // to String
+
+
+        // read properties
+        assertEqualsCalendar(calendar, testNode.getProperty(PROP1).getDate());
+        assertEqualsCalendar(calendar, testNode.getProperty(PROP2).getDate());
+        assertEqualsCalendar(calendar, testNode.getProperty(PROP3).getDate());
 
     }
 

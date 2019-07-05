@@ -20,6 +20,7 @@ package org.apache.sling.jcr.resource.internal.helper;
 
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.time.ZonedDateTime;
 import java.util.Calendar;
 
 import javax.jcr.Node;
@@ -146,7 +147,9 @@ public class JcrResourceUtil {
     throws RepositoryException {
         Value val;
         ValueFactory fac = session.getValueFactory();
-        if(value instanceof Calendar) {
+        if(value instanceof ZonedDateTime) {
+            val = fac.createValue(new ZonedDateTimeConverter((ZonedDateTime)value).toCalendar());
+        } else if(value instanceof Calendar) {
             val = fac.createValue((Calendar)value);
         } else if (value instanceof InputStream) {
             val = fac.createValue(fac.createBinary((InputStream)value));

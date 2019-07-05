@@ -18,6 +18,7 @@
  */
 package org.apache.sling.jcr.resource.internal.helper;
 
+import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -33,6 +34,11 @@ public class DateConverter extends NumberConverter implements Converter {
     public DateConverter(final Date val) {
         super(val.getTime());
         this.value = val;
+    }
+
+    @Override
+    public ZonedDateTime toZonedDateTime() {
+        return new CalendarConverter(toCalendar()).toZonedDateTime();
     }
 
     /**

@@ -26,6 +26,7 @@ import java.io.ObjectStreamClass;
 import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -381,6 +382,10 @@ public class JcrPropertyMapCacheEntry {
         } else if (Calendar.class == type) {
             return (T) getConverter(value).toCalendar();
 
+        } else if (ZonedDateTime.class == type) {
+            Calendar calendar = getConverter(value).toCalendar();
+            return (T) ZonedDateTime.ofInstant(calendar.toInstant(), calendar.getTimeZone().toZoneId().normalized());
+
         } else if (Value.class == type) {
             return (T) this.createValue(value, node);
 
@@ -407,6 +412,8 @@ public class JcrPropertyMapCacheEntry {
             return new DateConverter((Date)value);
         } else if ( value instanceof Calendar ) {
             return new CalendarConverter((Calendar)value);
+        } else if ( value instanceof ZonedDateTime ) {
+            return new ZonedDateTimeConverter((ZonedDateTime)value);
         }
         // default string based
         return new StringConverter(value);

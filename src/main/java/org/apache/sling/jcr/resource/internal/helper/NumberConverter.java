@@ -19,6 +19,7 @@
 package org.apache.sling.jcr.resource.internal.helper;
 
 import java.math.BigDecimal;
+import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -81,6 +82,11 @@ public class NumberConverter implements Converter {
      */
     public Float toFloat() {
         return this.value.floatValue();
+    }
+
+    @Override
+    public ZonedDateTime toZonedDateTime() {
+        return new CalendarConverter(toCalendar()).toZonedDateTime();
     }
 
     /**

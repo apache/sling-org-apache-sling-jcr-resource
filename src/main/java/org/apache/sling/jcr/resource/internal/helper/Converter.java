@@ -20,6 +20,7 @@ package org.apache.sling.jcr.resource.internal.helper;
 
 
 import java.math.BigDecimal;
+import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -70,6 +71,13 @@ public interface Converter {
      * @throws NumberFormatException if the conversion fails
      */
     Float toFloat();
+
+    /**
+     * Convert to ZonedDateTime.
+     * @return Calendar representation of the converted value
+     * @throws IllegalArgumentException  if the value cannot be parsed into a calendar
+     */
+    ZonedDateTime toZonedDateTime();
 
     /**
      * Convert to Calendar.
