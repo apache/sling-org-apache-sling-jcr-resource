@@ -47,6 +47,7 @@
         <site.javadoc.exclude>**.internal.**</site.javadoc.exclude>
         <oak.version>1.5.15</oak.version>
         <jackrabbit.version>2.13.4</jackrabbit.version>
+        <sling.java.version>8</sling.java.version>
     </properties>
 
     <build>
