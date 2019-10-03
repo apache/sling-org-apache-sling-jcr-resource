@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.NotNull;
 import javax.jcr.AccessDeniedException;
@@ -357,18 +358,11 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
                     version = child.getResourceMetadata().getParameterMap().get("v");
                 }
                 if (version == null) {
-                    Item item = ((JcrItemResource<?>) child).getItem();
-                    if ("/".equals(item.getPath())) {
+                    Node parentNode = ((JcrItemResource)child).getParentNode();
+                    if (parentNode == null) {
                         return null;
                     }
-                    Node parentNode;
-                    try {
-                        parentNode = item.getParent();
-                    } catch(AccessDeniedException e) {
-                        return null;
-                    }
-                    String parentPath = ResourceUtil.getParent(child.getPath());
-                    return new JcrNodeResource(ctx.getResourceResolver(), parentPath, version, parentNode,
+                    return new JcrNodeResource(ctx.getResourceResolver(), parentNode.getPath(), null, parentNode,
                             ctx.getProviderState().getHelperData());
                 }
             } catch (RepositoryException e) {

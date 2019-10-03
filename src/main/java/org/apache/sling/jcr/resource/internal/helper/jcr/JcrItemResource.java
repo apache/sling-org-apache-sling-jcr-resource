@@ -28,12 +28,16 @@ import javax.jcr.PropertyType;
 import javax.jcr.RepositoryException;
 import javax.jcr.ValueFormatException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.jackrabbit.JcrConstants;
+import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.sling.api.resource.AbstractResource;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceMetadata;
 import org.apache.sling.api.resource.ResourceResolver;
+import org.apache.sling.api.resource.ResourceUtil;
 import org.apache.sling.jcr.resource.api.JcrResourceConstants;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -133,6 +137,21 @@ abstract class JcrItemResource<T extends Item> // this should be package private
         }
 
         return result;
+    }
+
+    /**
+     * @return Parent node or null if not existing or root
+     */
+    public @Nullable Node getParentNode() {
+        String parentPath = ResourceUtil.getParent(getPath());
+        if (StringUtils.isNotBlank(parentPath)) {
+            try {
+                return (Node)((JackrabbitSession)item.getSession()).getItemOrNull(parentPath);
+            } catch (RepositoryException e) {
+                LOGGER.error("Unable to fetch {}", parentPath);
+            }
+        }
+        return null;
     }
 
     public static long getContentLength(final Property property) throws RepositoryException {
