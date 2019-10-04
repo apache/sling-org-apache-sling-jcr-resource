@@ -47,9 +47,12 @@ public class JcrItemResourceFactory {
 
     private final HelperData helper;
 
-    public JcrItemResourceFactory(Session session, HelperData helper) {
+    private final boolean isJackrabbit;
+
+    public JcrItemResourceFactory(final Session session, final HelperData helper) {
         this.helper = helper;
         this.session = session;
+        this.isJackrabbit = session instanceof JackrabbitSession;
     }
 
     /**
@@ -180,7 +183,7 @@ public class JcrItemResourceFactory {
         Item item = null;
         try {
          // Use fast getItemOrNull if session is a JackrabbitSession
-            if (session instanceof JackrabbitSession) {
+            if (this.isJackrabbit) {
                 item = ((JackrabbitSession) session).getItemOrNull(path);
             }
             // Fallback to slower itemExists & getItem pattern
