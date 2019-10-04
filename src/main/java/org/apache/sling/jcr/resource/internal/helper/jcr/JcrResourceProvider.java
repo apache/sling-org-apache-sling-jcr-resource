@@ -32,7 +32,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.NotNull;
-import javax.jcr.AccessDeniedException;
 import javax.jcr.Item;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -357,19 +356,17 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
                     version = child.getResourceMetadata().getParameterMap().get("v");
                 }
                 if (version == null) {
-                    Item item = ((JcrItemResource<?>) child).getItem();
-                    if ("/".equals(item.getPath())) {
-                        return null;
-                    }
-                    Node parentNode;
-                    try {
-                        parentNode = item.getParent();
-                    } catch(AccessDeniedException e) {
-                        return null;
-                    }
                     String parentPath = ResourceUtil.getParent(child.getPath());
-                    return new JcrNodeResource(ctx.getResourceResolver(), parentPath, version, parentNode,
-                            ctx.getProviderState().getHelperData());
+                    if (parentPath != null) {
+                        Item parentItem = ctx.getProviderState().getResourceFactory()
+                            .getItemOrNull(parentPath);
+                        if (parentItem != null && parentItem.isNode()) {
+                            return new JcrNodeResource(ctx.getResourceResolver(),
+                                parentPath, null, (Node)parentItem,
+                                ctx.getProviderState().getHelperData());
+                        }
+                    }
+                    return null;
                 }
             } catch (RepositoryException e) {
                 logger.warn("Can't get parent for {}", child, e);
