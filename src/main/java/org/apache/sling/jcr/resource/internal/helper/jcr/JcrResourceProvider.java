@@ -358,11 +358,11 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
                 if (version == null) {
                     String parentPath = ResourceUtil.getParent(child.getPath());
                     if (parentPath != null) {
-                        Node parentNode = (Node) ctx.getProviderState().getResourceFactory()
+                        Item parentItem = ctx.getProviderState().getResourceFactory()
                             .getItemOrNull(parentPath);
-                        if (parentNode != null) {
+                        if (parentItem != null && parentItem.isNode()) {
                             return new JcrNodeResource(ctx.getResourceResolver(),
-                                parentNode.getPath(), null, parentNode,
+                                parentPath, null, (Node)parentItem,
                                 ctx.getProviderState().getHelperData());
                         }
                     }
