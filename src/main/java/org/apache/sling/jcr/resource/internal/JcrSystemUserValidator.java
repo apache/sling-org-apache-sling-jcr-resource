@@ -18,13 +18,19 @@ package org.apache.sling.jcr.resource.internal;
 
 import java.lang.reflect.Method;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.security.auth.login.FailedLoginException;
 
+import org.apache.felix.hc.api.FormattingResultLog;
+import org.apache.felix.hc.api.HealthCheck;
+import org.apache.felix.hc.api.Result;
 import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.User;
@@ -52,11 +58,13 @@ import org.slf4j.LoggerFactory;
  * @see org.apache.jackrabbit.api.security.user.User#isSystemUser()
  */
 @Designate(ocd = JcrSystemUserValidator.Config.class)
-@Component(service = {ServiceUserValidator.class, ServicePrincipalsValidator.class},
+@Component(service = {ServiceUserValidator.class, ServicePrincipalsValidator.class, HealthCheck.class},
            property = {
-                   Constants.SERVICE_VENDOR + "=The Apache Software Foundation"
+                   Constants.SERVICE_VENDOR + "=The Apache Software Foundation",
+                   "hc.name=JCR SystemUser Validator Healthcheck",
+                   "hc.tags={system,jcr}"
            })
-public class JcrSystemUserValidator implements ServiceUserValidator, ServicePrincipalsValidator {
+public class JcrSystemUserValidator implements ServiceUserValidator, ServicePrincipalsValidator, HealthCheck {
 
     public static final String VALIDATION_SERVICE_USER = "validation";
 
@@ -81,6 +89,7 @@ public class JcrSystemUserValidator implements ServiceUserValidator, ServicePrin
 
     private final Set<String> validIds = new CopyOnWriteArraySet<String>();
     private final Set<String> validPrincipalNames = new CopyOnWriteArraySet<String>();
+    private final Set<String> failedPrincipalNames = new CopyOnWriteArraySet<>();
 
     private boolean allowOnlySystemUsers;
 
@@ -160,6 +169,7 @@ public class JcrSystemUserValidator implements ServiceUserValidator, ServicePrin
                     session.logout();
                 }
             }
+            markServiceUserIdAsFailing(serviceUserId);
             log.warn("The provided service user id '{}' is not a known JCR system user id and therefore not allowed in the Sling Service User Mapper.", serviceUserId);
             return false;
         }
@@ -218,6 +228,7 @@ public class JcrSystemUserValidator implements ServiceUserValidator, ServicePrin
                     } else {
                         log.warn("The provided service principal name '{}' is not a known JCR system user id and therefore not allowed in the Sling Service User Mapper.", pName);
                         invalid.add(pName);
+                        markServiceUserIdAsFailing(pName);
                     }
                 }
             }
@@ -254,5 +265,25 @@ public class JcrSystemUserValidator implements ServiceUserValidator, ServicePrin
             log.debug("Exception while invoking isDisabled method", e);
         }
         return false;
+    }
+    
+    protected void markServiceUserIdAsFailing(String serviceUserId) {
+        failedPrincipalNames.add(serviceUserId);
+    }
+
+    @Override
+    public Result execute() {
+        FormattingResultLog hclog = new FormattingResultLog();
+        failedPrincipalNames.forEach(serviceUserId -> {
+            if (validPrincipalNames.contains(serviceUserId)) {
+                hclog.warn("ServiceUser {} failed at least once, but is available right now", serviceUserId);
+            } else {
+                hclog.critical("ServiceUser {} not present in the system", serviceUserId);
+            }
+        });
+        if (failedPrincipalNames.isEmpty()) {
+            hclog.info("All validations ok");
+        }
+        return new Result(hclog);
     }
 }
