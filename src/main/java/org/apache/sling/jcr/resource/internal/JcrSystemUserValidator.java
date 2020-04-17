@@ -18,15 +18,12 @@ package org.apache.sling.jcr.resource.internal;
 
 import java.lang.reflect.Method;
 import java.security.Principal;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.security.auth.login.FailedLoginException;
 
 import org.apache.felix.hc.api.FormattingResultLog;
 import org.apache.felix.hc.api.HealthCheck;
