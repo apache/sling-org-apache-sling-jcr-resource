@@ -20,6 +20,8 @@ import static org.apache.jackrabbit.JcrConstants.JCR_CONTENT;
 import static org.apache.jackrabbit.JcrConstants.JCR_DATA;
 import static org.apache.jackrabbit.JcrConstants.NT_FILE;
 import static org.apache.jackrabbit.JcrConstants.NT_LINKEDFILE;
+import static javax.jcr.nodetype.NodeType.NT_FROZEN_NODE;
+import static javax.jcr.Property.JCR_FROZEN_PRIMARY_TYPE;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -182,7 +184,9 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
             try {
                 // find the content node: for nt:file it is jcr:content
                 // otherwise it is the node of this resource
-                Node content = node.isNodeType(NT_FILE)
+                Node content = (node.isNodeType(NT_FILE) ||
+                                (node.isNodeType(NT_FROZEN_NODE) &&
+                                 node.getProperty(JCR_FROZEN_PRIMARY_TYPE).getString().equals(NT_FILE)))
                         ? node.getNode(JCR_CONTENT)
                         : node.isNodeType(NT_LINKEDFILE) ? node.getProperty(JCR_CONTENT).getNode() : node;
 

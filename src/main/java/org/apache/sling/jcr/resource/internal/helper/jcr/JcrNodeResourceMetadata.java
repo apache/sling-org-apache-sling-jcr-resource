@@ -25,6 +25,8 @@ import static org.apache.jackrabbit.JcrConstants.JCR_ENCODING;
 import static org.apache.jackrabbit.JcrConstants.JCR_LASTMODIFIED;
 import static org.apache.jackrabbit.JcrConstants.JCR_MIMETYPE;
 import static org.apache.jackrabbit.JcrConstants.NT_FILE;
+import static javax.jcr.nodetype.NodeType.NT_FROZEN_NODE;
+import static javax.jcr.Property.JCR_FROZEN_PRIMARY_TYPE;
 
 import java.util.Collection;
 import java.util.Map;
@@ -60,7 +62,10 @@ class JcrNodeResourceMetadata extends ResourceMetadata {
     private Node promoteNode() {
         // check stuff for nt:file nodes
         try {
-            if ( (!nodePromotionChecked) && node.isNodeType(NT_FILE)) {
+            if ( (!nodePromotionChecked) &&
+                    (node.isNodeType(NT_FILE) ||
+                     (node.isNodeType(NT_FROZEN_NODE) &&
+                      node.getProperty(JCR_FROZEN_PRIMARY_TYPE).getString().equals(NT_FILE)))) {
                 creationTime = node.getProperty(JCR_CREATED).getLong();
 
                 // continue our stuff with the jcr:content node
