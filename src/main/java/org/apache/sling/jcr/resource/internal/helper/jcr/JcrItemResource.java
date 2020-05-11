@@ -18,7 +18,7 @@
  */
 package org.apache.sling.jcr.resource.internal.helper.jcr;
 
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
 import javax.jcr.Item;
@@ -28,7 +28,6 @@ import javax.jcr.PropertyType;
 import javax.jcr.RepositoryException;
 import javax.jcr.ValueFormatException;
 
-import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.resource.AbstractResource;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceMetadata;
@@ -125,8 +124,8 @@ abstract class JcrItemResource<T extends Item> // this should be package private
         if (result == null || result.length() == 0) {
             // Do not load the relatively expensive NodeType object unless necessary. See OAK-2441 for the reason why it
             // cannot only use getProperty here.
-            if (node.hasProperty(JcrConstants.JCR_PRIMARYTYPE)) {
-                result = node.getProperty(JcrConstants.JCR_PRIMARYTYPE).getString();
+            if (node.hasProperty(Property.JCR_PRIMARY_TYPE)) {
+                result = node.getProperty(Property.JCR_PRIMARY_TYPE).getString();
             } else {
                 result = node.getPrimaryNodeType().getName();
             }
@@ -140,27 +139,21 @@ abstract class JcrItemResource<T extends Item> // this should be package private
             return -1;
         }
 
-        try {
-            long length = -1;
-            if (property.getType() == PropertyType.BINARY ) {
-                // we're interested in the number of bytes, not the
-                // number of characters
-                try {
-                    length =  property.getLength();
-                } catch (final ValueFormatException vfe) {
-                    LOGGER.debug(
-                        "Length of Property {} cannot be retrieved, ignored ({})",
-                        property.getPath(), vfe);
-                }
-            } else {
-                length = property.getString().getBytes("UTF-8").length;
+        long length = -1;
+        if (property.getType() == PropertyType.BINARY ) {
+            // we're interested in the number of bytes, not the
+            // number of characters
+            try {
+                length =  property.getLength();
+            } catch (final ValueFormatException vfe) {
+                LOGGER.debug(
+                    "Length of Property {} cannot be retrieved, ignored ({})",
+                    property.getPath(), vfe);
             }
-            return length;
-        } catch (UnsupportedEncodingException uee) {
-            LOGGER.warn("getPropertyContentLength: Cannot determine length of non-binary property {}: {}",
-                    property, uee);
+        } else {
+            length = property.getString().getBytes(StandardCharsets.UTF_8).length;
         }
-        return -1;
+        return length;
     }
 
     /**

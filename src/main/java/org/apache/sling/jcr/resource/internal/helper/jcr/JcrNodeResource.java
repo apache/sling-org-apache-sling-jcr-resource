@@ -16,10 +16,10 @@
  */
 package org.apache.sling.jcr.resource.internal.helper.jcr;
 
-import static org.apache.jackrabbit.JcrConstants.JCR_CONTENT;
-import static org.apache.jackrabbit.JcrConstants.JCR_DATA;
-import static org.apache.jackrabbit.JcrConstants.NT_FILE;
-import static org.apache.jackrabbit.JcrConstants.NT_LINKEDFILE;
+import static javax.jcr.Property.JCR_CONTENT;
+import static javax.jcr.Property.JCR_DATA;
+import static javax.jcr.nodetype.NodeType.NT_FILE;
+import static javax.jcr.nodetype.NodeType.NT_LINKED_FILE;
 import static javax.jcr.nodetype.NodeType.NT_FROZEN_NODE;
 import static javax.jcr.Property.JCR_FROZEN_PRIMARY_TYPE;
 
@@ -34,7 +34,6 @@ import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
-import javax.jcr.Value;
 
 import org.apache.sling.adapter.annotations.Adaptable;
 import org.apache.sling.adapter.annotations.Adapter;
@@ -188,7 +187,7 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
                                 (node.isNodeType(NT_FROZEN_NODE) &&
                                  node.getProperty(JCR_FROZEN_PRIMARY_TYPE).getString().equals(NT_FILE)))
                         ? node.getNode(JCR_CONTENT)
-                        : node.isNodeType(NT_LINKEDFILE) ? node.getProperty(JCR_CONTENT).getNode() : node;
+                        : node.isNodeType(NT_LINKED_FILE) ? node.getProperty(JCR_CONTENT).getNode() : node;
 
                 Property data;
 

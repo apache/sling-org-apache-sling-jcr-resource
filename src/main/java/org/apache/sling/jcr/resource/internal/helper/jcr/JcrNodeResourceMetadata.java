@@ -18,15 +18,15 @@
  */
 package org.apache.sling.jcr.resource.internal.helper.jcr;
 
-import static org.apache.jackrabbit.JcrConstants.JCR_CONTENT;
-import static org.apache.jackrabbit.JcrConstants.JCR_CREATED;
-import static org.apache.jackrabbit.JcrConstants.JCR_DATA;
-import static org.apache.jackrabbit.JcrConstants.JCR_ENCODING;
-import static org.apache.jackrabbit.JcrConstants.JCR_LASTMODIFIED;
-import static org.apache.jackrabbit.JcrConstants.JCR_MIMETYPE;
-import static org.apache.jackrabbit.JcrConstants.NT_FILE;
-import static javax.jcr.nodetype.NodeType.NT_FROZEN_NODE;
+import static javax.jcr.Property.JCR_CONTENT;
+import static javax.jcr.Property.JCR_CREATED;
+import static javax.jcr.Property.JCR_DATA;
+import static javax.jcr.Property.JCR_ENCODING;
 import static javax.jcr.Property.JCR_FROZEN_PRIMARY_TYPE;
+import static javax.jcr.Property.JCR_LAST_MODIFIED;
+import static javax.jcr.Property.JCR_MIMETYPE;
+import static javax.jcr.nodetype.NodeType.NT_FILE;
+import static javax.jcr.nodetype.NodeType.NT_FROZEN_NODE;
 
 import java.util.Collection;
 import java.util.Map;
@@ -134,9 +134,9 @@ class JcrNodeResourceMetadata extends ResourceMetadata {
             long modificationTime = -1;
             final Node targetNode = promoteNode();
             try {
-                if (targetNode.hasProperty(JCR_LASTMODIFIED)) {
+                if (targetNode.hasProperty(JCR_LAST_MODIFIED)) {
                     // We don't check node type, so JCR_LASTMODIFIED might not be a long
-                    final Property prop = targetNode.getProperty(JCR_LASTMODIFIED);
+                    final Property prop = targetNode.getProperty(JCR_LAST_MODIFIED);
                     try {
                         modificationTime = prop.getLong();
                     } catch (final ValueFormatException vfe) {

@@ -26,11 +26,11 @@ import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.nodetype.NodeType;
 import javax.jcr.version.VersionHistory;
 import javax.jcr.version.VersionManager;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
@@ -170,7 +170,7 @@ public class JcrItemResourceFactory {
     }
 
     private static boolean isVersionable(Item item) throws RepositoryException {
-        return item.isNode() && ((Node) item).isNodeType(JcrConstants.MIX_VERSIONABLE);
+        return item.isNode() && ((Node) item).isNodeType(NodeType.MIX_VERSIONABLE);
     }
 
     Item getItemOrNull(String path) throws RepositoryException {
