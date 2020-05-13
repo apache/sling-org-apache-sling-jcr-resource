@@ -16,158 +16,120 @@
  */
 package org.apache.sling.jcr.resource.internal;
 
-import java.lang.reflect.Field;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
-import javax.jcr.Credentials;
-import javax.jcr.LoginException;
-import javax.jcr.NoSuchWorkspaceException;
-import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.Value;
-import javax.naming.NamingException;
 
-import org.apache.sling.commons.testing.jcr.RepositoryTestBase;
-import org.apache.sling.jcr.api.SlingRepository;
-import org.junit.Before;
+import org.apache.felix.hc.api.Result.Status;
+import org.apache.jackrabbit.api.JackrabbitSession;
+import org.apache.jackrabbit.api.security.user.UserManager;
+import org.apache.sling.testing.mock.sling.ResourceResolverType;
+import org.apache.sling.testing.mock.sling.junit.SlingContext;
+import org.junit.Rule;
 import org.junit.Test;
 
 
-public class JcrSystemUserValidatorTest extends RepositoryTestBase {
+public class JcrSystemUserValidatorTest {
     
     private static final String GROUP_ADMINISTRATORS = "administrators";
+    private static final String SYSTEM_USER = "aSystemUser";
+    private static final String NON_EXISTING_SYSTEM_USER = "nonExistingSystemUser";
+    private static final String SYSTEM_USER_ADDED = "anotherSystemUser";
+    
+    @Rule
+    public SlingContext context = new SlingContext(ResourceResolverType.JCR_OAK);
 
     private JcrSystemUserValidator jcrSystemUserValidator;
     
-    @Before
-    public void setUp() throws IllegalArgumentException, IllegalAccessException, RepositoryException, NamingException, NoSuchFieldException, SecurityException {
+    
+    private void prepare(boolean allowOnlySystemUser) throws Exception {
         jcrSystemUserValidator = new JcrSystemUserValidator();
-        Field repositoryField = jcrSystemUserValidator.getClass().getDeclaredField("repository");
-        repositoryField.setAccessible(true);
-        final SlingRepository delegate = getRepository();
-
-        SlingRepository repository = new SlingRepository() {
-            @Override
-            public String getDefaultWorkspace() {
-                return delegate.getDefaultWorkspace();
-            }
-
-            @Override
-            public Session loginAdministrative(String s) throws LoginException, RepositoryException {
-                return delegate.loginAdministrative(s);
-            }
-
-            @Override
-            public Session loginService(String s, String s1) throws LoginException, RepositoryException {
-                return delegate.loginAdministrative(s1);
-            }
-
-            @Override
-            public String[] getDescriptorKeys() {
-                return delegate.getDescriptorKeys();
-            }
-
-            @Override
-            public boolean isStandardDescriptor(String s) {
-                return delegate.isStandardDescriptor(s);
-            }
-
-            @Override
-            public boolean isSingleValueDescriptor(String s) {
-                return delegate.isSingleValueDescriptor(s);
-            }
-
-            @Override
-            public Value getDescriptorValue(String s) {
-                return delegate.getDescriptorValue(s);
-            }
-
-            @Override
-            public Value[] getDescriptorValues(String s) {
-                return delegate.getDescriptorValues(s);
-            }
-
-            @Override
-            public String getDescriptor(String s) {
-                return delegate.getDescriptor(s);
-            }
-
-            @Override
-            public Session login(Credentials credentials, String s) throws LoginException, NoSuchWorkspaceException, RepositoryException {
-                return delegate.login(credentials, s);
-            }
-
-            @Override
-            public Session login(Credentials credentials) throws LoginException, RepositoryException {
-                return delegate.login(credentials);
-            }
-
-            @Override
-            public Session login(String s) throws LoginException, NoSuchWorkspaceException, RepositoryException {
-                return delegate.login(s);
-            }
-
-            @Override
-            public Session login() throws LoginException, RepositoryException {
-                return delegate.login();
-            }
-        };
-        repositoryField.set(jcrSystemUserValidator, repository);
+        
+        Map<String,Object> props = new HashMap<>();
+        props.put("allow.only.system.user",allowOnlySystemUser);
+        context.registerInjectActivateService(jcrSystemUserValidator, props);
+        addSystemUser(SYSTEM_USER);  
     }
+    
+    private void addSystemUser(String systemUserName) throws Exception  {
+        JackrabbitSession jcrSession = (JackrabbitSession) context.resourceResolver().adaptTo(Session.class);
+        UserManager um = jcrSession.getUserManager();
+        um.createSystemUser(systemUserName, null);
+        jcrSession.save();
+    }
+    
     
     @Test
     public void testIsValidWithEnforcementOfSystemUsersEnabled() throws Exception {
-        Field allowOnlySystemUsersField = jcrSystemUserValidator.getClass().getDeclaredField("allowOnlySystemUsers");
-        allowOnlySystemUsersField.setAccessible(true);
-        allowOnlySystemUsersField.set(jcrSystemUserValidator, true);
         
+        prepare(true);
         //testing null user
         assertFalse(jcrSystemUserValidator.isValid((String) null, null, null));
-        //testing not existing user     
-        assertFalse(jcrSystemUserValidator.isValid("notExisting", null, null));
+        
+        assertTrue(jcrSystemUserValidator.isValid(SYSTEM_USER, null, null));
+        assertEquals(Status.OK,jcrSystemUserValidator.execute().getStatus());
+             
+        assertFalse(jcrSystemUserValidator.isValid(NON_EXISTING_SYSTEM_USER, null, null));
+        assertEquals(Status.CRITICAL,jcrSystemUserValidator.execute().getStatus());
         //administrators group is not a valid user  (also not a system user)
         assertFalse(jcrSystemUserValidator.isValid(GROUP_ADMINISTRATORS, null, null));
     }
 
     @Test
     public void testIsValidPrincipalNamesWithEnforcementOfSystemUsersEnabled() throws Exception {
-        Field allowOnlySystemUsersField = jcrSystemUserValidator.getClass().getDeclaredField("allowOnlySystemUsers");
-        allowOnlySystemUsersField.setAccessible(true);
-        allowOnlySystemUsersField.set(jcrSystemUserValidator, true);
-
+        prepare(true);
         //testing null principal names
         assertFalse(jcrSystemUserValidator.isValid((Iterable<String>) null, null, null));
         //testing not existing user
-        assertFalse(jcrSystemUserValidator.isValid(Collections.singleton("notExisting"), null, null));
+        assertFalse(jcrSystemUserValidator.isValid(Collections.singleton(NON_EXISTING_SYSTEM_USER), null, null));
+        assertEquals(Status.CRITICAL,jcrSystemUserValidator.execute().getStatus());
         //administrators group is not a valid user  (also not a system user)
         assertFalse(jcrSystemUserValidator.isValid(Collections.singleton(GROUP_ADMINISTRATORS), null, null));
     }
     
     @Test
     public void testIsValidWithEnforcementOfSystemUsersDisabled() throws Exception {
-        Field allowOnlySystemUsersField = jcrSystemUserValidator.getClass().getDeclaredField("allowOnlySystemUsers");
-        allowOnlySystemUsersField.setAccessible(true);
-        allowOnlySystemUsersField.set(jcrSystemUserValidator, false);
+        prepare(false);
         
         //testing null user
         assertFalse(jcrSystemUserValidator.isValid((String) null, null, null));
         //testing not existing user (is considered valid here)
-        assertTrue(jcrSystemUserValidator.isValid("notExisting", null, null));
+        assertTrue(jcrSystemUserValidator.isValid(NON_EXISTING_SYSTEM_USER, null, null));
+        assertTrue(jcrSystemUserValidator.execute().isOk());
         // administrators group is not a user at all (but considered valid)
         assertTrue(jcrSystemUserValidator.isValid(GROUP_ADMINISTRATORS, null, null));
     }
 
     @Test
     public void testIsValidPrincipalNamesWithEnforcementOfSystemUsersDisabled() throws Exception {
-        Field allowOnlySystemUsersField = jcrSystemUserValidator.getClass().getDeclaredField("allowOnlySystemUsers");
-        allowOnlySystemUsersField.setAccessible(true);
-        allowOnlySystemUsersField.set(jcrSystemUserValidator, false);
+        prepare(false);
 
         //testing null principal names
         assertFalse(jcrSystemUserValidator.isValid((Iterable<String>) null, null, null));
         //testing not existing user (is considered valid here)
-        assertTrue(jcrSystemUserValidator.isValid(Collections.singleton("notExisting"), null, null));
+        assertTrue(jcrSystemUserValidator.isValid(Collections.singleton(NON_EXISTING_SYSTEM_USER), null, null));
+        assertTrue(jcrSystemUserValidator.execute().isOk());
         // administrators group is not a user at all (but considered valid)
         assertTrue(jcrSystemUserValidator.isValid(Collections.singleton(GROUP_ADMINISTRATORS), null, null));
+    }
+    
+
+    @Test
+    public void testHealthcheckWithInstallingUser() throws Exception {
+        
+        prepare(true);
+        assertFalse(jcrSystemUserValidator.isValid(Collections.singleton(SYSTEM_USER_ADDED), null, null));
+        assertEquals(Status.CRITICAL,jcrSystemUserValidator.execute().getStatus());
+        
+        addSystemUser(SYSTEM_USER_ADDED);
+        assertTrue(jcrSystemUserValidator.isValid(Collections.singleton(SYSTEM_USER_ADDED), null, null));
+        assertEquals(Status.WARN,jcrSystemUserValidator.execute().getStatus());
+            
     }
 }
