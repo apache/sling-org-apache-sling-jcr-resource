@@ -30,7 +30,7 @@
     <version>3.0.21-SNAPSHOT</version>
     <packaging>bundle</packaging>
 
-    <name>Apache Sling JCR Resource Resolver</name>
+    <name>Apache Sling JCR Resource</name>
     <description>
         This bundle provides the JCR based ResourceProvider.
     </description>
