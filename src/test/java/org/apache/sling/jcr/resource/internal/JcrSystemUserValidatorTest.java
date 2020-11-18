@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.Collections;
 
@@ -40,7 +41,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 public class JcrSystemUserValidatorTest {
-    
+
     private static final String GROUP_ADMINISTRATORS = "administrators";
     private static final String SYSTEM_USER_ID = "test-system-user";
     private JcrSystemUserValidator jcrSystemUserValidator;
@@ -51,9 +52,10 @@ public class JcrSystemUserValidatorTest {
 
     @Rule
     public final SlingContext context = new SlingContext(ResourceResolverType.JCR_OAK);
-    
+
     @Before
-    public void setUp() throws IllegalArgumentException, IllegalAccessException, RepositoryException, NamingException, NoSuchFieldException, SecurityException {
+    public void setUp() throws IllegalArgumentException, IllegalAccessException, RepositoryException, NamingException,
+            NoSuchFieldException, SecurityException {
         jcrSystemUserValidator = new JcrSystemUserValidator();
         final Field repositoryField = jcrSystemUserValidator.getClass().getDeclaredField("repository");
         repositoryField.setAccessible(true);
@@ -79,9 +81,19 @@ public class JcrSystemUserValidatorTest {
     }
 
     private void setAllowOnlySystemUsers(boolean allowOnlySystemUsers) throws Exception {
-        Field allowOnlySystemUsersField = jcrSystemUserValidator.getClass().getDeclaredField("allowOnlySystemUsers");
-        allowOnlySystemUsersField.setAccessible(true);
-        allowOnlySystemUsersField.set(jcrSystemUserValidator, allowOnlySystemUsers);
+        final JcrSystemUserValidator.Config config = new JcrSystemUserValidator.Config() {
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return null;
+            }
+
+            @Override
+            public boolean allow_only_system_user() {
+                return allowOnlySystemUsers;
+            }
+
+        };
+        jcrSystemUserValidator.activate(config);
     }
     
     @Test
@@ -144,6 +156,8 @@ public class JcrSystemUserValidatorTest {
     public void testIsValidIdTwice() throws Exception {
         setAllowOnlySystemUsers(true);
 
+        // Validation information is cached internally - need to test twice
+        // to activate all code paths
         assertTrue(jcrSystemUserValidator.isValid(systemUser.getID(), null, null));
         assertTrue(jcrSystemUserValidator.isValid(systemUser.getID(), null, null));
     }
@@ -152,6 +166,8 @@ public class JcrSystemUserValidatorTest {
     public void testIsValidPrincipalNameTwice() throws Exception {
         setAllowOnlySystemUsers(true);
 
+        // Validation information is cached internally - need to test twice
+        // to activate all code paths
         assertTrue(jcrSystemUserValidator.isValid(Collections.singleton(systemUser.getPrincipal().getName()), null, null));
         assertTrue(jcrSystemUserValidator.isValid(Collections.singleton(systemUser.getPrincipal().getName()), null, null));
     }
