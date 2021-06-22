@@ -20,11 +20,16 @@ package org.apache.sling.jcr.resource.internal.helper.jcr;
 
 import java.security.Principal;
 
+import javax.jcr.Node;
 import javax.jcr.Repository;
+import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.nodetype.NodeType;
 
+import org.apache.sling.api.resource.Resource;
 import org.apache.sling.commons.testing.jcr.RepositoryTestBase;
 import org.apache.sling.spi.resource.provider.ResolveContext;
+import org.apache.sling.spi.resource.provider.ResourceContext;
 import org.junit.Assert;
 import org.mockito.Mockito;
 import org.osgi.framework.ServiceReference;
@@ -57,6 +62,34 @@ public class JcrResourceProviderTest extends RepositoryTestBase {
         ResolveContext ctx = Mockito.mock(ResolveContext.class);
         Mockito.when(ctx.getProviderState()).thenReturn(new JcrProviderState(session, null, false));
         Assert.assertNotNull(jcrResourceProvider.adaptTo(ctx, Principal.class));
+    }
+
+    public void testGetParent() throws RepositoryException {
+
+        ResolveContext ctx = Mockito.mock(ResolveContext.class);
+        ResourceContext rCtx = Mockito.mock(ResourceContext.class);
+        Mockito.when(ctx.getProviderState()).thenReturn(new JcrProviderState(session, null, false));
+
+        Node root = session.getRootNode();
+
+        assertNotNull(root);
+
+        Node nodeA = root.addNode("test-jcr-resource-provider-"+System.nanoTime()).addNode("node-a", NodeType.NT_UNSTRUCTURED);
+        Node nodeB = nodeA.addNode("node-b", NodeType.NT_UNSTRUCTURED);
+        Node nodeC = nodeB.addNode("node-c", NodeType.NT_UNSTRUCTURED);
+
+        session.save();
+
+        Resource resourceC = jcrResourceProvider.getResource(ctx, nodeC.getPath(), rCtx, null);
+        assertNotNull(resourceC);
+
+        Resource resourceB = jcrResourceProvider.getParent(ctx, resourceC);
+        assertNotNull(resourceB);
+        assertEquals(resourceB.getPath(), nodeB.getPath());
+
+        Resource resourceA = jcrResourceProvider.getParent(ctx, resourceB);
+        assertNotNull(resourceA);
+        assertEquals(resourceA.getPath(), nodeA.getPath());
     }
 }
 
