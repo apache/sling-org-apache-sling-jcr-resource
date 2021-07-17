@@ -40,8 +40,8 @@ import javax.jcr.Value;
 import org.apache.sling.api.resource.observation.ResourceChange;
 import org.apache.sling.api.resource.observation.ResourceChange.ChangeType;
 import org.apache.sling.api.resource.path.PathSet;
-import org.apache.sling.commons.testing.jcr.RepositoryUtil;
 import org.apache.sling.jcr.api.SlingRepository;
+import org.apache.sling.jcr.resource.internal.helper.jcr.SlingRepositoryProvider;
 import org.apache.sling.spi.resource.provider.ObservationReporter;
 import org.apache.sling.spi.resource.provider.ObserverConfiguration;
 import org.junit.After;
@@ -67,85 +67,86 @@ public class JcrResourceListenerTest {
 
     private final List<ResourceChange> events = synchronizedList(new ArrayList<ResourceChange>());
 
+    SlingRepository repository;
+
     @SuppressWarnings("deprecation")
     @Before
     public void setUp() throws Exception {
-        RepositoryUtil.startRepository();
-        this.adminSession = RepositoryUtil.getRepository().loginAdministrative(null);
-        RepositoryUtil.registerSlingNodeTypes(adminSession);
-        final SlingRepository repo = RepositoryUtil.getRepository();
-        this.config = new JcrListenerBaseConfig(getObservationReporter(),
+        repository = SlingRepositoryProvider.getRepository();
+        this.adminSession = repository.loginAdministrative(null);
+        ObservationReporter observationReporter = getObservationReporter();
+        this.config = new JcrListenerBaseConfig(observationReporter,
                 new SlingRepository() {
 
                     @Override
                     public Session login(Credentials credentials, String workspaceName)
                             throws LoginException, NoSuchWorkspaceException, RepositoryException {
-                        return repo.login(credentials, workspaceName);
+                        return repository.login(credentials, workspaceName);
                     }
 
                     @Override
                     public Session login(String workspaceName) throws LoginException, NoSuchWorkspaceException, RepositoryException {
-                        return repo.login(workspaceName);
+                        return repository.login(workspaceName);
                     }
 
                     @Override
                     public Session login(Credentials credentials) throws LoginException, RepositoryException {
-                        return repo.login(credentials);
+                        return repository.login(credentials);
                     }
 
                     @Override
                     public Session login() throws LoginException, RepositoryException {
-                        return repo.login();
+                        return repository.login();
                     }
 
                     @Override
                     public boolean isStandardDescriptor(String key) {
-                        return repo.isStandardDescriptor(key);
+                        return repository.isStandardDescriptor(key);
                     }
 
                     @Override
                     public boolean isSingleValueDescriptor(String key) {
-                        return repo.isSingleValueDescriptor(key);
+                        return repository.isSingleValueDescriptor(key);
                     }
 
                     @Override
                     public Value[] getDescriptorValues(String key) {
-                        return repo.getDescriptorValues(key);
+                        return repository.getDescriptorValues(key);
                     }
 
                     @Override
                     public Value getDescriptorValue(String key) {
-                        return repo.getDescriptorValue(key);
+                        return repository.getDescriptorValue(key);
                     }
 
                     @Override
                     public String[] getDescriptorKeys() {
-                        return repo.getDescriptorKeys();
+                        return repository.getDescriptorKeys();
                     }
 
                     @Override
                     public String getDescriptor(String key) {
-                        return repo.getDescriptor(key);
+                        return repository.getDescriptor(key);
                     }
 
                     @Override
                     public Session loginService(String subServiceName, String workspace) throws LoginException, RepositoryException {
-                        return repo.loginAdministrative(workspace);
+                        return repository.loginAdministrative(workspace);
                     }
 
                     @Override
                     public Session loginAdministrative(String workspace) throws LoginException, RepositoryException {
-                        return repo.loginAdministrative(workspace);
+                        return repository.loginAdministrative(workspace);
                     }
 
                     @Override
                     public String getDefaultWorkspace() {
                         // TODO Auto-generated method stub
-                        return repo.getDefaultWorkspace();
+                        return repository.getDefaultWorkspace();
                     }
                 });
         this.listener = new JcrResourceListener(this.config,
-                getObservationReporter().getObserverConfigurations().get(0));
+                observationReporter.getObserverConfigurations().get(0));
     }
 
     @After
@@ -154,7 +155,6 @@ public class JcrResourceListenerTest {
             adminSession.logout();
             adminSession = null;
         }
-        RepositoryUtil.stopRepository();
         if ( listener != null ) {
             listener.close();
             listener = null;
@@ -165,9 +165,9 @@ public class JcrResourceListenerTest {
         }
     }
 
-    @Test public void testSimpleOperations() throws Exception {
-        generateEvents();
-
+    @Test
+    public void testSimpleOperations() throws Exception {
+        generateEvents(adminSession);
         assertEquals("Received: " + events, 5, events.size());
         final Set<String> addPaths = new HashSet<String>();
         final Set<String> modifyPaths = new HashSet<String>();
@@ -185,6 +185,7 @@ public class JcrResourceListenerTest {
             }
             assertNotNull(event.getUserId());
         }
+
         assertEquals(3, addPaths.size());
         assertTrue("Added set should contain " + createdPath, addPaths.contains(createdPath));
         assertTrue("Added set should contain " + pathToDelete, addPaths.contains(pathToDelete));
@@ -267,7 +268,8 @@ public class JcrResourceListenerTest {
                 node.remove();
                 session.save();
             }
-            assertEquals("Received: " + events, 6, events.size());
+            System.out.println("Events = " + events);
+            assertEquals("Received: " + events, 7, events.size());
             final Set<String> addPaths = new HashSet<String>();
             final Set<String> modifyPaths = new HashSet<String>();
             final Set<String> removePaths = new HashSet<String>();
@@ -292,9 +294,12 @@ public class JcrResourceListenerTest {
             assertTrue("Modified set should contain /libs/" + rootName, modifyPaths.contains("/libs/" + rootName));
             assertTrue("Modified set should contain /apps/" + rootName, modifyPaths.contains("/apps/" + rootName));
 
-            assertEquals("Received: " + removePaths, 2, removePaths.size());
+            // The OakEventFilter is using withIncludeAncestorsRemove, so we get also "removed" 
+            // events for all ancestors of /apps and /libs;
+            assertEquals("Received: " + removePaths, 3, removePaths.size());
             assertTrue("Removed set should contain /libs/" + rootName, removePaths.contains("/libs/" + rootName));
             assertTrue("Removed set should contain /apps/" + rootName, removePaths.contains("/apps/" + rootName));
+            assertTrue("Removed set should contain /" + rootName, removePaths.contains("/" + rootName));
         }
     }
 
@@ -304,34 +309,26 @@ public class JcrResourceListenerTest {
         return n;
     }
 
-    private void generateEvents() throws Exception {
-        @SuppressWarnings("deprecation")
-        final Session session = RepositoryUtil.getRepository().loginAdministrative(null);
+    private void generateEvents(Session session) throws Exception {
+        // create the nodes
+        createNode(session, createdPath);
+        createNode(session, pathToModify);
+        createNode(session, pathToDelete);
 
-        try {
-            // create the nodes
-            createNode(session, createdPath);
-            createNode(session, pathToModify);
-            createNode(session, pathToDelete);
+        Thread.sleep(1000);
 
-            Thread.sleep(1000);
+        // modify
+        final Node modified = session.getNode(pathToModify);
+        modified.setProperty("foo", "bar");
 
-            // modify
-            final Node modified = session.getNode(pathToModify);
-            modified.setProperty("foo", "bar");
+        session.save();
 
-            session.save();
+        // delete
+        final Node deleted = session.getNode(pathToDelete);
+        deleted.remove();
+        session.save();
 
-            // delete
-            final Node deleted = session.getNode(pathToDelete);
-            deleted.remove();
-            session.save();
-
-            Thread.sleep(3500);
-
-        } finally {
-            session.logout();
-        }
+        Thread.sleep(3500);
     }
 
     protected ObservationReporter getObservationReporter() {
