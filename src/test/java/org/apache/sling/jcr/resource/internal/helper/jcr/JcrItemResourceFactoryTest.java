@@ -31,10 +31,9 @@ import javax.jcr.Session;
 import org.apache.jackrabbit.commons.JcrUtils;
 import org.apache.sling.api.resource.external.URIProvider;
 import org.apache.sling.commons.classloader.DynamicClassLoaderManager;
-import org.apache.sling.commons.testing.jcr.RepositoryTestBase;
 import org.apache.sling.jcr.resource.internal.HelperData;
 
-public class JcrItemResourceFactoryTest extends RepositoryTestBase {
+public class JcrItemResourceFactoryTest extends SlingRepositoryTestBase {
 
     public static final String EXISTING_NODE_PATH = "/existing";
     public static final String NON_EXISTING_NODE_PATH = "/nonexisting";

@@ -45,7 +45,6 @@ import javax.jcr.Value;
 
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ResourceResolverFactory;
-import org.apache.sling.commons.testing.jcr.RepositoryProvider;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.api.JcrResourceConstants;
 import org.apache.sling.spi.resource.provider.ResolveContext;
@@ -200,7 +199,7 @@ public class JcrResourceProviderSessionHandlingTest {
 
     @Before
     public void setUp() throws Exception {
-        final SlingRepository repo = new SlingRepositoryWithDummyServiceUsers(RepositoryProvider.instance().getRepository());
+        final SlingRepository repo = new SlingRepositoryWithDummyServiceUsers(SlingRepositoryProvider.getRepository());
 
         footInDoor = repo.loginAdministrative(null);
 

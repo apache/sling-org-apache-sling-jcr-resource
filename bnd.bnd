@@ -1,0 +1,4 @@
+Import-Package: org.apache.sling.scripting.api.*;resolution:=optional,*
+-conditionalpackage: org.apache.jackrabbit.util,org.apache.jackrabbit.name
+Sling-Namespaces: sling=http://sling.apache.org/jcr/sling/1.0
+Sling-Nodetypes: SLING-INF/nodetypes/folder.cnd,SLING-INF/nodetypes/resource.cnd,SLING-INF/nodetypes/vanitypath.cnd,SLING-INF/nodetypes/redirect.cnd,SLING-INF/nodetypes/mapping.cnd

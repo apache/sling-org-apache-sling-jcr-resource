@@ -51,9 +51,9 @@ import org.apache.sling.api.resource.ModifiableValueMap;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.resource.external.URIProvider;
 import org.apache.sling.commons.classloader.DynamicClassLoaderManager;
-import org.apache.sling.commons.testing.jcr.RepositoryTestBase;
+import org.apache.sling.jcr.resource.internal.helper.jcr.SlingRepositoryTestBase;
 
-public class JcrModifiableValueMapTest extends RepositoryTestBase {
+public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
 
     private String rootPath;
 
