@@ -23,14 +23,13 @@ import java.security.Principal;
 import javax.jcr.Repository;
 import javax.jcr.Session;
 
-import org.apache.sling.commons.testing.jcr.RepositoryTestBase;
 import org.apache.sling.spi.resource.provider.ResolveContext;
 import org.junit.Assert;
 import org.mockito.Mockito;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
 
-public class JcrResourceProviderTest extends RepositoryTestBase {
+public class JcrResourceProviderTest extends SlingRepositoryTestBase {
 
     JcrResourceProvider jcrResourceProvider;
     Session session;

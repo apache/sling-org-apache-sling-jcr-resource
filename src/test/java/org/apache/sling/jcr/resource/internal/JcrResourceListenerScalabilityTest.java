@@ -35,8 +35,8 @@ import javax.jcr.observation.ObservationManager;
 import org.apache.sling.api.resource.observation.ResourceChange;
 import org.apache.sling.api.resource.observation.ResourceChange.ChangeType;
 import org.apache.sling.api.resource.path.PathSet;
-import org.apache.sling.commons.testing.jcr.RepositoryUtil;
 import org.apache.sling.jcr.api.SlingRepository;
+import org.apache.sling.jcr.resource.internal.helper.jcr.SlingRepositoryProvider;
 import org.apache.sling.spi.resource.provider.ObservationReporter;
 import org.apache.sling.spi.resource.provider.ObserverConfiguration;
 import org.apache.sling.spi.resource.provider.ProviderContext;
@@ -59,7 +59,7 @@ public class JcrResourceListenerScalabilityTest {
 
     @SuppressWarnings("deprecation")
     @Before
-    public void setUp() throws RepositoryException, InvalidSyntaxException {
+    public void setUp() throws Exception {
         ObservationManager observationManager = mock(ObservationManager.class);
 
         Workspace workspace = mock(Workspace.class);
@@ -73,7 +73,7 @@ public class JcrResourceListenerScalabilityTest {
 
         final ProviderContext ctx = new SimpleProviderContext();
         this.config = new JcrListenerBaseConfig(ctx.getObservationReporter(),
-                RepositoryUtil.getRepository());
+                SlingRepositoryProvider.getRepository());
         jcrResourceListener = new JcrResourceListener(this.config, ctx.getObservationReporter().getObserverConfigurations().get(0));
 
         Event event = mock(MockEvent.class);
