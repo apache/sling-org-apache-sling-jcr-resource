@@ -18,20 +18,24 @@
  */
 package org.apache.sling.jcr.resource.internal.helper;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 
+import org.apache.jackrabbit.commons.JcrUtils;
+import org.apache.jackrabbit.commons.iterator.NodeIteratorAdapter;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.external.URIProvider;
 import org.apache.sling.commons.classloader.DynamicClassLoaderManager;
-import org.apache.sling.commons.testing.jcr.MockNode;
-import org.apache.sling.commons.testing.jcr.MockNodeIterator;
 import org.apache.sling.jcr.resource.internal.HelperData;
 import org.apache.sling.jcr.resource.internal.helper.jcr.JcrNodeResourceIterator;
+import org.apache.sling.testing.mock.jcr.MockJcr;
 
 import junit.framework.TestCase;
 
@@ -42,7 +46,8 @@ public class JcrNodeResourceIteratorTest extends TestCase {
     }
 
     public void testEmpty() {
-        NodeIterator ni = new MockNodeIterator(null);
+        NodeIterator ni = new NodeIteratorAdapter(Collections.emptyIterator());
+
         JcrNodeResourceIterator ri = new JcrNodeResourceIterator(null, null, null, ni, getHelperData(), null);
 
         assertFalse(ri.hasNext());
@@ -57,8 +62,9 @@ public class JcrNodeResourceIteratorTest extends TestCase {
 
     public void testSingle() throws RepositoryException {
         String path = "/parent/path/node";
-        Node node = new MockNode(path);
-        NodeIterator ni = new MockNodeIterator(new Node[] { node });
+        Session session = MockJcr.newSession();
+        Node node = JcrUtils.getOrCreateByPath(path, "nt:folder", session);
+        NodeIterator ni = new NodeIteratorAdapter(Collections.singleton(node));
         JcrNodeResourceIterator ri = new JcrNodeResourceIterator(null, null, null, ni, getHelperData(), null);
 
         assertTrue(ri.hasNext());
@@ -79,11 +85,12 @@ public class JcrNodeResourceIteratorTest extends TestCase {
     public void testMulti() throws RepositoryException {
         int numNodes = 10;
         String pathBase = "/parent/path/node/";
+        Session session = MockJcr.newSession();
         Node[] nodes = new Node[numNodes];
         for (int i=0; i < nodes.length; i++) {
-            nodes[i] = new MockNode(pathBase + i, "some:type" + i);
+            nodes[i] = JcrUtils.getOrCreateByPath(pathBase + i, "nt:folder", session);
         }
-        NodeIterator ni = new MockNodeIterator(nodes);
+        NodeIterator ni = new NodeIteratorAdapter(Arrays.asList(nodes));
         JcrNodeResourceIterator ri = new JcrNodeResourceIterator(null, null, null, ni, getHelperData(), null);
 
         for (int i=0; i < nodes.length; i++) {
@@ -105,8 +112,9 @@ public class JcrNodeResourceIteratorTest extends TestCase {
 
     public void testRoot() throws RepositoryException {
         String path = "/child";
-        Node node = new MockNode(path);
-        NodeIterator ni = new MockNodeIterator(new Node[] { node });
+        Session session = MockJcr.newSession();
+        Node node = session.getRootNode().addNode("child");
+        NodeIterator ni = new NodeIteratorAdapter(Collections.singleton(node));
         JcrNodeResourceIterator ri = new JcrNodeResourceIterator(null, "/", null, ni, getHelperData(), null);
 
         assertTrue(ri.hasNext());
