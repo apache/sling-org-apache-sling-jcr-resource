@@ -455,11 +455,19 @@ public final class JcrModifiableValueMap
                 node.setProperty(name, entry.convertToType(Value.class, node, this.helper.getDynamicClassLoader()));
             }
         } catch (final RepositoryException re) {
-            throw new IllegalArgumentException("Value for key " + key + " can't be put into node: " + value, re);
+            throw new IllegalArgumentException("Value '"+ value + "' for property '" + key + "' can't be put into node '" + getNodePath(node) + "'.", re);
         }
         this.valueCache.put(key, value);
 
         return oldValue;
+    }
+
+    static String getNodePath(Node node) {
+        try {
+            return node.getPath();
+        } catch (RepositoryException e) {
+            return "Could not get node path: "+ e.getMessage();
+        }
     }
 
     /**
@@ -492,7 +500,7 @@ public final class JcrModifiableValueMap
                 node.getProperty(name).remove();
             }
         } catch (final RepositoryException re) {
-            throw new IllegalArgumentException("Value for key " + key + " can't be removed from node.", re);
+            throw new IllegalArgumentException("Property '" + key + "' can't be removed from node '" + getNodePath(node) + "'.", re);
         }
 
         return oldValue;

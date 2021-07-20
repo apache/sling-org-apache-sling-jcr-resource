@@ -97,7 +97,7 @@ public class JcrProviderStateFactory {
             final Bundle bundle = extractCallingBundle(authenticationInfo);
             if (bundle != null) {
                 bc = bundle.getBundleContext();
-                final SlingRepository repo = bc.getService(repositoryReference);
+                final SlingRepository repo = bc == null ? null : bc.getService(repositoryReference);
                 if (repo == null) {
                     logger.warn("Cannot login {} because cannot get SlingRepository on behalf of bundle {} ({})",
                             isLoginAdministrative ? "admin" : "service",
