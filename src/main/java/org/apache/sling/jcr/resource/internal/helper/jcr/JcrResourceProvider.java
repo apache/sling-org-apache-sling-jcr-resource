@@ -369,7 +369,6 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
                     return null;
                 }
             } catch (RepositoryException e) {
-                logger.warn("Can't get parent for {}", child, e);
                 return null;
             }
         }
