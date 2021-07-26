@@ -32,7 +32,10 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.NotNull;
+
+import javax.jcr.AccessDeniedException;
 import javax.jcr.Item;
+import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
@@ -368,6 +371,8 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
                     }
                     return null;
                 }
+            } catch (ItemNotFoundException | AccessDeniedException e) {
+                return null;
             } catch (RepositoryException e) {
                 logger.warn("Can't get parent for {}", child, e);
                 return null;
