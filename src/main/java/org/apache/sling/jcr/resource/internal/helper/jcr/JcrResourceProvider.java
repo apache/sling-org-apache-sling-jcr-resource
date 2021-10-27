@@ -479,6 +479,24 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     }
 
     @Override
+    public boolean orderBefore(@NotNull ResolveContext<JcrProviderState> ctx, @NotNull Resource parent, @NotNull String name,
+            @Nullable String followingSiblingName) throws PersistenceException {
+        Node node = parent.adaptTo(Node.class);
+        try {
+            // TODO: when can adaption fail here?
+            if (node == null) {
+                final String jcrPath = parent.getPath();
+                node = ctx.getProviderState().getSession().getNode(jcrPath);
+            }
+            node.orderBefore(name, followingSiblingName);
+            // TODO: check if really reordered
+            return true;
+        } catch (final RepositoryException e) {
+            throw new PersistenceException("Unable to reorder children below ", e, parent.getPath(), null);
+        }
+    }
+
+    @Override
     public void delete(final @NotNull ResolveContext<JcrProviderState> ctx, final @NotNull Resource resource)
     throws PersistenceException {
         // try to adapt to Item
