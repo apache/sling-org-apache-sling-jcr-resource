@@ -70,8 +70,6 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
 
     private final HelperData helper;
 
-    private volatile ValueMap valueMap;
-
     /**
      * Constructor
      * @param resourceResolver
@@ -135,10 +133,7 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
         } else if (type == InputStream.class) {
             return (Type) getInputStream(); // unchecked cast
         } else if (type == Map.class || type == ValueMap.class) {
-            if ( valueMap == null ) {
-                valueMap = new JcrValueMap(getNode(), this.helper);
-            }
-            return (Type) valueMap; // unchecked cast
+            return (Type) new JcrValueMap(getNode(), this.helper); // unchecked cast
         } else if (type == ModifiableValueMap.class ) {
             // check write
             try {
