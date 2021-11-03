@@ -483,10 +483,10 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     public boolean orderBefore(@NotNull ResolveContext<JcrProviderState> ctx, @NotNull Resource parent, @NotNull String name,
             @Nullable String followingSiblingName) throws PersistenceException {
         Node node = parent.adaptTo(Node.class);
+        if (node == null) {
+            throw new PersistenceException("The resource " + parent.getPath() + " cannot be adapted to Node. It is probably not provided by the JcrResourceProvider");
+        }
         try {
-            if (node == null) {
-                throw new PersistenceException("The resource " + parent.getPath() + " cannot be adapted to Node. It is probably not provided by the JcrResourceProvider");
-            }
             // check if reordering necessary
             NodeIterator nodeIterator = node.getNodes();
             long existingNodePosition = -1;
