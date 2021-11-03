@@ -20,6 +20,7 @@ package org.apache.sling.jcr.resource.internal.helper.jcr;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -30,8 +31,10 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
 import org.apache.jackrabbit.JcrConstants;
+import org.apache.sling.api.resource.ModifiableValueMap;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceMetadata;
+import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.resource.external.URIProvider;
 import org.apache.sling.commons.classloader.DynamicClassLoaderManager;
 import org.apache.sling.jcr.resource.api.JcrResourceConstants;
@@ -284,5 +287,71 @@ public class JcrNodeResourceTest extends JcrItemResourceTestBase {
         assertEquals(TEST_MODIFIED, rm.getModificationTime());
         assertEquals(TEST_TYPE, rm.getContentType());
         assertEquals(TEST_ENCODING, rm.getCharacterEncoding());
+    }
+
+    public void testAdaptToValueMap() throws Exception {
+        final String name = "adaptablevm";
+        Node res = rootNode.addNode(name, JcrConstants.NT_UNSTRUCTURED);
+        setupResource(res);
+        getSession().save();
+
+        res = rootNode.getNode(name);
+        JcrNodeResource jnr = new JcrNodeResource(null, res.getPath(), null, res, getHelperData());
+
+        final ValueMap props = jnr.adaptTo(ValueMap.class);
+        assertFalse(props instanceof ModifiableValueMap);
+        assertNotNull(props);
+        assertFalse(props.isEmpty());
+
+        // assert all properties set up
+        assertEquals(TEST_MODIFIED, props.get(JcrConstants.JCR_LASTMODIFIED));
+        assertEquals(TEST_TYPE, props.get(JcrConstants.JCR_MIMETYPE));
+        assertEquals(TEST_ENCODING, props.get(JcrConstants.JCR_ENCODING));
+        assertEquals(TEST_DATA, (InputStream) props.get(JcrConstants.JCR_DATA));
+
+        try {
+            props.remove(JcrConstants.JCR_MIMETYPE);
+            fail();
+        } catch ( final UnsupportedOperationException uoe) {
+            // expected
+        }
+
+        try {
+            props.put(JcrConstants.JCR_MIMETYPE, "all");
+            fail();
+        } catch ( final UnsupportedOperationException uoe) {
+            // expected
+        }
+
+        try {
+            props.putAll(Collections.singletonMap(JcrConstants.JCR_MIMETYPE, "value"));
+            fail();
+        } catch ( final UnsupportedOperationException uoe) {
+            // expected
+        }
+    }
+
+    public void testAdaptToModifiableValueMap() throws Exception {
+        final String name = "adaptablemvm";
+        Node res = rootNode.addNode(name, JcrConstants.NT_UNSTRUCTURED);
+        setupResource(res);
+        getSession().save();
+
+        res = rootNode.getNode(name);
+        JcrNodeResource jnr = new JcrNodeResource(null, res.getPath(), null, res, getHelperData());
+
+        final ModifiableValueMap props = jnr.adaptTo(ModifiableValueMap.class);
+        assertNotNull(props);
+        assertFalse(props.isEmpty());
+
+        // assert all properties set up
+        assertEquals(TEST_MODIFIED, props.get(JcrConstants.JCR_LASTMODIFIED));
+        assertEquals(TEST_TYPE, props.get(JcrConstants.JCR_MIMETYPE));
+        assertEquals(TEST_ENCODING, props.get(JcrConstants.JCR_ENCODING));
+        assertEquals(TEST_DATA, (InputStream) props.get(JcrConstants.JCR_DATA));
+
+        props.remove(JcrConstants.JCR_MIMETYPE);
+        props.put(JcrConstants.JCR_MIMETYPE, "all");
+        props.putAll(Collections.singletonMap(JcrConstants.JCR_MIMETYPE, "value"));
     }
 }

@@ -151,8 +151,8 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
         InputStream stream = new ByteArrayInputStream(TEST_BYTE_ARRAY);
         pvm.put("binary", stream);
         getSession().save();
-        final ModifiableValueMap modifiableValueMap2 = new JcrModifiableValueMap(this.rootNode, getHelperData());
-        assertTrue("The read stream is not what we wrote.", IOUtils.toString(modifiableValueMap2.get("binary", InputStream.class)).equals
+        final ValueMap valueMap2 = new JcrValueMap(this.rootNode, getHelperData());
+        assertTrue("The read stream is not what we wrote.", IOUtils.toString(valueMap2.get("binary", InputStream.class)).equals
                 (TEST_BYTE_ARRAY_TO_STRING));
     }
 
@@ -175,7 +175,7 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
         getSession().save();
         assertContains(pvm, currentlyStored);
 
-        final ModifiableValueMap pvm2 = new JcrModifiableValueMap(this.rootNode, getHelperData());
+        final ValueMap pvm2 = new JcrValueMap(this.rootNode, getHelperData());
         assertContains(pvm2, currentlyStored);
     }
 
@@ -215,7 +215,7 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
 
         getSession().save();
 
-        final ModifiableValueMap pvm2 = new JcrModifiableValueMap(this.rootNode, getHelperData());
+        final ValueMap pvm2 = new JcrValueMap(this.rootNode, getHelperData());
         // check if we get the list again
         @SuppressWarnings("unchecked")
         final List<String> strings3 = (List<String>) pvm2.get("something", Serializable.class);
@@ -298,7 +298,7 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
         getSession().save();
 
         // read with property map
-        final ValueMap vm = new JcrModifiableValueMap(testNode, getHelperData());
+        final ValueMap vm = new JcrValueMap(testNode, getHelperData());
         assertEquals(VALUE, vm.get(TEST_PATH));
         assertEquals(VALUE1, vm.get(PROP1));
         assertEquals(VALUE2, vm.get(PROP2));
@@ -329,7 +329,7 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
         getSession().save();
 
         // read with property map
-        final ValueMap vm = new JcrModifiableValueMap(testNode, getHelperData());
+        final ValueMap vm = new JcrValueMap(testNode, getHelperData());
         assertEquals(VALUE3, vm.get(PROP3));
         assertEquals(VALUE3, vm.get("jcr:a:b"));
         assertEquals(VALUE3, vm.get("jcr:"));
@@ -383,7 +383,7 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
         getSession().save();
 
         // read with property map
-        final ValueMap vm = new JcrModifiableValueMap(testNode, getHelperData());
+        final ValueMap vm = new JcrValueMap(testNode, getHelperData());
         assertEquals(dateValue1, vm.get(PROP1, Date.class));
         assertEqualsCalendar(calendarValue1, vm.get(PROP1, Calendar.class));
         assertEquals(dateValue2, vm.get(PROP2, Date.class));
@@ -425,7 +425,7 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
         getSession().save();
 
         // read with property map
-        final ValueMap vm = new JcrModifiableValueMap(testNode, getHelperData());
+        final ValueMap vm = new JcrValueMap(testNode, getHelperData());
 
         // check types
         assertTrue(vm.get(PROP1) instanceof Calendar);

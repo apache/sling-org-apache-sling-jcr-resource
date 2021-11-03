@@ -35,49 +35,45 @@ import javax.jcr.Value;
 
 import org.apache.jackrabbit.util.ISO9075;
 import org.apache.jackrabbit.util.Text;
+import org.apache.sling.api.resource.ModifiableValueMap;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.jcr.resource.internal.helper.JcrPropertyMapCacheEntry;
 
-public class JcrValueMap implements ValueMap {
-
-    private final HelperData helper;
+/**
+ * This implementation of the value map allows to change
+ * the properties.
+ */
+public class JcrValueMap
+    implements ValueMap {
 
     /** The underlying node. */
-    private final Node node;
+    protected final Node node;
 
     /** A cache for the properties. */
-    final Map<String, JcrPropertyMapCacheEntry> cache;
+    protected final Map<String, JcrPropertyMapCacheEntry> cache = new LinkedHashMap<String, JcrPropertyMapCacheEntry>();
 
     /** A cache for the values. */
-    final Map<String, Object> valueCache;
+    protected final Map<String, Object> valueCache = new LinkedHashMap<String, Object>();
 
     /** Has the node been read completely? */
-    boolean fullyRead;
+    private boolean fullyRead = false;
+
+    /** Helper data object */
+    protected final HelperData helper;
 
     /**
-     * Create a new JCR property map based on a node.
+     * Constructor
      * @param node The underlying node.
+     * @param helper Helper data object
      */
     public JcrValueMap(final Node node, final HelperData helper) {
         this.node = node;
-        this.cache = new LinkedHashMap<String, JcrPropertyMapCacheEntry>();
-        this.valueCache = new LinkedHashMap<String, Object>();
-        this.fullyRead = false;
         this.helper = helper;
-    }
-
-    /**
-     * Get the node.
-     *
-     * @return the node
-     */
-    protected Node getNode() {
-        return node;
     }
 
     // ---------- ValueMap
 
-    String checkKey(final String key) {
+    protected String checkKey(final String key) {
         if ( key == null ) {
             throw new NullPointerException("Key must not be null.");
         }
@@ -102,7 +98,7 @@ public class JcrValueMap implements ValueMap {
         if ( entry == null ) {
             return null;
         }
-        return entry.convertToType(type, this.node, this.getDynamicClassLoader());
+        return entry.convertToType(type, node, helper.getDynamicClassLoader());
     }
 
     /**
@@ -196,7 +192,7 @@ public class JcrValueMap implements ValueMap {
     @Override
     public Set<String> keySet() {
         readFully();
-        return cache.keySet();
+        return Collections.unmodifiableSet(cache.keySet());
     }
 
     /**
@@ -219,9 +215,7 @@ public class JcrValueMap implements ValueMap {
      *
      * @return the path
      * @throws IllegalStateException If a repository exception occurs
-     * @deprecated
      */
-    @Deprecated
     public String getPath() {
         try {
             return node.getPath();
@@ -235,7 +229,7 @@ public class JcrValueMap implements ValueMap {
     /**
      * Put a single property into the cache
      * @param prop
-     * @return the cached property
+     * @return
      * @throws IllegalArgumentException if a repository exception occurs
      */
     private JcrPropertyMapCacheEntry cacheProperty(final Property prop) {
@@ -326,9 +320,8 @@ public class JcrValueMap implements ValueMap {
             return cachedValued;
         }
 
-        final String key;
         try {
-            key = escapeKeyName(name);
+            final String key = escapeKeyName(name);
             if (node.hasProperty(key)) {
                 final Property prop = node.getProperty(key);
                 return cacheProperty(prop);
@@ -341,7 +334,7 @@ public class JcrValueMap implements ValueMap {
             // for compatibility with older versions we use the (wrong) ISO9075 path
             // encoding
             final String oldKey = ISO9075.encodePath(name);
-            if (!oldKey.equals(key) && node.hasProperty(oldKey)) {
+            if (node.hasProperty(oldKey)) {
                 final Property prop = node.getProperty(oldKey);
                 return cacheProperty(prop);
             }
@@ -359,14 +352,14 @@ public class JcrValueMap implements ValueMap {
      *
      * @param key the key to escape
      * @return escaped key name
-     * @throws RepositoryException if the repository's namespaced prefixes cannot be retrieved
+     * @throws RepositoryException if the repository's namespace prefixes cannot be retrieved
      */
     protected String escapeKeyName(final String key) throws RepositoryException {
         final int indexOfPrefix = key.indexOf(':');
         // check if colon is neither the first nor the last character
         if (indexOfPrefix > 0 && key.length() > indexOfPrefix + 1) {
             final String prefix = key.substring(0, indexOfPrefix);
-            for (final String existingPrefix : getNamespacePrefixes()) {
+            for (final String existingPrefix : this.helper.getNamespacePrefixes(this.node.getSession())) {
                 if (existingPrefix.equals(prefix)) {
                     return prefix
                             + ":"
@@ -397,28 +390,6 @@ public class JcrValueMap implements ValueMap {
         }
     }
 
-    // ---------- Unsupported Modification methods
-
-    @Override
-    public void clear() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Object put(String key, Object value) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void putAll(Map<? extends String, ? extends Object> t) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Object remove(Object key) {
-        throw new UnsupportedOperationException();
-    }
-
     // ---------- Implementation helper
 
     private Class<?> normalizeClass(Class<?> type) {
@@ -434,19 +405,58 @@ public class JcrValueMap implements ValueMap {
         return type;
     }
 
-    private Map<String, Object> transformEntries( Map<String, JcrPropertyMapCacheEntry> map) {
+    private Map<String, Object> transformEntries(final Map<String, JcrPropertyMapCacheEntry> map) {
 
-        Map<String, Object> transformedEntries = new LinkedHashMap<String, Object>(map.size());
-        for ( Map.Entry<String, JcrPropertyMapCacheEntry> entry : map.entrySet() )
+        final Map<String, Object> transformedEntries = new LinkedHashMap<String, Object>(map.size());
+        for ( final Map.Entry<String, JcrPropertyMapCacheEntry> entry : map.entrySet() )
             transformedEntries.put(entry.getKey(), entry.getValue().getPropertyValueOrNull());
 
         return transformedEntries;
     }
 
+    // ---------- Map
+
+    /**
+     * @see java.util.Map#clear()
+     */
+    @Override
+    public void clear() {
+        throw new UnsupportedOperationException("clear");
+    }
+
+    /**
+     * @see java.util.Map#put(java.lang.Object, java.lang.Object)
+     */
+    @Override
+    public Object put(final String aKey, final Object value) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * @see java.util.Map#putAll(java.util.Map)
+     */
+    @Override
+    public void putAll(final Map<? extends String, ? extends Object> t) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * @see java.util.Map#remove(java.lang.Object)
+     */
+    @Override
+    public Object remove(final Object aKey) {
+        throw new UnsupportedOperationException();
+    }
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("JcrPropertyMap [node=");
+        final StringBuilder sb = new StringBuilder();
+        if ( this instanceof ModifiableValueMap ) {
+            sb.append("JcrModifiablePropertyMap");
+        } else {
+            sb.append("JcrPropertyMap");
+        }
+        sb.append(" [node=");
         sb.append(this.node);
         sb.append(", values={");
         final Iterator<Map.Entry<String, Object>> iter = this.entrySet().iterator();
@@ -464,13 +474,5 @@ public class JcrValueMap implements ValueMap {
         }
         sb.append("}]");
         return sb.toString();
-    }
-
-    private String[] getNamespacePrefixes() throws RepositoryException {
-        return this.helper.getNamespacePrefixes(this.getNode().getSession());
-    }
-
-    private ClassLoader getDynamicClassLoader() {
-        return helper.getDynamicClassLoader();
     }
 }

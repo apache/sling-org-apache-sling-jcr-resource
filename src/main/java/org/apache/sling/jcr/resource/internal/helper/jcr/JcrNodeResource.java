@@ -133,7 +133,7 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
         } else if (type == InputStream.class) {
             return (Type) getInputStream(); // unchecked cast
         } else if (type == Map.class || type == ValueMap.class) {
-            return (Type) new JcrValueMap(getNode(), this.helper); // unchecked cast
+            return (Type) new JcrValueMap(getNode(), this.helper);
         } else if (type == ModifiableValueMap.class ) {
             // check write
             try {
