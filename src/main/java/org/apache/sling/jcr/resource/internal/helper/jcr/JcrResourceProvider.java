@@ -34,6 +34,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.NotNull;
 import javax.jcr.Item;
 import javax.jcr.Node;
+import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
@@ -475,6 +476,44 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
             return new JcrNodeResource(ctx.getResourceResolver(), path, null, node, ctx.getProviderState().getHelperData());
         } catch (final RepositoryException e) {
             throw new PersistenceException("Unable to create node at " + jcrPath, e, path, null);
+        }
+    }
+
+    @Override
+    public boolean orderBefore(@NotNull ResolveContext<JcrProviderState> ctx, @NotNull Resource parent, @NotNull String name,
+            @Nullable String followingSiblingName) throws PersistenceException {
+        Node node = parent.adaptTo(Node.class);
+        if (node == null) {
+            throw new PersistenceException("The resource " + parent.getPath() + " cannot be adapted to Node. It is probably not provided by the JcrResourceProvider");
+        }
+        try {
+            // check if reordering necessary
+            NodeIterator nodeIterator = node.getNodes();
+            long existingNodePosition = -1;
+            long index = 0;
+            while (nodeIterator.hasNext()) {
+                Node childNode = nodeIterator.nextNode();
+                if (childNode.getName().equals(name)) {
+                    existingNodePosition = index;
+                }
+                if (existingNodePosition >= 0) {
+                    // is existing resource already at the desired position?
+                    if (childNode.getName().equals(followingSiblingName)) {
+                        if (existingNodePosition == index-1) {
+                            return false;
+                        }
+                    }
+                    // is the existing node already the last one in the list?
+                    else if (followingSiblingName == null && existingNodePosition == nodeIterator.getSize()-1) {
+                        return false;
+                    }
+                }
+                index++;
+            }
+            node.orderBefore(name, followingSiblingName);
+            return true;
+        } catch (final RepositoryException e) {
+            throw new PersistenceException("Unable to reorder children below " + parent.getPath(), e, parent.getPath(), null);
         }
     }
 
