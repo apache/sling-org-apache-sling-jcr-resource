@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.apache.sling</groupId>
         <artifactId>sling-bundle-parent</artifactId>
-        <version>43</version>
+        <version>46</version>
         <relativePath />
     </parent>
 
@@ -46,6 +46,7 @@
         <site.javadoc.exclude>**.internal.**</site.javadoc.exclude>
         <oak.version>1.5.15</oak.version>
         <jackrabbit.version>2.13.4</jackrabbit.version>
+        <project.build.outputTimestamp>1</project.build.outputTimestamp>
     </properties>
 
     <build>
