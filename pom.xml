@@ -44,8 +44,8 @@
     <properties>
         <site.jira.version.id>12314286</site.jira.version.id>
         <site.javadoc.exclude>**.internal.**</site.javadoc.exclude>
-        <oak.version>1.5.15</oak.version>
-        <jackrabbit.version>2.13.4</jackrabbit.version>
+        <oak.version>1.10.0</oak.version><!-- first version compatible with Jackrabbit API 2.18 (https://issues.apache.org/jira/browse/OAK-7943) -->
+        <jackrabbit.version>2.18.0</jackrabbit.version>
         <project.build.outputTimestamp>1</project.build.outputTimestamp>
     </properties>
 

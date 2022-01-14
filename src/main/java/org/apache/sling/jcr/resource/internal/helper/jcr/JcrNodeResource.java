@@ -32,8 +32,10 @@ import java.util.Map;
 import javax.jcr.Item;
 import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
+import javax.jcr.PathNotFoundException;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
+import javax.jcr.ValueFormatException;
 
 import org.apache.sling.adapter.annotations.Adaptable;
 import org.apache.sling.adapter.annotations.Adapter;
@@ -47,6 +49,8 @@ import org.apache.sling.jcr.resource.api.JcrResourceConstants;
 import org.apache.sling.jcr.resource.internal.HelperData;
 import org.apache.sling.jcr.resource.internal.JcrModifiableValueMap;
 import org.apache.sling.jcr.resource.internal.JcrValueMap;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -181,34 +185,15 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
         final Node node = getNode();
         if (node != null) {
             try {
-                // find the content node: for nt:file it is jcr:content
-                // otherwise it is the node of this resource
-                Node content = (node.isNodeType(NT_FILE) ||
-                                (node.isNodeType(NT_FROZEN_NODE) &&
-                                 node.getProperty(JCR_FROZEN_PRIMARY_TYPE).getString().equals(NT_FILE)))
-                        ? node.getNode(JCR_CONTENT)
-                        : node.isNodeType(NT_LINKED_FILE) ? node.getProperty(JCR_CONTENT).getNode() : node;
-
                 Property data;
-
-                // if the node has a jcr:data property, use that property
-                if (content.hasProperty(JCR_DATA)) {
-                    data = content.getProperty(JCR_DATA);
-                } else {
-                    // otherwise try to follow default item trail
-                    try {
-                        Item item = content.getPrimaryItem();
-                        while (item.isNode()) {
-                            item = ((Node) item).getPrimaryItem();
-                        }
-                        data = (Property) item;
-
-                    } catch (ItemNotFoundException infe) {
-                        // we don't actually care, but log for completeness
-                        LOGGER.debug("getInputStream: No primary items for {}", toString(), infe);
-                        data = null;
-                    }
+                try {
+                    data = getPrimaryProperty(node);
+                } catch (ItemNotFoundException infe) {
+                    // we don't actually care, but log for completeness
+                    LOGGER.debug("getInputStream: No primary items for {}", toString(), infe);
+                    data = null;
                 }
+                
                 URI uri =  convertToPublicURI();
                 if ( uri != null ) {
                     return new JcrExternalizableInputStream(data, uri);
@@ -225,6 +210,31 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
 
         // fallback to non-streamable resource
         return null;
+    }
+
+    static @NotNull Property getPrimaryProperty(@NotNull Node node) throws RepositoryException {
+        // find the content node: for nt:file it is jcr:content
+        // otherwise it is the node of this resource
+        Node content = (node.isNodeType(NT_FILE) ||
+                        (node.isNodeType(NT_FROZEN_NODE) &&
+                         node.getProperty(JCR_FROZEN_PRIMARY_TYPE).getString().equals(NT_FILE)))
+                ? node.getNode(JCR_CONTENT)
+                : node.isNodeType(NT_LINKED_FILE) ? node.getProperty(JCR_CONTENT).getNode() : node;
+
+        Property data;
+
+        // if the node has a jcr:data property, use that property
+        if (content.hasProperty(JCR_DATA)) {
+            data = content.getProperty(JCR_DATA);
+        } else {
+            // otherwise try to follow default item trail
+            Item item = content.getPrimaryItem();
+            while (item.isNode()) {
+                item = ((Node) item).getPrimaryItem();
+            }
+            data = (Property) item;
+        }
+        return data;
     }
 
     /**
