@@ -30,7 +30,6 @@ import org.apache.jackrabbit.api.binary.BinaryDownloadOptions;
 import org.apache.jackrabbit.api.binary.BinaryDownloadOptions.BinaryDownloadOptionsBuilder;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.external.URIProvider;
-import org.apache.sling.jcr.resource.internal.helper.jcr.BinaryDownloadUriProvider.Configuration.ContentDisposition;
 import org.jetbrains.annotations.NotNull;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -49,15 +48,15 @@ import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 @Designate(ocd = BinaryDownloadUriProvider.Configuration.class)
 public class BinaryDownloadUriProvider implements URIProvider {
 
+    enum ContentDisposition {
+        INLINE,
+        ATTACHMENT
+    }
+
     @ObjectClassDefinition(
             name = "Apache Sling Binary Download URI Provider",
             description = "Provides URIs for resources containing a primary JCR binary property backed by a blob store with external access")
-    
-    @interface Configuration {
-        enum ContentDisposition {
-            INLINE,
-            ATTACHMENT
-        }
+    public static @interface Configuration {
         @AttributeDefinition(
                 name = "Content-Disposition",
                 description = "The content-disposition header to send when the binary is delivered via HTTP")
