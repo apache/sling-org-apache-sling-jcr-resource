@@ -105,7 +105,7 @@ public class BinaryDownloadUriProvider implements URIProvider {
 
     private @NotNull URI getUriFromProperty(@NotNull Resource resource, @NotNull Node node, @NotNull Property binaryProperty) throws ValueFormatException, RepositoryException {
         Binary binary = binaryProperty.getBinary();
-        if (binary instanceof BinaryDownload) {
+        if (!(binary instanceof BinaryDownload)) {
             binary.dispose();
             throw new IllegalArgumentException("The property " + binaryProperty.getPath() + " is not backed by an store providing direct downloads");
         }
