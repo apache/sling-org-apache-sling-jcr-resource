@@ -93,9 +93,9 @@ public class BinaryDownloadUriProvider implements URIProvider {
                 throw new IllegalArgumentException("Error getting URI for property '" + primaryProperty.getPath() + "'", e);
             }
         } catch (ItemNotFoundException e) {
-            throw new IllegalArgumentException("Node at '" + resource.getPath() + "' does not have a primary property", e);
+            throw new IllegalArgumentException("Node does not have a primary property", e);
         } catch (RepositoryException e) {
-            throw new IllegalArgumentException("Error accessing primary property of node at '" + resource.getPath() + "'", e);
+            throw new IllegalArgumentException("Error accessing primary property", e);
         }
     }
 
@@ -113,12 +113,12 @@ public class BinaryDownloadUriProvider implements URIProvider {
         try {
             String encoding = resource.getResourceMetadata().getCharacterEncoding();
             if (encoding == null) {
-                throw new IllegalArgumentException("Could not retrieve character encoding for resource at '" +  resource.getPath() + "'");
+                throw new IllegalArgumentException("Could not retrieve character encoding for resource");
             }
             String fileName = node.getName();
             String mediaType = resource.getResourceMetadata().getContentType();
             if (mediaType == null) {
-                throw new IllegalArgumentException("Could not retrieve media type for resource at '" +  resource.getPath() + "'");
+                throw new IllegalArgumentException("Could not retrieve media type for resource");
             }
             BinaryDownloadOptionsBuilder optionsBuilder = BinaryDownloadOptions.builder()
                     .withCharacterEncoding(encoding)

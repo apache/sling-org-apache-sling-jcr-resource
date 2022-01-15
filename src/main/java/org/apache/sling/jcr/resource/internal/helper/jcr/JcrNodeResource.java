@@ -214,11 +214,11 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
         for (URIProvider up : helper.getURIProviders()) {
             try {
                 URI uri = up.toURI(this, URIProvider.Scope.EXTERNAL, URIProvider.Operation.READ);
-                if ( uri != null ) {
+                if (uri != null) {
                     return uri;
                 }
             } catch (IllegalArgumentException e) {
-                LOGGER.debug(up.getClass().toString()+" declined toURI ", e);
+                LOGGER.debug(up.getClass().toString()+" declined toURI for resource '{}'", getPath(), e);
             }
         }
         return null;
