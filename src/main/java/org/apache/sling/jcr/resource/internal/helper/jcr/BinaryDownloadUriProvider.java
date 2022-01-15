@@ -30,6 +30,7 @@ import org.apache.jackrabbit.api.binary.BinaryDownloadOptions;
 import org.apache.jackrabbit.api.binary.BinaryDownloadOptions.BinaryDownloadOptionsBuilder;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.external.URIProvider;
+import org.apache.sling.jcr.resource.internal.NodeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -85,7 +86,7 @@ public class BinaryDownloadUriProvider implements URIProvider {
         }
         try {
             // get main property (probably containing binary data)
-            Property primaryProperty = JcrNodeResource.getPrimaryProperty(node);
+            Property primaryProperty = NodeUtil.getPrimaryProperty(node);
             try {
                 return getUriFromProperty(resource, node, primaryProperty);
             } catch (RepositoryException e) {

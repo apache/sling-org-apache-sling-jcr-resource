@@ -16,13 +16,6 @@
  */
 package org.apache.sling.jcr.resource.internal.helper.jcr;
 
-import static javax.jcr.Property.JCR_CONTENT;
-import static javax.jcr.Property.JCR_DATA;
-import static javax.jcr.nodetype.NodeType.NT_FILE;
-import static javax.jcr.nodetype.NodeType.NT_LINKED_FILE;
-import static javax.jcr.nodetype.NodeType.NT_FROZEN_NODE;
-import static javax.jcr.Property.JCR_FROZEN_PRIMARY_TYPE;
-
 import java.io.InputStream;
 import java.net.URI;
 import java.security.AccessControlException;
@@ -49,7 +42,7 @@ import org.apache.sling.jcr.resource.api.JcrResourceConstants;
 import org.apache.sling.jcr.resource.internal.HelperData;
 import org.apache.sling.jcr.resource.internal.JcrModifiableValueMap;
 import org.apache.sling.jcr.resource.internal.JcrValueMap;
-import org.jetbrains.annotations.NotNull;
+import org.apache.sling.jcr.resource.internal.NodeUtil;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -187,7 +180,7 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
             try {
                 Property data;
                 try {
-                    data = getPrimaryProperty(node);
+                    data = NodeUtil.getPrimaryProperty(node);
                 } catch (ItemNotFoundException infe) {
                     // we don't actually care, but log for completeness
                     LOGGER.debug("getInputStream: No primary items for {}", toString(), infe);
@@ -210,31 +203,6 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
 
         // fallback to non-streamable resource
         return null;
-    }
-
-    static @NotNull Property getPrimaryProperty(@NotNull Node node) throws RepositoryException {
-        // find the content node: for nt:file it is jcr:content
-        // otherwise it is the node of this resource
-        Node content = (node.isNodeType(NT_FILE) ||
-                        (node.isNodeType(NT_FROZEN_NODE) &&
-                         node.getProperty(JCR_FROZEN_PRIMARY_TYPE).getString().equals(NT_FILE)))
-                ? node.getNode(JCR_CONTENT)
-                : node.isNodeType(NT_LINKED_FILE) ? node.getProperty(JCR_CONTENT).getNode() : node;
-
-        Property data;
-
-        // if the node has a jcr:data property, use that property
-        if (content.hasProperty(JCR_DATA)) {
-            data = content.getProperty(JCR_DATA);
-        } else {
-            // otherwise try to follow default item trail
-            Item item = content.getPrimaryItem();
-            while (item.isNode()) {
-                item = ((Node) item).getPrimaryItem();
-            }
-            data = (Property) item;
-        }
-        return data;
     }
 
     /**

@@ -18,12 +18,23 @@
  */
 package org.apache.sling.jcr.resource.internal;
 
+import static javax.jcr.Property.JCR_CONTENT;
+import static javax.jcr.Property.JCR_DATA;
+import static javax.jcr.Property.JCR_FROZEN_PRIMARY_TYPE;
+import static javax.jcr.nodetype.NodeType.NT_FILE;
+import static javax.jcr.nodetype.NodeType.NT_FROZEN_NODE;
+import static javax.jcr.nodetype.NodeType.NT_LINKED_FILE;
+
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.jcr.Item;
 import javax.jcr.Node;
+import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.nodetype.NodeType;
+
+import org.jetbrains.annotations.NotNull;
 
 public abstract class NodeUtil {
 
@@ -62,5 +73,31 @@ public abstract class NodeUtil {
         for(final String name : newTypes) {
             node.addMixin(name);
         }
+    }
+
+    static @NotNull
+    public Property getPrimaryProperty(@NotNull Node node) throws RepositoryException {
+        // find the content node: for nt:file it is jcr:content
+        // otherwise it is the node of this resource
+        Node content = (node.isNodeType(NT_FILE) ||
+                        (node.isNodeType(NT_FROZEN_NODE) &&
+                         node.getProperty(JCR_FROZEN_PRIMARY_TYPE).getString().equals(NT_FILE)))
+                ? node.getNode(JCR_CONTENT)
+                : node.isNodeType(NT_LINKED_FILE) ? node.getProperty(JCR_CONTENT).getNode() : node;
+    
+        Property data;
+    
+        // if the node has a jcr:data property, use that property
+        if (content.hasProperty(JCR_DATA)) {
+            data = content.getProperty(JCR_DATA);
+        } else {
+            // otherwise try to follow default item trail
+            Item item = content.getPrimaryItem();
+            while (item.isNode()) {
+                item = ((Node) item).getPrimaryItem();
+            }
+            data = (Property) item;
+        }
+        return data;
     }
 }
