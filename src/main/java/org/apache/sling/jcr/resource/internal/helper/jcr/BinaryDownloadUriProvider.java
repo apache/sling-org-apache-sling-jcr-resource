@@ -78,11 +78,11 @@ public class BinaryDownloadUriProvider implements URIProvider {
     @Override
     public @NotNull URI toURI(@NotNull Resource resource, @NotNull Scope scope, @NotNull Operation operation) {
         if (!isRelevantScopeAndOperation(scope, operation)) {
-            throw new IllegalArgumentException("This provider does only provide URIs for read operations in scope public or external, but not for scope " + scope + " and operation " + operation);
+            throw new IllegalArgumentException("This provider only provides URIs for read operations in scope 'public' or 'external', but not for scope " + scope + " and operation " + operation);
         }
         Node node = resource.adaptTo(Node.class);
         if (node == null) {
-            throw new IllegalArgumentException("This provider only provide URIs for node-based resources");
+            throw new IllegalArgumentException("This provider only provides URIs for node-based resources");
         }
         try {
             // get main property (probably containing binary data)
@@ -90,12 +90,12 @@ public class BinaryDownloadUriProvider implements URIProvider {
             try {
                 return getUriFromProperty(resource, node, primaryProperty);
             } catch (RepositoryException e) {
-                throw new IllegalArgumentException("Error getting URI for property " + primaryProperty.getPath());
+                throw new IllegalArgumentException("Error getting URI for property '" + primaryProperty.getPath() + "'", e);
             }
         } catch (ItemNotFoundException e) {
-            throw new IllegalArgumentException("Node at " + resource.getPath() + " does not have a primary property");
+            throw new IllegalArgumentException("Node at '" + resource.getPath() + "' does not have a primary property", e);
         } catch (RepositoryException e) {
-            throw new IllegalArgumentException("Error accessing primary property of node at " + resource.getPath());
+            throw new IllegalArgumentException("Error accessing primary property of node at '" + resource.getPath() + "'", e);
         }
     }
 
@@ -113,12 +113,12 @@ public class BinaryDownloadUriProvider implements URIProvider {
         try {
             String encoding = resource.getResourceMetadata().getCharacterEncoding();
             if (encoding == null) {
-                throw new IllegalArgumentException("Could not retrieve character encoding for " +  binaryProperty.getPath());
+                throw new IllegalArgumentException("Could not retrieve character encoding for resource at '" +  resource.getPath() + "'");
             }
             String fileName = node.getName();
             String mediaType = resource.getResourceMetadata().getContentType();
             if (mediaType == null) {
-                throw new IllegalArgumentException("Could not retrieve media type for " +  binaryProperty.getPath());
+                throw new IllegalArgumentException("Could not retrieve media type for resource at '" +  resource.getPath() + "'");
             }
             BinaryDownloadOptionsBuilder optionsBuilder = BinaryDownloadOptions.builder()
                     .withCharacterEncoding(encoding)
@@ -131,7 +131,7 @@ public class BinaryDownloadUriProvider implements URIProvider {
             }
             URI uri = binaryDownload.getURI(optionsBuilder.build());
             if (uri == null) {
-                throw new IllegalArgumentException("Cannot provide url for downloading binary property from " + binaryProperty.getPath());
+                throw new IllegalArgumentException("Cannot provide url for downloading the binary property at '" + binaryProperty.getPath() + "'");
             }
             return uri;
         } finally {
