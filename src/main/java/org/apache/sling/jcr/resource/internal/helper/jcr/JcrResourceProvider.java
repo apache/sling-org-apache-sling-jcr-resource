@@ -22,11 +22,14 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -49,8 +52,6 @@ import org.apache.sling.api.resource.ResourceResolverFactory;
 import org.apache.sling.api.resource.ResourceUtil;
 import org.apache.sling.api.resource.external.URIProvider;
 import org.apache.sling.commons.classloader.DynamicClassLoaderManager;
-import org.apache.sling.commons.osgi.Order;
-import org.apache.sling.commons.osgi.RankedServices;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.api.JcrResourceConstants;
 import org.apache.sling.jcr.resource.internal.JcrListenerBaseConfig;
@@ -111,8 +112,7 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     /** The JCR observation listeners. */
     private final Map<ObserverConfiguration, Closeable> listeners = new HashMap<>();
 
-    // highest ranking first
-    private final RankedServices<URIProvider> providers = new RankedServices<>(Order.DESCENDING);
+    private final SortedMap<ServiceReference<URIProvider>, URIProvider> providers = Collections.synchronizedSortedMap(new TreeMap<>());
 
     private volatile SlingRepository repository;
 
@@ -164,18 +164,18 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
             bind = "bindUriProvider",
             unbind = "unbindUriProvider"
     )
-    void bindUriProvider(URIProvider uriProvider, Map<String, Object> properties) {
-        providers.bind(uriProvider, properties);
+    private void bindUriProvider(ServiceReference<URIProvider> srUriProvider, URIProvider uriProvider) {
+        providers.put(srUriProvider, uriProvider);
         updateURIProviders();
     }
 
-    void unbindUriProvider(URIProvider uriProvider, Map<String, Object> properties) {
-        providers.unbind(uriProvider, properties);
+    private void unbindUriProvider(ServiceReference<URIProvider> srUriProvider) {
+        providers.remove(srUriProvider);
         updateURIProviders();
     }
 
     private void updateURIProviders() {
-        URIProvider[] ups = providers.get().toArray(new URIProvider[0]);
+        URIProvider[] ups = providers.values().toArray(new URIProvider[providers.size()]);
         this.uriProviderReference.set(ups);
     }
 
