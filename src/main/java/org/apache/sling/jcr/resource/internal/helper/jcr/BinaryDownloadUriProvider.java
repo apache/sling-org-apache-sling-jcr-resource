@@ -35,6 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
+import org.osgi.service.component.propertytypes.ServiceRanking;
 import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.osgi.service.metatype.annotations.Designate;
 import org.osgi.service.metatype.annotations.ObjectClassDefinition;
@@ -46,6 +47,7 @@ import org.osgi.service.metatype.annotations.ObjectClassDefinition;
  *
  */
 @Component(service = URIProvider.class, configurationPolicy = ConfigurationPolicy.REQUIRE)
+@ServiceRanking(-100)
 @Designate(ocd = BinaryDownloadUriProvider.Configuration.class)
 public class BinaryDownloadUriProvider implements URIProvider {
 
@@ -70,7 +72,7 @@ public class BinaryDownloadUriProvider implements URIProvider {
     public BinaryDownloadUriProvider(Configuration configuration) {
         this(configuration.contentDisposition() == ContentDisposition.ATTACHMENT);
     }
- 
+
     BinaryDownloadUriProvider(boolean isContentDispositionAttachment) {
         this.isContentDispositionAttachment = isContentDispositionAttachment;
     }
@@ -78,7 +80,7 @@ public class BinaryDownloadUriProvider implements URIProvider {
     @Override
     public @NotNull URI toURI(@NotNull Resource resource, @NotNull Scope scope, @NotNull Operation operation) {
         if (!isRelevantScopeAndOperation(scope, operation)) {
-            throw new IllegalArgumentException("This provider only provides URIs for read operations in scope 'public' or 'external', but not for scope " + scope + " and operation " + operation);
+            throw new IllegalArgumentException("This provider only provides URIs for 'READ' operations in scope 'PUBLIC' or 'EXTERNAL', but not for scope '" + scope + "' and operation '" + operation + "'");
         }
         Node node = resource.adaptTo(Node.class);
         if (node == null) {
@@ -86,7 +88,7 @@ public class BinaryDownloadUriProvider implements URIProvider {
         }
         try {
             // get main property (probably containing binary data)
-            Property primaryProperty = NodeUtil.getPrimaryProperty(node);
+            Property primaryProperty = getPrimaryProperty(node);
             try {
                 return getUriFromProperty(resource, node, primaryProperty);
             } catch (RepositoryException e) {
@@ -97,6 +99,10 @@ public class BinaryDownloadUriProvider implements URIProvider {
         } catch (RepositoryException e) {
             throw new IllegalArgumentException("Error accessing primary property", e);
         }
+    }
+
+    protected Property getPrimaryProperty(@NotNull Node node) throws RepositoryException {
+        return NodeUtil.getPrimaryProperty(node);
     }
 
     private boolean isRelevantScopeAndOperation(@NotNull Scope scope, @NotNull Operation operation) {
@@ -112,18 +118,15 @@ public class BinaryDownloadUriProvider implements URIProvider {
         BinaryDownload binaryDownload = BinaryDownload.class.cast(binary);
         try {
             String encoding = resource.getResourceMetadata().getCharacterEncoding();
-            if (encoding == null) {
-                throw new IllegalArgumentException("Could not retrieve character encoding for resource");
-            }
             String fileName = node.getName();
             String mediaType = resource.getResourceMetadata().getContentType();
-            if (mediaType == null) {
-                throw new IllegalArgumentException("Could not retrieve media type for resource");
+            BinaryDownloadOptionsBuilder optionsBuilder = BinaryDownloadOptions.builder().withFileName(fileName);
+            if (encoding != null) {
+                optionsBuilder.withCharacterEncoding(encoding);
             }
-            BinaryDownloadOptionsBuilder optionsBuilder = BinaryDownloadOptions.builder()
-                    .withCharacterEncoding(encoding)
-                    .withFileName(fileName)
-                    .withMediaType(mediaType);
+            if (mediaType != null) {
+                optionsBuilder.withMediaType(mediaType);
+            }
             if (isContentDispositionAttachment) {
                 optionsBuilder.withDispositionTypeAttachment();
             } else {

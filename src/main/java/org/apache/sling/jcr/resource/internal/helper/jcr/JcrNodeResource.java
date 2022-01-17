@@ -213,12 +213,9 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
     private URI convertToPublicURI() {
         for (URIProvider up : helper.getURIProviders()) {
             try {
-                URI uri = up.toURI(this, URIProvider.Scope.EXTERNAL, URIProvider.Operation.READ);
-                if (uri != null) {
-                    return uri;
-                }
+                return up.toURI(this, URIProvider.Scope.EXTERNAL, URIProvider.Operation.READ);
             } catch (IllegalArgumentException e) {
-                LOGGER.debug(up.getClass().toString()+" declined toURI for resource '{}'", getPath(), e);
+                LOGGER.debug("{} declined toURI for resource '{}'", up.getClass(), getPath(), e);
             }
         }
         return null;

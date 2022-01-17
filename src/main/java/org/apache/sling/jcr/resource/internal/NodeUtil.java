@@ -81,7 +81,7 @@ public abstract class NodeUtil {
      * In case the node has a {@code jcr:data} property it is returned, otherwise the node's primary item as specified by its node type recursively until a property is found .
      * 
      * @param node the node for which to return the primary property
-     * @return the primary property of the given node. For {@code nt:file} nodes this is a property of the child node {@code jcr:content}
+     * @return the primary property of the given node
      * @throws ItemNotFoundException in case the given node does neither have a {@code jcr:data} property nor a primary property given through its node type
      * @throws RepositoryException in case some exception occurs
      */
