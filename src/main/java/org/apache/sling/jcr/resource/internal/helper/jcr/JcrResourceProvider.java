@@ -49,6 +49,8 @@ import org.apache.sling.api.resource.ResourceResolverFactory;
 import org.apache.sling.api.resource.ResourceUtil;
 import org.apache.sling.api.resource.external.URIProvider;
 import org.apache.sling.commons.classloader.DynamicClassLoaderManager;
+import org.apache.sling.commons.osgi.Order;
+import org.apache.sling.commons.osgi.RankedServices;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.api.JcrResourceConstants;
 import org.apache.sling.jcr.resource.internal.JcrListenerBaseConfig;
@@ -109,7 +111,8 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     /** The JCR observation listeners. */
     private final Map<ObserverConfiguration, Closeable> listeners = new HashMap<>();
 
-    private final Map<URIProvider, URIProvider> providers = new ConcurrentHashMap<URIProvider, URIProvider>();
+    // highest ranking first
+    private final RankedServices<URIProvider> providers = new RankedServices<>(Order.DESCENDING);
 
     private volatile SlingRepository repository;
 
@@ -161,18 +164,18 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
             bind = "bindUriProvider",
             unbind = "unbindUriProvider"
     )
-    private void bindUriProvider(URIProvider uriProvider) {
-
-        providers.put(uriProvider, uriProvider);
+    void bindUriProvider(URIProvider uriProvider, Map<String, Object> properties) {
+        providers.bind(uriProvider, properties);
         updateURIProviders();
     }
-    private void unbindUriProvider(URIProvider uriProvider) {
-        providers.remove(uriProvider);
+
+    void unbindUriProvider(URIProvider uriProvider, Map<String, Object> properties) {
+        providers.unbind(uriProvider, properties);
         updateURIProviders();
     }
 
     private void updateURIProviders() {
-        URIProvider[] ups = providers.values().toArray(new URIProvider[providers.size()]);
+        URIProvider[] ups = providers.get().toArray(new URIProvider[0]);
         this.uriProviderReference.set(ups);
     }
 
