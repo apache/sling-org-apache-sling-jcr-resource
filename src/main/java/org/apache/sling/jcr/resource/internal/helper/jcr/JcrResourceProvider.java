@@ -112,7 +112,11 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     /** The JCR observation listeners. */
     private final Map<ObserverConfiguration, Closeable> listeners = new HashMap<>();
 
-    private final SortedMap<ServiceReference<URIProvider>, URIProvider> providers = Collections.synchronizedSortedMap(new TreeMap<>());
+    /**
+     * Map of bound URIProviders sorted by service ranking in descending order (highest ranking first).
+     * Key = service reference, value = service implementation
+     */
+    private final SortedMap<ServiceReference<URIProvider>, URIProvider> providers = Collections.synchronizedSortedMap(new TreeMap<>(Collections.reverseOrder()));
 
     private volatile SlingRepository repository;
 
