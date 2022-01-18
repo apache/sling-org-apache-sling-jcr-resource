@@ -90,7 +90,7 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     /** Logger */
     private final Logger logger = LoggerFactory.getLogger(JcrResourceProvider.class);
 
-    private static final String REPOSITORY_REFERNENCE_NAME = "repository";
+    private static final String REPOSITORY_REFERENCE_NAME = "repository";
 
     private static final Set<String> IGNORED_PROPERTIES = new HashSet<String>();
     static {
@@ -100,7 +100,7 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
         IGNORED_PROPERTIES.add("jcr:createdBy");
     }
 
-    @Reference(name = REPOSITORY_REFERNENCE_NAME, service = SlingRepository.class)
+    @Reference(name = REPOSITORY_REFERENCE_NAME, service = SlingRepository.class)
     private ServiceReference<SlingRepository> repositoryReference;
 
     /** The JCR listener base configuration. */
@@ -121,7 +121,7 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
 
     @Activate
     protected void activate(final ComponentContext context) throws RepositoryException {
-        SlingRepository repository = context.locateService(REPOSITORY_REFERNENCE_NAME,
+        SlingRepository repository = context.locateService(REPOSITORY_REFERENCE_NAME,
                 this.repositoryReference);
         if (repository == null) {
             // concurrent unregistration of SlingRepository service
