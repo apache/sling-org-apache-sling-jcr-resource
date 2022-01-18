@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.jetbrains.annotations.Nullable;
@@ -95,7 +94,7 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
 
     private static final String REPOSITORY_REFERENCE_NAME = "repository";
 
-    private static final Set<String> IGNORED_PROPERTIES = new HashSet<String>();
+    private static final Set<String> IGNORED_PROPERTIES = new HashSet<>();
     static {
         IGNORED_PROPERTIES.add(NodeUtil.MIXIN_TYPES);
         IGNORED_PROPERTIES.add(NodeUtil.NODE_TYPE);
@@ -122,12 +121,12 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
 
     private volatile JcrProviderStateFactory stateFactory;
 
-    private final AtomicReference<DynamicClassLoaderManager> classLoaderManagerReference = new AtomicReference<DynamicClassLoaderManager>();
+    private final AtomicReference<DynamicClassLoaderManager> classLoaderManagerReference = new AtomicReference<>();
 
-    private AtomicReference<URIProvider[]> uriProviderReference = new AtomicReference<URIProvider[]>();
+    private AtomicReference<URIProvider[]> uriProviderReference = new AtomicReference<>();
 
     @Activate
-    protected void activate(final ComponentContext context) throws RepositoryException {
+    protected void activate(final ComponentContext context) {
         SlingRepository repository = context.locateService(REPOSITORY_REFERENCE_NAME,
                 this.repositoryReference);
         if (repository == null) {
