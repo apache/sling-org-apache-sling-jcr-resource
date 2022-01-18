@@ -22,11 +22,14 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -109,7 +112,11 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     /** The JCR observation listeners. */
     private final Map<ObserverConfiguration, Closeable> listeners = new HashMap<>();
 
-    private final Map<URIProvider, URIProvider> providers = new ConcurrentHashMap<URIProvider, URIProvider>();
+    /**
+     * Map of bound URIProviders sorted by service ranking in descending order (highest ranking first).
+     * Key = service reference, value = service implementation
+     */
+    private final SortedMap<ServiceReference<URIProvider>, URIProvider> providers = Collections.synchronizedSortedMap(new TreeMap<>(Collections.reverseOrder()));
 
     private volatile SlingRepository repository;
 
@@ -161,13 +168,13 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
             bind = "bindUriProvider",
             unbind = "unbindUriProvider"
     )
-    private void bindUriProvider(URIProvider uriProvider) {
-
-        providers.put(uriProvider, uriProvider);
+    private void bindUriProvider(ServiceReference<URIProvider> srUriProvider, URIProvider uriProvider) {
+        providers.put(srUriProvider, uriProvider);
         updateURIProviders();
     }
-    private void unbindUriProvider(URIProvider uriProvider) {
-        providers.remove(uriProvider);
+
+    private void unbindUriProvider(ServiceReference<URIProvider> srUriProvider) {
+        providers.remove(srUriProvider);
         updateURIProviders();
     }
 
