@@ -58,7 +58,7 @@ public class BinaryDownloadUriProvider implements URIProvider {
 
     @ObjectClassDefinition(
             name = "Apache Sling Binary Download URI Provider",
-            description = "Provides URIs for resources containing a primary JCR binary property backed by a blob store with external access")
+            description = "Provides URIs for resources containing a primary JCR binary property backed by a blob store allowing direct HTTP access")
     public static @interface Configuration {
         @AttributeDefinition(
                 name = "Content-Disposition",
@@ -101,7 +101,7 @@ public class BinaryDownloadUriProvider implements URIProvider {
         }
     }
 
-    protected Property getPrimaryProperty(@NotNull Node node) throws RepositoryException {
+    protected @NotNull Property getPrimaryProperty(@NotNull Node node) throws RepositoryException {
         return NodeUtil.getPrimaryProperty(node);
     }
 
@@ -113,7 +113,7 @@ public class BinaryDownloadUriProvider implements URIProvider {
         Binary binary = binaryProperty.getBinary();
         if (!(binary instanceof BinaryDownload)) {
             binary.dispose();
-            throw new IllegalArgumentException("The property " + binaryProperty.getPath() + " is not backed by an store providing direct downloads");
+            throw new IllegalArgumentException("The property " + binaryProperty.getPath() + " is not backed by a blob store allowing direct HTTP access");
         }
         BinaryDownload binaryDownload = BinaryDownload.class.cast(binary);
         try {

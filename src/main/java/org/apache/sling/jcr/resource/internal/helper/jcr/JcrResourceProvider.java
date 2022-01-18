@@ -40,6 +40,7 @@ import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
+import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
@@ -96,9 +97,9 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
 
     private static final Set<String> IGNORED_PROPERTIES = new HashSet<>();
     static {
-        IGNORED_PROPERTIES.add(NodeUtil.MIXIN_TYPES);
-        IGNORED_PROPERTIES.add(NodeUtil.NODE_TYPE);
-        IGNORED_PROPERTIES.add("jcr:created");
+        IGNORED_PROPERTIES.add(JcrConstants.JCR_MIXINTYPES);
+        IGNORED_PROPERTIES.add(JcrConstants.JCR_PRIMARYTYPE);
+        IGNORED_PROPERTIES.add(JcrConstants.JCR_CREATED);
         IGNORED_PROPERTIES.add("jcr:createdBy");
     }
 
@@ -410,7 +411,7 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     public Resource create(final @NotNull ResolveContext<JcrProviderState> ctx, final String path, final Map<String, Object> properties)
     throws PersistenceException {
         // check for node type
-        final Object nodeObj = (properties != null ? properties.get(NodeUtil.NODE_TYPE) : null);
+        final Object nodeObj = (properties != null ? properties.get(JcrConstants.JCR_PRIMARYTYPE) : null);
         // check for sling:resourcetype
         final String nodeType;
         if ( nodeObj != null ) {
@@ -459,9 +460,9 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
                 // create modifiable map
                 final JcrModifiableValueMap jcrMap = new JcrModifiableValueMap(node, ctx.getProviderState().getHelperData());
                 // check mixin types first
-                final Object value = properties.get(NodeUtil.MIXIN_TYPES);
+                final Object value = properties.get(JcrConstants.JCR_MIXINTYPES);
                 if ( value != null ) {
-                    jcrMap.put(NodeUtil.MIXIN_TYPES, value);
+                    jcrMap.put(JcrConstants.JCR_MIXINTYPES, value);
                 }
                 for(final Map.Entry<String, Object> entry : properties.entrySet()) {
                     if ( !IGNORED_PROPERTIES.contains(entry.getKey()) ) {

@@ -25,6 +25,7 @@ import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Value;
 
+import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.resource.ModifiableValueMap;
 import org.apache.sling.jcr.resource.internal.helper.JcrPropertyMapCacheEntry;
 
@@ -62,7 +63,7 @@ public class JcrModifiableValueMap
             final JcrPropertyMapCacheEntry entry = new JcrPropertyMapCacheEntry(value, this.node);
             this.cache.put(key, entry);
             final String name = escapeKeyName(key);
-            if ( NodeUtil.MIXIN_TYPES.equals(name) ) {
+            if ( JcrConstants.JCR_MIXINTYPES.equals(name) ) {
                 NodeUtil.handleMixinTypes(node, entry.convertToType(String[].class, node, this.helper.getDynamicClassLoader()));
             } else if ( "jcr:primaryType".equals(name) ) {
                 node.setPrimaryType(entry.convertToType(String.class, node, this.helper.getDynamicClassLoader()));

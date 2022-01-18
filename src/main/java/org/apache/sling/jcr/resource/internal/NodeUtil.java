@@ -39,12 +39,6 @@ import org.jetbrains.annotations.NotNull;
 
 public abstract class NodeUtil {
 
-    /** Property for the mixin node types. */
-    public static final String MIXIN_TYPES = "jcr:mixinTypes";
-
-    /** Property for the node type. */
-    public static final String NODE_TYPE = "jcr:primaryType";
-
     /**
      * Update the mixin node types
      *
