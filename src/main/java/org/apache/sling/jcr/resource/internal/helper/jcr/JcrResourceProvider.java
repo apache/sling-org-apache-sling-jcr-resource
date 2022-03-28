@@ -22,12 +22,14 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.jcr.Item;
@@ -36,6 +38,7 @@ import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
+import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
@@ -94,13 +97,13 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     /** Logger */
     private final Logger logger = LoggerFactory.getLogger(JcrResourceProvider.class);
 
-    private static final String REPOSITORY_REFERNENCE_NAME = "repository";
+    private static final String REPOSITORY_REFERENCE_NAME = "repository";
 
-    private static final Set<String> IGNORED_PROPERTIES = new HashSet<String>();
+    private static final Set<String> IGNORED_PROPERTIES = new HashSet<>();
     static {
-        IGNORED_PROPERTIES.add(NodeUtil.MIXIN_TYPES);
-        IGNORED_PROPERTIES.add(NodeUtil.NODE_TYPE);
-        IGNORED_PROPERTIES.add("jcr:created");
+        IGNORED_PROPERTIES.add(JcrConstants.JCR_MIXINTYPES);
+        IGNORED_PROPERTIES.add(JcrConstants.JCR_PRIMARYTYPE);
+        IGNORED_PROPERTIES.add(JcrConstants.JCR_CREATED);
         IGNORED_PROPERTIES.add("jcr:createdBy");
     }
 
@@ -113,8 +116,8 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
         @AttributeDefinition(name = "Default Query Limit", description = "The default query limit for queries using the findResources methods")
         long default_query_limit() default 10000L;
     }
-
-    @Reference(name = REPOSITORY_REFERNENCE_NAME, service = SlingRepository.class)
+  
+    @Reference(name = REPOSITORY_REFERENCE_NAME, service = SlingRepository.class)
     private ServiceReference<SlingRepository> repositoryReference;
 
     /** The JCR listener base configuration. */
@@ -123,21 +126,25 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     /** The JCR observation listeners. */
     private final Map<ObserverConfiguration, Closeable> listeners = new HashMap<>();
 
-    private final Map<URIProvider, URIProvider> providers = new ConcurrentHashMap<URIProvider, URIProvider>();
+    /**
+     * Map of bound URIProviders sorted by service ranking in descending order (highest ranking first).
+     * Key = service reference, value = service implementation
+     */
+    private final SortedMap<ServiceReference<URIProvider>, URIProvider> providers = Collections.synchronizedSortedMap(new TreeMap<>(Collections.reverseOrder()));
 
     private volatile SlingRepository repository;
 
     private volatile JcrProviderStateFactory stateFactory;
 
     private Config config;
+  
+    private final AtomicReference<DynamicClassLoaderManager> classLoaderManagerReference = new AtomicReference<>();
 
-    private final AtomicReference<DynamicClassLoaderManager> classLoaderManagerReference = new AtomicReference<DynamicClassLoaderManager>();
-
-    private AtomicReference<URIProvider[]> uriProviderReference = new AtomicReference<URIProvider[]>();
+    private AtomicReference<URIProvider[]> uriProviderReference = new AtomicReference<>();
 
     @Activate
     protected void activate(final ComponentContext context, final Config config) throws RepositoryException {
-        SlingRepository repository = context.locateService(REPOSITORY_REFERNENCE_NAME,
+        SlingRepository repository = context.locateService(REPOSITORY_REFERENCE_NAME,
                 this.repositoryReference);
         if (repository == null) {
             // concurrent unregistration of SlingRepository service
@@ -179,13 +186,13 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
             bind = "bindUriProvider",
             unbind = "unbindUriProvider"
     )
-    private void bindUriProvider(URIProvider uriProvider) {
-
-        providers.put(uriProvider, uriProvider);
+    private void bindUriProvider(ServiceReference<URIProvider> srUriProvider, URIProvider uriProvider) {
+        providers.put(srUriProvider, uriProvider);
         updateURIProviders();
     }
-    private void unbindUriProvider(URIProvider uriProvider) {
-        providers.remove(uriProvider);
+
+    private void unbindUriProvider(ServiceReference<URIProvider> srUriProvider) {
+        providers.remove(srUriProvider);
         updateURIProviders();
     }
 
@@ -422,7 +429,7 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     public Resource create(final @NotNull ResolveContext<JcrProviderState> ctx, final String path, final Map<String, Object> properties)
     throws PersistenceException {
         // check for node type
-        final Object nodeObj = (properties != null ? properties.get(NodeUtil.NODE_TYPE) : null);
+        final Object nodeObj = (properties != null ? properties.get(JcrConstants.JCR_PRIMARYTYPE) : null);
         // check for sling:resourcetype
         final String nodeType;
         if ( nodeObj != null ) {
@@ -471,9 +478,9 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
                 // create modifiable map
                 final JcrModifiableValueMap jcrMap = new JcrModifiableValueMap(node, ctx.getProviderState().getHelperData());
                 // check mixin types first
-                final Object value = properties.get(NodeUtil.MIXIN_TYPES);
+                final Object value = properties.get(JcrConstants.JCR_MIXINTYPES);
                 if ( value != null ) {
-                    jcrMap.put(NodeUtil.MIXIN_TYPES, value);
+                    jcrMap.put(JcrConstants.JCR_MIXINTYPES, value);
                 }
                 for(final Map.Entry<String, Object> entry : properties.entrySet()) {
                     if ( !IGNORED_PROPERTIES.contains(entry.getKey()) ) {
