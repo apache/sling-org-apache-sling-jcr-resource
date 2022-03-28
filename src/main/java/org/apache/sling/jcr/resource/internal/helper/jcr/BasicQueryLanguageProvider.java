@@ -63,6 +63,10 @@ public class BasicQueryLanguageProvider implements QueryLanguageProvider<JcrProv
         this.providerContext = ctx;
     }
 
+    protected QueryResult query(final ResolveContext<JcrProviderState> ctx, final String query, final String language) throws RepositoryException{
+        return JcrResourceUtil.query(ctx.getProviderState().getSession(), query, language);
+    }
+
     @Override
     public String[] getSupportedLanguages(final ResolveContext<JcrProviderState> ctx) {
         try {
@@ -77,7 +81,7 @@ public class BasicQueryLanguageProvider implements QueryLanguageProvider<JcrProv
             final String query,
             final String language) {
         try {
-            final QueryResult res = JcrResourceUtil.query(ctx.getProviderState().getSession(), query, language);
+            final QueryResult res = query(ctx, query, language);
             return new JcrNodeResourceIterator(ctx.getResourceResolver(),
                     null, null,
                     res.getNodes(),
@@ -97,7 +101,7 @@ public class BasicQueryLanguageProvider implements QueryLanguageProvider<JcrProv
         final String queryLanguage = ArrayUtils.contains(getSupportedLanguages(ctx), language) ? language : DEFAULT_QUERY_LANGUAGE;
 
         try {
-            final QueryResult result = JcrResourceUtil.query(ctx.getProviderState().getSession(), query, queryLanguage);
+            final QueryResult result = query(ctx, query, queryLanguage);
             final String[] colNames = result.getColumnNames();
             final RowIterator rows = result.getRows();
 

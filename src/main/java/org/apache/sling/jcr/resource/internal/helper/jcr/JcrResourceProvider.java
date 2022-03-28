@@ -30,8 +30,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.NotNull;
 import javax.jcr.Item;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
@@ -61,6 +59,8 @@ import org.apache.sling.spi.resource.provider.QueryLanguageProvider;
 import org.apache.sling.spi.resource.provider.ResolveContext;
 import org.apache.sling.spi.resource.provider.ResourceContext;
 import org.apache.sling.spi.resource.provider.ResourceProvider;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
@@ -70,6 +70,9 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.osgi.service.metatype.annotations.AttributeDefinition;
+import org.osgi.service.metatype.annotations.Designate;
+import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,6 +88,7 @@ import org.slf4j.LoggerFactory;
                    ResourceProvider.PROPERTY_AUTHENTICATE + "=" + ResourceProvider.AUTHENTICATE_REQUIRED,
                    Constants.SERVICE_VENDOR + "=The Apache Software Foundation"
            })
+@Designate(ocd = JcrResourceProvider.Config.class)
 public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
 
     /** Logger */
@@ -98,6 +102,16 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
         IGNORED_PROPERTIES.add(NodeUtil.NODE_TYPE);
         IGNORED_PROPERTIES.add("jcr:created");
         IGNORED_PROPERTIES.add("jcr:createdBy");
+    }
+
+    @ObjectClassDefinition(name = "Apache Sling JCR Resource Provider", description = "Provides Sling resources based on the Java Content Repository")
+    public @interface Config {
+
+        @AttributeDefinition(name = "Enable Query Limit", description = "If set to true, the JcrResourceProvider will support parsing query start and limits from comments in the queries and set a default limit for all other queries using the findResources methods")
+        boolean enable_query_limit() default false;
+
+        @AttributeDefinition(name = "Default Query Limit", description = "The default query limit for queries using the findResources methods")
+        long default_query_limit() default 10000L;
     }
 
     @Reference(name = REPOSITORY_REFERNENCE_NAME, service = SlingRepository.class)
@@ -115,12 +129,14 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
 
     private volatile JcrProviderStateFactory stateFactory;
 
+    private Config config;
+
     private final AtomicReference<DynamicClassLoaderManager> classLoaderManagerReference = new AtomicReference<DynamicClassLoaderManager>();
 
     private AtomicReference<URIProvider[]> uriProviderReference = new AtomicReference<URIProvider[]>();
 
     @Activate
-    protected void activate(final ComponentContext context) throws RepositoryException {
+    protected void activate(final ComponentContext context, final Config config) throws RepositoryException {
         SlingRepository repository = context.locateService(REPOSITORY_REFERNENCE_NAME,
                 this.repositoryReference);
         if (repository == null) {
@@ -130,6 +146,8 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
             logger.warn("activate: Activation failed because SlingRepository may have been unregistered concurrently");
             return;
         }
+
+        this.config = config;
 
         this.repository = repository;
 
@@ -627,6 +645,9 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     public @Nullable QueryLanguageProvider<JcrProviderState> getQueryLanguageProvider() {
         final ProviderContext ctx = this.getProviderContext();
         if ( ctx != null ) {
+            if(config.enable_query_limit()){
+                return new LimitingQueryLanguageProvider(ctx, config.default_query_limit());
+            }
             return new BasicQueryLanguageProvider(ctx);
         }
         return null;

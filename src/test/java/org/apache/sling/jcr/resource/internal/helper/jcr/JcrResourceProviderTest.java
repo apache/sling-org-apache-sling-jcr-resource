@@ -18,6 +18,7 @@
  */
 package org.apache.sling.jcr.resource.internal.helper.jcr;
 
+import java.lang.annotation.Annotation;
 import java.security.Principal;
 
 import javax.jcr.Node;
@@ -26,9 +27,9 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.nodetype.NodeType;
 
-import org.apache.jackrabbit.commons.JcrUtils;
 import org.apache.sling.api.resource.PersistenceException;
 import org.apache.sling.api.resource.Resource;
+import org.apache.sling.jcr.resource.internal.helper.jcr.JcrResourceProvider.Config;
 import org.apache.sling.spi.resource.provider.ResolveContext;
 import org.apache.sling.spi.resource.provider.ResourceContext;
 import org.junit.Assert;
@@ -50,7 +51,20 @@ public class JcrResourceProviderTest extends SlingRepositoryTestBase {
         ComponentContext ctx = Mockito.mock(ComponentContext.class);
         Mockito.when(ctx.locateService(Mockito.anyString(), Mockito.any(ServiceReference.class))).thenReturn(repo);
         jcrResourceProvider = new JcrResourceProvider();
-        jcrResourceProvider.activate(ctx);
+        jcrResourceProvider.activate(ctx, new Config() {
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return null;
+            }
+            @Override
+            public boolean enable_query_limit() {
+                return false;
+            }
+            @Override
+            public long default_query_limit() {
+                return 0;
+            }
+        });
     }
 
     @Override

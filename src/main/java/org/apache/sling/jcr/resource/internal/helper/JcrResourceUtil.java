@@ -43,7 +43,7 @@ public class JcrResourceUtil {
 
     /**
      * Helper method to execute a JCR query.
-     *
+     * 
      * @param session the session
      * @param query the query
      * @param language the language
@@ -52,8 +52,26 @@ public class JcrResourceUtil {
      */
     public static QueryResult query(Session session, String query,
             String language) throws RepositoryException {
+        return query(session, query, language, 0, Long.MAX_VALUE);
+    }
+
+    /**
+     * Helper method to execute a JCR query.
+     * 
+     * @param session  the session
+     * @param query    the query
+     * @param language the language
+     * @param offset   the offset to start at
+     * @param limit    the limit to the number of results to return
+     * @return the query's result
+     * @throws RepositoryException if the {@link QueryManager} cannot be retrieved
+     */
+    public static QueryResult query(Session session, String query,
+            String language, long offset, long limit) throws RepositoryException {
         QueryManager qManager = session.getWorkspace().getQueryManager();
         Query q = qManager.createQuery(query, language);
+        q.setOffset(offset);
+        q.setLimit(limit);
         return q.execute();
     }
 
