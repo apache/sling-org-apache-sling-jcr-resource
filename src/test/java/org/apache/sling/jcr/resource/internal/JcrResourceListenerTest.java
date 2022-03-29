@@ -269,7 +269,7 @@ public class JcrResourceListenerTest {
                 session.save();
             }
             System.out.println("Events = " + events);
-            assertEquals("Received: " + events, 7, events.size());
+            assertEquals("Received: " + events, 6, events.size());
             final Set<String> addPaths = new HashSet<String>();
             final Set<String> modifyPaths = new HashSet<String>();
             final Set<String> removePaths = new HashSet<String>();
@@ -294,12 +294,9 @@ public class JcrResourceListenerTest {
             assertTrue("Modified set should contain /libs/" + rootName, modifyPaths.contains("/libs/" + rootName));
             assertTrue("Modified set should contain /apps/" + rootName, modifyPaths.contains("/apps/" + rootName));
 
-            // The OakEventFilter is using withIncludeAncestorsRemove, so we get also "removed" 
-            // events for all ancestors of /apps and /libs;
-            assertEquals("Received: " + removePaths, 3, removePaths.size());
+            assertEquals("Received: " + removePaths, 2, removePaths.size());
             assertTrue("Removed set should contain /libs/" + rootName, removePaths.contains("/libs/" + rootName));
             assertTrue("Removed set should contain /apps/" + rootName, removePaths.contains("/apps/" + rootName));
-            assertTrue("Removed set should contain /" + rootName, removePaths.contains("/" + rootName));
         }
     }
 
