@@ -19,12 +19,6 @@ package org.apache.sling.jcr.resource.internal;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Workspace;
@@ -32,13 +26,9 @@ import javax.jcr.observation.Event;
 import javax.jcr.observation.EventIterator;
 import javax.jcr.observation.ObservationManager;
 
-import org.apache.sling.api.resource.observation.ResourceChange;
-import org.apache.sling.api.resource.observation.ResourceChange.ChangeType;
-import org.apache.sling.api.resource.path.PathSet;
 import org.apache.sling.jcr.api.SlingRepository;
+import org.apache.sling.jcr.resource.SimpleProviderContext;
 import org.apache.sling.jcr.resource.internal.helper.jcr.SlingRepositoryProvider;
-import org.apache.sling.spi.resource.provider.ObservationReporter;
-import org.apache.sling.spi.resource.provider.ObserverConfiguration;
 import org.apache.sling.spi.resource.provider.ProviderContext;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -96,65 +86,6 @@ public class JcrResourceListenerScalabilityTest {
         @Override
         public String getPath() throws RepositoryException {
             return "path-" + count++;
-        }
-    }
-
-    private static class SimpleProviderContext implements ProviderContext {
-        @Override
-        public ObservationReporter getObservationReporter() {
-            return new ObservationReporter() {
-
-                @Override
-                public void reportChanges(Iterable<ResourceChange> changes, boolean distribute) {
-                }
-
-                @Override
-                public void reportChanges(ObserverConfiguration config, Iterable<ResourceChange> changes,
-                        boolean distribute) {
-                }
-
-                @Override
-                public List<ObserverConfiguration> getObserverConfigurations() {
-                    ObserverConfiguration config = new ObserverConfiguration() {
-
-                        @Override
-                        public boolean includeExternal() {
-                            return true;
-                        }
-
-                        @Override
-                        public PathSet getPaths() {
-                            return PathSet.fromStrings("/");
-                        }
-
-                        @Override
-                        public PathSet getExcludedPaths() {
-                            return PathSet.fromPaths();
-                        }
-
-                        @Override
-                        public Set<ChangeType> getChangeTypes() {
-                            return EnumSet.allOf(ChangeType.class);
-                        }
-
-                        @Override
-                        public boolean matches(String path) {
-                            return true;
-                        }
-
-                        @Override
-                        public Set<String> getPropertyNamesHint() {
-                            return new HashSet<String>();
-                        }
-                    };
-                    return Collections.singletonList(config);
-                }
-            };
-        }
-
-        @Override
-        public PathSet getExcludedPaths() {
-            return PathSet.fromPaths();
         }
     }
 }

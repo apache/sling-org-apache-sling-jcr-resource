@@ -59,12 +59,25 @@ public class BasicQueryLanguageProvider implements QueryLanguageProvider<JcrProv
     /** The provider context. */
     private final ProviderContext providerContext;
 
+    private final long queryLimit;
+
     public BasicQueryLanguageProvider(final ProviderContext ctx) {
         this.providerContext = ctx;
+        queryLimit = -1;
     }
 
-    protected QueryResult query(final ResolveContext<JcrProviderState> ctx, final String query, final String language) throws RepositoryException{
-        return JcrResourceUtil.query(ctx.getProviderState().getSession(), query, language);
+    public BasicQueryLanguageProvider(final ProviderContext ctx, long queryLimit) {
+        this.providerContext = ctx;
+        this.queryLimit = queryLimit;
+    }
+
+    protected QueryResult query(final ResolveContext<JcrProviderState> ctx, final String query, final String language)
+            throws RepositoryException {
+        if (queryLimit > 0) {
+            return JcrResourceUtil.query(ctx.getProviderState().getSession(), query, language, queryLimit);
+        } else {
+            return JcrResourceUtil.query(ctx.getProviderState().getSession(), query, language);
+        }
     }
 
     @Override

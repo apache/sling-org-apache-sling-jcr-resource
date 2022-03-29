@@ -247,7 +247,7 @@ public class JcrResourceProviderSessionHandlingTest {
                 return false;
             }
             @Override
-            public long default_query_limit() {
+            public long query_limit() {
                 return 0;
             }
         });

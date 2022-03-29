@@ -107,11 +107,11 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     @ObjectClassDefinition(name = "Apache Sling JCR Resource Provider", description = "Provides Sling resources based on the Java Content Repository")
     public @interface Config {
 
-        @AttributeDefinition(name = "Enable Query Limit", description = "If set to true, the JcrResourceProvider will support parsing query start and limits from comments in the queries and set a default limit for all other queries using the findResources methods")
+        @AttributeDefinition(name = "Enable Query Limit", description = "If set to true, the JcrResourceProvider will set a default limit for all other queries using the findResources / queryResources methods")
         boolean enable_query_limit() default false;
 
-        @AttributeDefinition(name = "Default Query Limit", description = "The default query limit for queries using the findResources methods")
-        long default_query_limit() default 10000L;
+        @AttributeDefinition(name = "Query Limit", description = "The default query limit for queries using the findResources / queryResources methods")
+        long query_limit() default 10000L;
     }
 
     @Reference(name = REPOSITORY_REFERNENCE_NAME, service = SlingRepository.class)
@@ -644,9 +644,9 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     @Override
     public @Nullable QueryLanguageProvider<JcrProviderState> getQueryLanguageProvider() {
         final ProviderContext ctx = this.getProviderContext();
-        if ( ctx != null ) {
-            if(config.enable_query_limit()){
-                return new LimitingQueryLanguageProvider(ctx, config.default_query_limit());
+        if (ctx != null) {
+            if (config.enable_query_limit()) {
+                return new BasicQueryLanguageProvider(ctx, config.query_limit());
             }
             return new BasicQueryLanguageProvider(ctx);
         }

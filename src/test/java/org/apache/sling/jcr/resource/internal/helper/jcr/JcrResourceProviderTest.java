@@ -61,7 +61,7 @@ public class JcrResourceProviderTest extends SlingRepositoryTestBase {
                 return false;
             }
             @Override
-            public long default_query_limit() {
+            public long query_limit() {
                 return 0;
             }
         });
