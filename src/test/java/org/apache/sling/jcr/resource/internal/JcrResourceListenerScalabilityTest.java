@@ -27,8 +27,6 @@ import javax.jcr.observation.EventIterator;
 import javax.jcr.observation.ObservationManager;
 
 import org.apache.sling.jcr.api.SlingRepository;
-import org.apache.sling.jcr.resource.SimpleProviderContext;
-import org.apache.sling.jcr.resource.internal.helper.jcr.SlingRepositoryProvider;
 import org.apache.sling.spi.resource.provider.ProviderContext;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -62,8 +60,7 @@ public class JcrResourceListenerScalabilityTest {
         when(repository.loginAdministrative(null)).thenReturn(session);
 
         final ProviderContext ctx = new SimpleProviderContext();
-        this.config = new JcrListenerBaseConfig(ctx.getObservationReporter(),
-                SlingRepositoryProvider.getRepository());
+        this.config = new JcrListenerBaseConfig(ctx.getObservationReporter(), repository);
         jcrResourceListener = new JcrResourceListener(this.config, ctx.getObservationReporter().getObserverConfigurations().get(0));
 
         Event event = mock(MockEvent.class);
