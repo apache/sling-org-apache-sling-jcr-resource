@@ -18,7 +18,6 @@
  */
 package org.apache.sling.jcr.resource.internal.helper.jcr;
 
-import java.lang.annotation.Annotation;
 import java.util.Iterator;
 
 import javax.jcr.Node;
@@ -29,7 +28,7 @@ import javax.jcr.nodetype.NodeType;
 import javax.jcr.query.Query;
 
 import org.apache.sling.api.resource.Resource;
-import org.apache.sling.jcr.resource.SimpleProviderContext;
+import org.apache.sling.jcr.resource.internal.SimpleProviderContext;
 import org.apache.sling.jcr.resource.internal.helper.jcr.JcrResourceProvider.Config;
 import org.apache.sling.spi.resource.provider.ProviderContext;
 import org.apache.sling.spi.resource.provider.ResolveContext;
@@ -111,30 +110,6 @@ public class JcrResourceProviderQueryTest extends SlingRepositoryTestBase {
         }
     }
 
-    private static class SimpleConfig implements JcrResourceProvider.Config {
-        private final boolean enabled;
-        private final long limit;
-
-        public SimpleConfig(boolean enabled, long limit) {
-            this.enabled = enabled;
-            this.limit = limit;
-        }
-
-        @Override
-        public Class<? extends Annotation> annotationType() {
-            return null;
-        }
-
-        @Override
-        public boolean enable_query_limit() {
-            return enabled;
-        }
-
-        @Override
-        public long query_limit() {
-            return this.limit;
-        }
-
-    }
+    
 
 }

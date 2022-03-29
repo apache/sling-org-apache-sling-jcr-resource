@@ -237,20 +237,7 @@ public class JcrResourceProviderSessionHandlingTest {
         when(ctx.locateService(anyString(), Mockito.<ServiceReference<Object>>any())).thenReturn(repo);
 
         jcrResourceProvider = new JcrResourceProvider();
-        jcrResourceProvider.activate(ctx, new Config() {
-            @Override
-            public Class<? extends Annotation> annotationType() {
-                return null;
-            }
-            @Override
-            public boolean enable_query_limit() {
-                return false;
-            }
-            @Override
-            public long query_limit() {
-                return 0;
-            }
-        });
+        jcrResourceProvider.activate(ctx, new SimpleConfig(false, -1));
 
         jcrProviderState = jcrResourceProvider.authenticate(authInfo);
     }
