@@ -31,6 +31,7 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -47,6 +48,7 @@ import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ResourceResolverFactory;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.api.JcrResourceConstants;
+import org.apache.sling.jcr.resource.internal.helper.jcr.JcrResourceProvider.Config;
 import org.apache.sling.spi.resource.provider.ResolveContext;
 import org.apache.sling.spi.resource.provider.ResourceProvider;
 import org.junit.After;
@@ -235,7 +237,7 @@ public class JcrResourceProviderSessionHandlingTest {
         when(ctx.locateService(anyString(), Mockito.<ServiceReference<Object>>any())).thenReturn(repo);
 
         jcrResourceProvider = new JcrResourceProvider();
-        jcrResourceProvider.activate(ctx);
+        jcrResourceProvider.activate(ctx, new SimpleConfig(false, -1));
 
         jcrProviderState = jcrResourceProvider.authenticate(authInfo);
     }

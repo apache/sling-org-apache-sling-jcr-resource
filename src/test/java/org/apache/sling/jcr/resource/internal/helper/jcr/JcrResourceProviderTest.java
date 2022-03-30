@@ -26,7 +26,6 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.nodetype.NodeType;
 
-import org.apache.jackrabbit.commons.JcrUtils;
 import org.apache.sling.api.resource.PersistenceException;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.spi.resource.provider.ResolveContext;
@@ -50,7 +49,7 @@ public class JcrResourceProviderTest extends SlingRepositoryTestBase {
         ComponentContext ctx = Mockito.mock(ComponentContext.class);
         Mockito.when(ctx.locateService(Mockito.anyString(), Mockito.any(ServiceReference.class))).thenReturn(repo);
         jcrResourceProvider = new JcrResourceProvider();
-        jcrResourceProvider.activate(ctx);
+        jcrResourceProvider.activate(ctx, new SimpleConfig(false, -1));
     }
 
     @Override

@@ -59,8 +59,25 @@ public class BasicQueryLanguageProvider implements QueryLanguageProvider<JcrProv
     /** The provider context. */
     private final ProviderContext providerContext;
 
+    private final long queryLimit;
+
     public BasicQueryLanguageProvider(final ProviderContext ctx) {
         this.providerContext = ctx;
+        queryLimit = -1;
+    }
+
+    public BasicQueryLanguageProvider(final ProviderContext ctx, long queryLimit) {
+        this.providerContext = ctx;
+        this.queryLimit = queryLimit;
+    }
+
+    protected QueryResult query(final ResolveContext<JcrProviderState> ctx, final String query, final String language)
+            throws RepositoryException {
+        if (queryLimit > 0) {
+            return JcrResourceUtil.query(ctx.getProviderState().getSession(), query, language, queryLimit);
+        } else {
+            return JcrResourceUtil.query(ctx.getProviderState().getSession(), query, language);
+        }
     }
 
     @Override
@@ -77,7 +94,7 @@ public class BasicQueryLanguageProvider implements QueryLanguageProvider<JcrProv
             final String query,
             final String language) {
         try {
-            final QueryResult res = JcrResourceUtil.query(ctx.getProviderState().getSession(), query, language);
+            final QueryResult res = query(ctx, query, language);
             return new JcrNodeResourceIterator(ctx.getResourceResolver(),
                     null, null,
                     res.getNodes(),
@@ -97,7 +114,7 @@ public class BasicQueryLanguageProvider implements QueryLanguageProvider<JcrProv
         final String queryLanguage = ArrayUtils.contains(getSupportedLanguages(ctx), language) ? language : DEFAULT_QUERY_LANGUAGE;
 
         try {
-            final QueryResult result = JcrResourceUtil.query(ctx.getProviderState().getSession(), query, queryLanguage);
+            final QueryResult result = query(ctx, query, queryLanguage);
             final String[] colNames = result.getColumnNames();
             final RowIterator rows = result.getRows();
 
