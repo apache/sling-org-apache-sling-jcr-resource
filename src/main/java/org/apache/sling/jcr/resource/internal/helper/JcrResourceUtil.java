@@ -64,7 +64,7 @@ public class JcrResourceUtil {
      * @param session  the session
      * @param query    the query
      * @param language the language
-     * @param limit    the limit to the number of results to return
+     * @param limit    the maximum number of results to return; -1 if the result set should not be limited
      * @return the query's result
      * @throws RepositoryException if the {@link QueryManager} cannot be retrieved
      */
