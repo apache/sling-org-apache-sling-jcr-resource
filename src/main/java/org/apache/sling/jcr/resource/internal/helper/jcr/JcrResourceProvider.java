@@ -109,7 +109,7 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     @ObjectClassDefinition(name = "Apache Sling JCR Resource Provider", description = "Provides Sling resources based on the Java Content Repository")
     public @interface Config {
 
-        @AttributeDefinition(name = "Enable Query Limit", description = "If set to true, the JcrResourceProvider will set a default limit for all other queries using the findResources / queryResources methods")
+        @AttributeDefinition(name = "Enable Query Limit", description = "If set to true, the JcrResourceProvider will set a default limit for all queries using the findResources / queryResources methods")
         boolean enable_query_limit() default false;
 
         @AttributeDefinition(name = "Query Limit", description = "The default query limit for queries using the findResources / queryResources methods")
