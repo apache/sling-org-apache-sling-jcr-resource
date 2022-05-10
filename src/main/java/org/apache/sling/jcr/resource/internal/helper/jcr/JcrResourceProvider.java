@@ -57,7 +57,6 @@ import org.apache.sling.jcr.resource.api.JcrResourceConstants;
 import org.apache.sling.jcr.resource.internal.JcrListenerBaseConfig;
 import org.apache.sling.jcr.resource.internal.JcrModifiableValueMap;
 import org.apache.sling.jcr.resource.internal.JcrResourceListener;
-import org.apache.sling.jcr.resource.internal.NodeUtil;
 import org.apache.sling.spi.resource.provider.ObserverConfiguration;
 import org.apache.sling.spi.resource.provider.ProviderContext;
 import org.apache.sling.spi.resource.provider.QueryLanguageProvider;

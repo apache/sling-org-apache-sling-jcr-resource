@@ -18,7 +18,6 @@
  */
 package org.apache.sling.jcr.resource.internal.helper.jcr;
 
-import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.Map;
 
@@ -35,7 +34,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
-import org.apache.sling.api.resource.ResourceUtil;
 import org.apache.sling.jcr.resource.internal.HelperData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
