@@ -23,12 +23,20 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.jcr.GuestCredentials;
 import javax.jcr.Item;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.SimpleCredentials;
+import javax.jcr.security.Privilege;
 
+import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.commons.JcrUtils;
+import org.apache.jackrabbit.commons.jackrabbit.authorization.AccessControlUtils;
+import org.apache.jackrabbit.oak.commons.PathUtils;
+import org.apache.jackrabbit.oak.spi.security.principal.EveryonePrincipal;
+import org.apache.jackrabbit.oak.spi.security.user.UserConstants;
 import org.apache.sling.api.resource.external.URIProvider;
 import org.apache.sling.commons.classloader.DynamicClassLoaderManager;
 import org.apache.sling.jcr.resource.internal.HelperData;
@@ -41,7 +49,7 @@ public class JcrItemResourceFactoryTest extends SlingRepositoryTestBase {
 
     private Node node;
     private Session nonJackrabbitSession;
-
+    
     @Override
     protected void setUp() throws Exception {
         super.setUp();
@@ -58,6 +66,9 @@ public class JcrItemResourceFactoryTest extends SlingRepositoryTestBase {
                 return method.invoke(session, args);
             }
         });
+
+        AccessControlUtils.allow(node, EveryonePrincipal.NAME, Privilege.JCR_READ);
+        session.save();
     }
 
     @Override
@@ -100,5 +111,39 @@ public class JcrItemResourceFactoryTest extends SlingRepositoryTestBase {
             assertEquals(expectedPath, item2.getPath());
         }
     }
+    
+    public void testGetParentOrNullExistingNode() throws RepositoryException {
+        compareGetParentOrNull(session, EXISTING_NODE_PATH, false);
+        compareGetParentOrNull(nonJackrabbitSession, EXISTING_NODE_PATH, false);
+    }
 
+    public void testGetParentOrNullExistingProperty() throws RepositoryException {
+        compareGetParentOrNull(session,EXISTING_NODE_PATH + "/" + JcrConstants.JCR_PRIMARYTYPE, false);
+        compareGetParentOrNull(nonJackrabbitSession,EXISTING_NODE_PATH + "/" + JcrConstants.JCR_PRIMARYTYPE, false);
+    }
+    
+    public void testGetParentOrNullNonAccessibleParent() throws RepositoryException {
+        Session guestSession = null;
+        try {
+            guestSession = session.getRepository().login(new GuestCredentials());
+            compareGetParentOrNull(guestSession, EXISTING_NODE_PATH, true);
+        } finally {
+            if (guestSession != null) {
+                guestSession.logout();
+            }
+        }
+    }
+
+    private void compareGetParentOrNull(Session s, String path, boolean nullExpected) throws RepositoryException {
+        HelperData helper = new HelperData(new AtomicReference<DynamicClassLoaderManager>(), new AtomicReference<URIProvider[]>());
+
+        String parentPath = PathUtils.getParentPath(path);
+        Node parent = new JcrItemResourceFactory(s, helper).getParentOrNull(s.getItem(path), parentPath);
+        if (nullExpected) {
+            assertNull(parent);
+        } else {
+            assertNotNull(parent);
+            assertEquals(parentPath, parent.getPath());
+        }
+    }
 }

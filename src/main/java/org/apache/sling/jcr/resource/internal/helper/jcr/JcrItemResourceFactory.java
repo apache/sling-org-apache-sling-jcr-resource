@@ -18,6 +18,7 @@
  */
 package org.apache.sling.jcr.resource.internal.helper.jcr;
 
+import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.Map;
 
@@ -34,7 +35,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
+import org.apache.sling.api.resource.ResourceUtil;
 import org.apache.sling.jcr.resource.internal.HelperData;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -195,6 +199,23 @@ public class JcrItemResourceFactory {
         }
 
         return item;
+    }
+
+    @Nullable Node getParentOrNull(@NotNull Item child, @NotNull String parentPath) {
+        Node parent = null;
+        try {
+            // Use fast getParentOrNull if session is a JackrabbitSession
+            if (this.isJackrabbit) {
+                parent = ((JackrabbitSession) session).getParentOrNull(child);
+            } else if (session.nodeExists(parentPath)) {
+                // Fallback to slower nodeExists & getNode pattern
+                parent = session.getNode(parentPath);
+            }
+        } catch (RepositoryException e) {
+            log.debug("Unable to access node at " + parentPath + ", possibly invalid path", e);
+        }
+
+        return parent;
     }
 
 }
