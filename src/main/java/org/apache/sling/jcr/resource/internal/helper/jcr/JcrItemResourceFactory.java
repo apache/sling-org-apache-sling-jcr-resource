@@ -212,7 +212,7 @@ public class JcrItemResourceFactory {
                 parent = session.getNode(parentPath);
             }
         } catch (RepositoryException e) {
-            log.debug("Unable to access node at " + parentPath + ", possibly invalid path", e);
+            log.debug("Unable to access node at {}", parentPath, e);
         }
 
         return parent;
