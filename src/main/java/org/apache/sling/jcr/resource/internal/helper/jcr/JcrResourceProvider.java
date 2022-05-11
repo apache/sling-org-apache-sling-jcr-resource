@@ -57,7 +57,6 @@ import org.apache.sling.jcr.resource.api.JcrResourceConstants;
 import org.apache.sling.jcr.resource.internal.JcrListenerBaseConfig;
 import org.apache.sling.jcr.resource.internal.JcrModifiableValueMap;
 import org.apache.sling.jcr.resource.internal.JcrResourceListener;
-import org.apache.sling.jcr.resource.internal.NodeUtil;
 import org.apache.sling.spi.resource.provider.ObserverConfiguration;
 import org.apache.sling.spi.resource.provider.ProviderContext;
 import org.apache.sling.spi.resource.provider.QueryLanguageProvider;
@@ -358,28 +357,21 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     @Override
     public @Nullable Resource getParent(final @NotNull ResolveContext<JcrProviderState> ctx, final @NotNull Resource child) {
         if (child instanceof JcrItemResource<?>) {
-            try {
-                String version = null;
-                if (child.getResourceMetadata().getParameterMap() != null) {
-                    version = child.getResourceMetadata().getParameterMap().get("v");
-                }
-                if (version == null) {
-                    String parentPath = ResourceUtil.getParent(child.getPath());
-                    if (parentPath != null) {
-                        Item parentItem = ctx.getProviderState().getResourceFactory()
-                            .getItemOrNull(parentPath);
-                        if (parentItem != null && parentItem.isNode()) {
-                            return new JcrNodeResource(ctx.getResourceResolver(),
-                                parentPath, null, (Node)parentItem,
-                                ctx.getProviderState().getHelperData());
-                        }
-                    }
-                    return null;
-                }
-            } catch (RepositoryException e) {
-                logger.warn("Can't get parent for {}", child, e);
-                return null;
+            String version = null;
+            if (child.getResourceMetadata().getParameterMap() != null) {
+                version = child.getResourceMetadata().getParameterMap().get("v");
             }
+            if (version == null) {
+                String parentPath = ResourceUtil.getParent(child.getPath());
+                if (parentPath != null) {
+                    Item childItem = ((JcrItemResource) child).getItem();
+                    Node parentNode = ctx.getProviderState().getResourceFactory().getParentOrNull(childItem, parentPath);
+                    if (parentNode != null) {
+                        return new JcrNodeResource(ctx.getResourceResolver(), parentPath, null, parentNode, ctx.getProviderState().getHelperData());
+                    }
+                }
+            }
+            return null;
         }
         return super.getParent(ctx, child);
     }
