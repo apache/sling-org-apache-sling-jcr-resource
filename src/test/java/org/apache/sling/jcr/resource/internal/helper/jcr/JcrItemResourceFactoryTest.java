@@ -18,18 +18,6 @@
  */
 package org.apache.sling.jcr.resource.internal.helper.jcr;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-import java.util.concurrent.atomic.AtomicReference;
-
-import javax.jcr.GuestCredentials;
-import javax.jcr.Item;
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.security.Privilege;
-
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.commons.JcrUtils;
 import org.apache.jackrabbit.commons.jackrabbit.authorization.AccessControlUtils;
@@ -38,6 +26,20 @@ import org.apache.jackrabbit.oak.spi.security.principal.EveryonePrincipal;
 import org.apache.sling.api.resource.external.URIProvider;
 import org.apache.sling.commons.classloader.DynamicClassLoaderManager;
 import org.apache.sling.jcr.resource.internal.HelperData;
+
+import javax.jcr.GuestCredentials;
+import javax.jcr.Item;
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.security.Privilege;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class JcrItemResourceFactoryTest extends SlingRepositoryTestBase {
 
@@ -131,7 +133,21 @@ public class JcrItemResourceFactoryTest extends SlingRepositoryTestBase {
             }
         }
     }
+    
+    public void testGetParentOrNullNonExistingParentNode() throws RepositoryException {
+        Session s = mock(Session.class);
+        when(s.getItem(EXISTING_NODE_PATH)).thenReturn(nonJackrabbitSession.getItem(EXISTING_NODE_PATH));
+        when(s.nodeExists(PathUtils.getParentPath(EXISTING_NODE_PATH))).thenReturn(false);
+        compareGetParentOrNull(s, EXISTING_NODE_PATH, true);
+    }
 
+    public void testGetParentOrNullWithException() throws RepositoryException {
+        Session s = mock(Session.class);
+        when(s.getItem(EXISTING_NODE_PATH)).thenReturn(nonJackrabbitSession.getItem(EXISTING_NODE_PATH));
+        when(s.nodeExists(PathUtils.getParentPath(EXISTING_NODE_PATH))).thenThrow(new RepositoryException());
+        compareGetParentOrNull(s, EXISTING_NODE_PATH, true);
+    }
+ 
     private void compareGetParentOrNull(Session s, String path, boolean nullExpected) throws RepositoryException {
         HelperData helper = new HelperData(new AtomicReference<DynamicClassLoaderManager>(), new AtomicReference<URIProvider[]>());
 

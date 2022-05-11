@@ -19,6 +19,7 @@
 package org.apache.sling.jcr.resource.internal.helper.jcr;
 
 import java.security.Principal;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.jcr.Node;
 import javax.jcr.Repository;
@@ -29,6 +30,8 @@ import javax.jcr.nodetype.NodeType;
 import org.apache.jackrabbit.oak.commons.PathUtils;
 import org.apache.sling.api.resource.PersistenceException;
 import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.external.URIProvider;
+import org.apache.sling.commons.classloader.DynamicClassLoaderManager;
 import org.apache.sling.jcr.resource.internal.HelperData;
 import org.apache.sling.spi.resource.provider.ResolveContext;
 import org.apache.sling.spi.resource.provider.ResourceContext;
@@ -41,7 +44,6 @@ import org.osgi.service.component.ComponentContext;
 import static javax.jcr.nodetype.NodeType.NT_UNSTRUCTURED;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.withSettings;
 
 public class JcrResourceProviderTest extends SlingRepositoryTestBase {
 
@@ -74,7 +76,7 @@ public class JcrResourceProviderTest extends SlingRepositoryTestBase {
     }
     
     private @NotNull JcrProviderState createProviderState() {
-        return new JcrProviderState(session, new HelperData(null, null), false);
+        return new JcrProviderState(session, new HelperData(new AtomicReference<>(), new AtomicReference<>()), false);
     }
     
     private @NotNull ResolveContext mockResolveContext() {
