@@ -92,9 +92,6 @@ public class JcrValueMap
     @SuppressWarnings("unchecked")
     public @Nullable <T> T get(@NotNull final String aKey, @NotNull final Class<T> type) {
         final String key = checkKey(aKey);
-        if (type == null) {
-            return (T) get(key);
-        }
 
         final JcrPropertyMapCacheEntry entry = this.read(key);
         if (entry == null) {
@@ -110,9 +107,6 @@ public class JcrValueMap
     @SuppressWarnings("unchecked")
     public @NotNull <T> T get(@NotNull final String aKey, @NotNull final T defaultValue) {
         final String key = checkKey(aKey);
-        if (defaultValue == null) {
-            return (T) get(key);
-        }
 
         // special handling in case the default value implements one
         // of the interface types supported by the convertToType method
@@ -254,10 +248,7 @@ public class JcrValueMap
                 entry = new JcrPropertyMapCacheEntry(prop);
                 cache.put(key, entry);
 
-                final Object defaultValue = entry.getPropertyValue();
-                if (defaultValue != null) {
-                    valueCache.put(key, entry.getPropertyValue());
-                }
+                valueCache.put(key, entry.getPropertyValue());
             }
             return entry;
         } catch (final RepositoryException re) {
@@ -393,7 +384,7 @@ public class JcrValueMap
 
     // ---------- Implementation helper
 
-    private Class<?> normalizeClass(Class<?> type) {
+    private static @NotNull Class<?> normalizeClass(Class<?> type) {
         if (Calendar.class.isAssignableFrom(type)) {
             type = Calendar.class;
         } else if (Date.class.isAssignableFrom(type)) {
@@ -406,9 +397,9 @@ public class JcrValueMap
         return type;
     }
 
-    private Map<String, Object> transformEntries(final Map<String, JcrPropertyMapCacheEntry> map) {
+    private static @NotNull Map<String, Object> transformEntries(final Map<String, JcrPropertyMapCacheEntry> map) {
 
-        final Map<String, Object> transformedEntries = new LinkedHashMap<String, Object>(map.size());
+        final Map<String, Object> transformedEntries = new LinkedHashMap<>(map.size());
         for ( final Map.Entry<String, JcrPropertyMapCacheEntry> entry : map.entrySet() )
             transformedEntries.put(entry.getKey(), entry.getValue().getPropertyValueOrNull());
 

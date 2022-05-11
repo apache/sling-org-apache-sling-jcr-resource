@@ -19,7 +19,6 @@
 package org.apache.sling.jcr.resource.internal;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.util.Set;
 
 import javax.jcr.RepositoryException;

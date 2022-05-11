@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.jcr.Value;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryResult;
