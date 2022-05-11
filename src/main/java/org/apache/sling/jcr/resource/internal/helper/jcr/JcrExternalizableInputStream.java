@@ -17,9 +17,8 @@
 
 package org.apache.sling.jcr.resource.internal.helper.jcr;
 
-
-
 import org.apache.sling.api.resource.external.ExternalizableInputStream;
+import org.jetbrains.annotations.NotNull;
 
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
@@ -47,7 +46,7 @@ public class JcrExternalizableInputStream extends InputStream implements Externa
      * @param data the binary JCR property.
      * @param uri a public URI.
      */
-    JcrExternalizableInputStream(Property data, URI uri) {
+    JcrExternalizableInputStream(@NotNull Property data, @NotNull URI uri) {
         this.data = data;
         this.uri = uri;
     }
@@ -57,8 +56,8 @@ public class JcrExternalizableInputStream extends InputStream implements Externa
         return getInputStream().read();
     }
 
-    private InputStream getInputStream() throws IOException {
-        if ( inputStream == null) {
+    private @NotNull InputStream getInputStream() throws IOException {
+        if (inputStream == null) {
             try {
                 // perform lazy initialisation so that a consumer of
                 // this object can use the getURI method without triggering
@@ -74,7 +73,7 @@ public class JcrExternalizableInputStream extends InputStream implements Externa
     }
 
     @Override
-    public URI getURI() {
+    public @NotNull URI getURI() {
         return uri;
     }
 

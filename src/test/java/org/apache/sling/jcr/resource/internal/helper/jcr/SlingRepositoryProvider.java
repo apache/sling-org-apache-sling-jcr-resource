@@ -24,7 +24,6 @@ import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.testing.mock.sling.oak.OakMockSlingRepository;
 import org.mockito.Mockito;
 import org.osgi.framework.BundleContext;
-import org.osgi.service.component.ComponentContext;
 
 public class SlingRepositoryProvider {
     
@@ -44,17 +43,7 @@ public class SlingRepositoryProvider {
             return INSTANCE;
         }
         
-
-        
-        public static void shutdown() throws Exception {
-            Method deactivateMethod = OakMockSlingRepository.class.getDeclaredMethod("deactivate",ComponentContext.class);
-            deactivateMethod.setAccessible(true);
-            deactivateMethod.invoke(getRepository(),(ComponentContext) null);
-        }
-        
-        
         private static BundleContext getFakeContext() {
-            BundleContext mockContext = Mockito.mock(BundleContext.class);
-            return mockContext;
+            return Mockito.mock(BundleContext.class);
         }
 }

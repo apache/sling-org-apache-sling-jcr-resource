@@ -19,12 +19,13 @@
 package org.apache.sling.jcr.resource.internal.helper.jcr;
 
 import java.io.Closeable;
-import java.io.IOException;
 
 import javax.jcr.Session;
 
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.internal.HelperData;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
@@ -42,15 +43,15 @@ class JcrProviderState implements Closeable {
 
     private final HelperData helperData;
 
-    JcrProviderState(final Session session, final HelperData helperData, final boolean logout) {
+    JcrProviderState(@NotNull final Session session, @NotNull final HelperData helperData, final boolean logout) {
         this(session, helperData, logout, null, null);
     }
 
-    JcrProviderState(final Session session,
-            final HelperData helperData,
+    JcrProviderState(@NotNull final Session session,
+            @NotNull final HelperData helperData,
             final boolean logout,
-            final BundleContext bundleContext,
-            final ServiceReference<SlingRepository> repositoryRef) {
+            @Nullable final BundleContext bundleContext,
+            @Nullable final ServiceReference<SlingRepository> repositoryRef) {
         this.session = session;
         this.bundleContext = bundleContext;
         this.repositoryRef = repositoryRef;
@@ -59,20 +60,20 @@ class JcrProviderState implements Closeable {
         this.resourceFactory = new JcrItemResourceFactory(session, helperData);
     }
 
-    Session getSession() {
+    @NotNull Session getSession() {
         return session;
     }
 
-    JcrItemResourceFactory getResourceFactory() {
+    @NotNull JcrItemResourceFactory getResourceFactory() {
         return resourceFactory;
     }
 
-    HelperData getHelperData() {
+    @NotNull HelperData getHelperData() {
         return helperData;
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         logout();
     }
 

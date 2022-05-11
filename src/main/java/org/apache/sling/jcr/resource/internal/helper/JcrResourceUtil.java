@@ -18,6 +18,9 @@
  */
 package org.apache.sling.jcr.resource.internal.helper;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
@@ -41,6 +44,8 @@ import javax.jcr.query.QueryResult;
  */
 public class JcrResourceUtil {
 
+    private JcrResourceUtil() {}
+    
     /**
      * Helper method to execute a JCR query.
      *
@@ -50,8 +55,7 @@ public class JcrResourceUtil {
      * @return the query's result
      * @throws RepositoryException if the {@link QueryManager} cannot be retrieved
      */
-    public static QueryResult query(Session session, String query,
-            String language) throws RepositoryException {
+    public static @NotNull QueryResult query(@NotNull Session session, @NotNull String query, @NotNull String language) throws RepositoryException {
         QueryManager qManager = session.getWorkspace().getQueryManager();
         Query q = qManager.createQuery(query, language);
         return q.execute();
@@ -64,7 +68,7 @@ public class JcrResourceUtil {
      * @return the Java Object
      * @throws RepositoryException if the value cannot be converted
      */
-    public static Object toJavaObject(Value value) throws RepositoryException {
+    public static @NotNull Object toJavaObject(@NotNull Value value) throws RepositoryException {
         switch (value.getType()) {
             case PropertyType.DECIMAL:
                 return value.getDecimal();
@@ -97,24 +101,23 @@ public class JcrResourceUtil {
      * @throws RepositoryException if the conversion cannot take place
      * @return the Object resulting from the conversion
      */
-    public static Object toJavaObject(Property property)
-            throws RepositoryException {
+    public static @NotNull Object toJavaObject(@NotNull Property property) throws RepositoryException {
         // multi-value property: return an array of values
         if (property.isMultiple()) {
             Value[] values = property.getValues();
             final Object firstValue = values.length > 0 ? toJavaObject(values[0]) : null;
             final Object[] result;
-            if ( firstValue instanceof Boolean ) {
+            if (firstValue instanceof Boolean) {
                 result = new Boolean[values.length];
-            } else if ( firstValue instanceof Calendar ) {
+            } else if (firstValue instanceof Calendar) {
                 result = new Calendar[values.length];
-            } else if ( firstValue instanceof Double ) {
+            } else if (firstValue instanceof Double) {
                 result = new Double[values.length];
-            } else if ( firstValue instanceof Long ) {
+            } else if (firstValue instanceof Long) {
                 result = new Long[values.length];
-            } else if ( firstValue instanceof BigDecimal) {
+            } else if (firstValue instanceof BigDecimal) {
                 result = new BigDecimal[values.length];
-            } else if ( firstValue instanceof InputStream) {
+            } else if (firstValue instanceof InputStream) {
                 result = new Object[values.length];
             } else {
                 result = new String[values.length];
@@ -143,32 +146,31 @@ public class JcrResourceUtil {
      * @return the value or null if not convertible to a valid PropertyType
      * @throws RepositoryException in case of error, accessing the Repository
      */
-    public static Value createValue(final Object value, final Session session)
-    throws RepositoryException {
+    public static @Nullable Value createValue(@NotNull final Object value, @NotNull final Session session) throws RepositoryException {
         Value val;
         ValueFactory fac = session.getValueFactory();
-        if(value instanceof ZonedDateTime) {
-            val = fac.createValue(new ZonedDateTimeConverter((ZonedDateTime)value).toCalendar());
-        } else if(value instanceof Calendar) {
-            val = fac.createValue((Calendar)value);
+        if (value instanceof ZonedDateTime) {
+            val = fac.createValue(new ZonedDateTimeConverter((ZonedDateTime) value).toCalendar());
+        } else if (value instanceof Calendar) {
+            val = fac.createValue((Calendar) value);
         } else if (value instanceof InputStream) {
-            val = fac.createValue(fac.createBinary((InputStream)value));
+            val = fac.createValue(fac.createBinary((InputStream) value));
         } else if (value instanceof Node) {
-            val = fac.createValue((Node)value);
+            val = fac.createValue((Node) value);
         } else if (value instanceof BigDecimal) {
-            val = fac.createValue((BigDecimal)value);
+            val = fac.createValue((BigDecimal) value);
         } else if (value instanceof Long) {
-            val = fac.createValue((Long)value);
+            val = fac.createValue((Long) value);
         } else if (value instanceof Short) {
-            val = fac.createValue((Short)value);
+            val = fac.createValue((Short) value);
         } else if (value instanceof Integer) {
-            val = fac.createValue((Integer)value);
+            val = fac.createValue((Integer) value);
         } else if (value instanceof Number) {
-            val = fac.createValue(((Number)value).doubleValue());
+            val = fac.createValue(((Number) value).doubleValue());
         } else if (value instanceof Boolean) {
             val = fac.createValue((Boolean) value);
-        } else if ( value instanceof String ) {
-            val = fac.createValue((String)value);
+        } else if (value instanceof String) {
+            val = fac.createValue((String) value);
         } else {
             val = null;
         }

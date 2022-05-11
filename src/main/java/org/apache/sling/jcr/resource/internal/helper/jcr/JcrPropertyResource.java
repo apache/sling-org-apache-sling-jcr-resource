@@ -36,6 +36,8 @@ import org.apache.sling.adapter.annotations.Adapter;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceMetadata;
 import org.apache.sling.api.resource.ResourceResolver;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,11 +53,10 @@ class JcrPropertyResource extends JcrItemResource<Property> { // this should be 
 
     private final String resourceType;
 
-    public JcrPropertyResource(final ResourceResolver resourceResolver,
-                               final String path,
-                               final String version,
-                               final Property property)
-    throws RepositoryException {
+    public JcrPropertyResource(@NotNull final ResourceResolver resourceResolver,
+                               @NotNull final String path,
+                               @Nullable final String version,
+                               @NotNull final Property property) throws RepositoryException {
         super(resourceResolver, path, version, property, new ResourceMetadata());
         this.resourceType = getResourceTypeForNode(property.getParent())
                 + "/" + property.getName();
@@ -67,11 +68,11 @@ class JcrPropertyResource extends JcrItemResource<Property> { // this should be 
         this.getResourceMetadata().setContentLength(getContentLength(property));
     }
 
-    public String getResourceType() {
+    public @NotNull String getResourceType() {
         return resourceType;
     }
 
-    public String getResourceSuperType() {
+    public @Nullable String getResourceSuperType() {
         return null;
     }
 
@@ -208,13 +209,12 @@ class JcrPropertyResource extends JcrItemResource<Property> { // this should be 
             + ", path=" + getPath();
     }
 
-    private Property getProperty() {
+    private @NotNull Property getProperty() {
         return getItem();
     }
 
     private InputStream getInputStream() {
         Property prop = getProperty();
-
         try {
             return prop.getBinary().getStream();
         } catch (RepositoryException re) {
@@ -227,7 +227,7 @@ class JcrPropertyResource extends JcrItemResource<Property> { // this should be 
     }
 
     @Override
-    Iterator<Resource> listJcrChildren() {
+    @Nullable Iterator<Resource> listJcrChildren() {
         return null;
     }
 

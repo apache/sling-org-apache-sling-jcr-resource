@@ -19,6 +19,7 @@
 package org.apache.sling.jcr.resource.internal.helper.jcr;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 
@@ -32,7 +33,6 @@ import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.ValueFormatException;
 
 import org.apache.jackrabbit.api.binary.BinaryDownload;
 import org.apache.jackrabbit.api.binary.BinaryDownloadOptions;
@@ -42,6 +42,7 @@ import org.apache.sling.api.resource.external.URIProvider.Operation;
 import org.apache.sling.api.resource.external.URIProvider.Scope;
 import org.apache.sling.testing.mock.sling.ResourceResolverType;
 import org.apache.sling.testing.mock.sling.junit.SlingContext;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -58,7 +59,6 @@ public class BinaryDownloadUriProviderTest {
     @Rule
     public final SlingContext context = new SlingContext(ResourceResolverType.JCR_OAK);
 
-    private Session session;
     private BinaryDownloadUriProvider uriProvider;
     private Resource fileResource;
 
@@ -71,7 +71,8 @@ public class BinaryDownloadUriProviderTest {
     @Before
     public void setUp() throws IOException, RepositoryException {
         uriProvider = new BinaryDownloadUriProvider(false);
-        session = context.resourceResolver().adaptTo(Session.class);
+        Session session = context.resourceResolver().adaptTo(Session.class);
+        assertNotNull(session);
         try (InputStream input = this.getClass().getResourceAsStream("/SLING-INF/nodetypes/folder.cnd")) {
             JcrUtils.putFile(session.getRootNode(), "test", "myMimeType", input);
         }
@@ -79,10 +80,10 @@ public class BinaryDownloadUriProviderTest {
     }
 
     @Test
-    public void testMockedProperty() throws ValueFormatException, RepositoryException, URISyntaxException {
+    public void testMockedProperty() throws RepositoryException, URISyntaxException {
         uriProvider = new BinaryDownloadUriProvider(false) {
             @Override
-            protected Property getPrimaryProperty(Node node) throws RepositoryException {
+            protected @NotNull Property getPrimaryProperty(@NotNull Node node) {
                 return property;
             }
         };
@@ -99,7 +100,7 @@ public class BinaryDownloadUriProviderTest {
     }
 
     @Test
-    public void testPropertyWithoutExternallyAccessibleBlobStore() throws URISyntaxException, RepositoryException, IOException {
+    public void testPropertyWithoutExternallyAccessibleBlobStore() {
          IllegalArgumentException e = assertThrows(IllegalArgumentException.class, ()-> uriProvider.toURI(fileResource, Scope.EXTERNAL, Operation.READ));
          assertEquals("Cannot provide url for downloading the binary property at '/test/jcr:content/jcr:data'", e.getMessage());
     }

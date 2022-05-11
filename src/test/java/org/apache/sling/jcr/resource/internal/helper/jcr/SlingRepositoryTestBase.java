@@ -25,7 +25,7 @@ import org.apache.sling.jcr.api.SlingRepository;
 
 import junit.framework.TestCase;
 
-public class SlingRepositoryTestBase extends TestCase {
+public abstract class SlingRepositoryTestBase extends TestCase {
     
     protected Node testRoot;
     protected Session session;
@@ -62,8 +62,4 @@ public class SlingRepositoryTestBase extends TestCase {
     protected SlingRepository getRepository() throws Exception {
         return SlingRepositoryProvider.getRepository();
     }
-
-    
-
-
 }

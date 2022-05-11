@@ -17,7 +17,6 @@
 package org.apache.sling.jcr.resource.internal;
 
 import java.lang.reflect.Method;
-import java.security.Principal;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -79,8 +78,8 @@ public class JcrSystemUserValidator implements ServiceUserValidator, ServicePrin
 
     private final Method isSystemUserMethod;
 
-    private final Set<String> validIds = new CopyOnWriteArraySet<String>();
-    private final Set<String> validPrincipalNames = new CopyOnWriteArraySet<String>();
+    private final Set<String> validIds = new CopyOnWriteArraySet<>();
+    private final Set<String> validPrincipalNames = new CopyOnWriteArraySet<>();
 
     private boolean allowOnlySystemUsers;
 
@@ -206,12 +205,7 @@ public class JcrSystemUserValidator implements ServiceUserValidator, ServicePrin
                         }
                     }
 
-                    Authorizable authorizable = userManager.getAuthorizable(new Principal() {
-                        @Override
-                        public String getName() {
-                            return pName;
-                        }
-                    });
+                    Authorizable authorizable = userManager.getAuthorizable(() -> pName);
                     if (isValidSystemUser(authorizable)) {
                         validPrincipalNames.add(pName);
                         log.debug("The provided service principal name {} is a known JCR system user", pName);

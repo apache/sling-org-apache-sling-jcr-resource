@@ -18,6 +18,8 @@
  */
 package org.apache.sling.jcr.resource.internal.helper;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.Calendar;
@@ -30,7 +32,7 @@ public class NumberConverter implements Converter {
 
     private final Number value;
 
-    public NumberConverter(final Number val) {
+    public NumberConverter(@NotNull final Number val) {
         this.value = val;
     }
 
@@ -45,42 +47,42 @@ public class NumberConverter implements Converter {
     /**
      * @see org.apache.sling.jcr.resource.internal.helper.Converter#toLong()
      */
-    public Long toLong() {
+    public @NotNull Long toLong() {
         return this.value.longValue();
     }
 
     /**
      * @see org.apache.sling.jcr.resource.internal.helper.Converter#toByte()
      */
-    public Byte toByte() {
+    public @NotNull Byte toByte() {
         return this.value.byteValue();
     }
 
     /**
      * @see org.apache.sling.jcr.resource.internal.helper.Converter#toShort()
      */
-    public Short toShort() {
+    public @NotNull Short toShort() {
         return this.value.shortValue();
     }
 
     /**
      * @see org.apache.sling.jcr.resource.internal.helper.Converter#toInteger()
      */
-    public Integer toInteger() {
+    public @NotNull Integer toInteger() {
         return this.value.intValue();
     }
 
     /**
      * @see org.apache.sling.jcr.resource.internal.helper.Converter#toDouble()
      */
-    public Double toDouble() {
+    public @NotNull Double toDouble() {
         return this.value.doubleValue();
     }
 
     /**
      * @see org.apache.sling.jcr.resource.internal.helper.Converter#toFloat()
      */
-    public Float toFloat() {
+    public @NotNull Float toFloat() {
         return this.value.floatValue();
     }
 

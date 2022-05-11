@@ -18,6 +18,8 @@
  */
 package org.apache.sling.jcr.resource.internal.helper;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.Calendar;
@@ -30,7 +32,7 @@ public class BooleanConverter implements Converter {
 
     private final Boolean value;
 
-    public BooleanConverter(final Boolean val) {
+    public BooleanConverter(@NotNull final Boolean val) {
         this.value = val;
     }
 
@@ -42,61 +44,61 @@ public class BooleanConverter implements Converter {
         return this.value.toString();
     }
 
-    private Integer getNumber() {
+    private @NotNull Integer getNumber() {
         return ( value.booleanValue() ? 1 : 0);
     }
 
     /**
      * @see org.apache.sling.jcr.resource.internal.helper.Converter#toLong()
      */
-    public Long toLong() {
+    public @NotNull Long toLong() {
         return this.getNumber().longValue();
     }
 
     /**
      * @see org.apache.sling.jcr.resource.internal.helper.Converter#toByte()
      */
-    public Byte toByte() {
+    public @NotNull Byte toByte() {
         return this.getNumber().byteValue();
     }
 
     /**
      * @see org.apache.sling.jcr.resource.internal.helper.Converter#toShort()
      */
-    public Short toShort() {
+    public @NotNull Short toShort() {
         return this.getNumber().shortValue();
     }
 
     /**
      * @see org.apache.sling.jcr.resource.internal.helper.Converter#toInteger()
      */
-    public Integer toInteger() {
-        return this.getNumber().intValue();
+    public @NotNull Integer toInteger() {
+        return getNumber().intValue();
     }
 
     /**
      * @see org.apache.sling.jcr.resource.internal.helper.Converter#toDouble()
      */
-    public Double toDouble() {
+    public @NotNull Double toDouble() {
         return this.getNumber().doubleValue();
     }
 
     /**
      * @see org.apache.sling.jcr.resource.internal.helper.Converter#toFloat()
      */
-    public Float toFloat() {
+    public @NotNull Float toFloat() {
         return this.getNumber().floatValue();
     }
 
     @Override
-    public ZonedDateTime toZonedDateTime() {
+    public @NotNull ZonedDateTime toZonedDateTime() {
         return new CalendarConverter(toCalendar()).toZonedDateTime();
     }
 
     /**
      * @see org.apache.sling.jcr.resource.internal.helper.Converter#toCalendar()
      */
-    public Calendar toCalendar() {
+    public @NotNull Calendar toCalendar() {
         final Calendar c = Calendar.getInstance();
         c.setTimeInMillis(this.toLong());
         return c;
@@ -105,21 +107,21 @@ public class BooleanConverter implements Converter {
     /**
      * @see org.apache.sling.jcr.resource.internal.helper.Converter#toDate()
      */
-    public Date toDate() {
+    public @NotNull Date toDate() {
         return new Date(this.toLong());
     }
 
     /**
      * @see org.apache.sling.jcr.resource.internal.helper.Converter#toBoolean()
      */
-    public Boolean toBoolean() {
+    public @NotNull Boolean toBoolean() {
         return this.value;
     }
 
     /**
      * @see org.apache.sling.jcr.resource.internal.helper.Converter#toBigDecimal()
      */
-    public BigDecimal toBigDecimal() {
+    public @NotNull BigDecimal toBigDecimal() {
         return new BigDecimal(this.getNumber().toString());
     }
 }

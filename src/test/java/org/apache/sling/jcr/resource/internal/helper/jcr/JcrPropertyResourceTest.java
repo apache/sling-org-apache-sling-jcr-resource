@@ -22,6 +22,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
@@ -60,7 +61,7 @@ public class JcrPropertyResourceTest {
         final ResourceResolver resolver = this.context.mock(ResourceResolver.class);
         for (final Entry<Object, Integer> data : testData.entrySet()) {
             final String stringValue = data.getKey().toString();
-            final long stringByteLength =  stringValue.getBytes("UTF-8").length;
+            final long stringByteLength =  stringValue.getBytes(StandardCharsets.UTF_8).length;
             final Property property = this.context.mock(Property.class, stringValue);
             this.context.checking(new Expectations() {{
                 ignoring(resolver);

@@ -30,8 +30,6 @@ import java.util.List;
 import java.util.Set;
 
 import javax.jcr.Credentials;
-import javax.jcr.LoginException;
-import javax.jcr.NoSuchWorkspaceException;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
@@ -44,6 +42,7 @@ import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.internal.helper.jcr.SlingRepositoryProvider;
 import org.apache.sling.spi.resource.provider.ObservationReporter;
 import org.apache.sling.spi.resource.provider.ObserverConfiguration;
+import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -59,13 +58,13 @@ public class JcrResourceListenerTest {
 
     private Session adminSession;
 
-    private String createdPath = "/test" + System.currentTimeMillis() + "-create";
+    private final String createdPath = "/test" + System.currentTimeMillis() + "-create";
 
-    private String pathToDelete = "/test" + System.currentTimeMillis() + "-delete";
+    private final String pathToDelete = "/test" + System.currentTimeMillis() + "-delete";
 
-    private String pathToModify = "/test" + System.currentTimeMillis() + "-modify";
+    private final String pathToModify = "/test" + System.currentTimeMillis() + "-modify";
 
-    private final List<ResourceChange> events = synchronizedList(new ArrayList<ResourceChange>());
+    private final List<ResourceChange> events = synchronizedList(new ArrayList<>());
 
     SlingRepository repository;
 
@@ -79,23 +78,22 @@ public class JcrResourceListenerTest {
                 new SlingRepository() {
 
                     @Override
-                    public Session login(Credentials credentials, String workspaceName)
-                            throws LoginException, NoSuchWorkspaceException, RepositoryException {
+                    public Session login(Credentials credentials, String workspaceName) throws RepositoryException {
                         return repository.login(credentials, workspaceName);
                     }
 
                     @Override
-                    public Session login(String workspaceName) throws LoginException, NoSuchWorkspaceException, RepositoryException {
+                    public Session login(String workspaceName) throws RepositoryException {
                         return repository.login(workspaceName);
                     }
 
                     @Override
-                    public Session login(Credentials credentials) throws LoginException, RepositoryException {
+                    public Session login(Credentials credentials) throws RepositoryException {
                         return repository.login(credentials);
                     }
 
                     @Override
-                    public Session login() throws LoginException, RepositoryException {
+                    public Session login() throws RepositoryException {
                         return repository.login();
                     }
 
@@ -130,12 +128,12 @@ public class JcrResourceListenerTest {
                     }
 
                     @Override
-                    public Session loginService(String subServiceName, String workspace) throws LoginException, RepositoryException {
+                    public Session loginService(String subServiceName, String workspace) throws RepositoryException {
                         return repository.loginAdministrative(workspace);
                     }
 
                     @Override
-                    public Session loginAdministrative(String workspace) throws LoginException, RepositoryException {
+                    public Session loginAdministrative(String workspace) throws RepositoryException {
                         return repository.loginAdministrative(workspace);
                     }
 
@@ -150,7 +148,7 @@ public class JcrResourceListenerTest {
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         if ( adminSession != null ) {
             adminSession.logout();
             adminSession = null;
@@ -169,9 +167,9 @@ public class JcrResourceListenerTest {
     public void testSimpleOperations() throws Exception {
         generateEvents(adminSession);
         assertEquals("Received: " + events, 5, events.size());
-        final Set<String> addPaths = new HashSet<String>();
-        final Set<String> modifyPaths = new HashSet<String>();
-        final Set<String> removePaths = new HashSet<String>();
+        final Set<String> addPaths = new HashSet<>();
+        final Set<String> modifyPaths = new HashSet<>();
+        final Set<String> removePaths = new HashSet<>();
 
         for (final ResourceChange event : events) {
             if (event.getType() == ChangeType.ADDED) {
@@ -229,7 +227,7 @@ public class JcrResourceListenerTest {
 
             @Override
             public Set<String> getPropertyNamesHint() {
-                return null;
+                return Collections.emptySet();
             }
         };
         this.config.unregister(this.listener);
@@ -250,11 +248,11 @@ public class JcrResourceListenerTest {
 
         this.events.clear();
 
-        try ( final JcrResourceListener l = new JcrResourceListener(this.config, observerConfig)) {
+        try (final JcrResourceListener l = new JcrResourceListener(this.config, observerConfig)) {
             final String rootName = "test_" + System.currentTimeMillis();
-            for ( final String path : new String[] {"/libs", "/", "/apps", "/content"}) {
+            for (final String path : new String[]{"/libs", "/", "/apps", "/content"}) {
                 final Node parent;
-                if ( !session.nodeExists(path) ) {
+                if (!session.nodeExists(path)) {
                     parent = createNode(session, path);
                 } else {
                     parent = session.getNode(path);
@@ -270,9 +268,9 @@ public class JcrResourceListenerTest {
             }
             System.out.println("Events = " + events);
             assertEquals("Received: " + events, 6, events.size());
-            final Set<String> addPaths = new HashSet<String>();
-            final Set<String> modifyPaths = new HashSet<String>();
-            final Set<String> removePaths = new HashSet<String>();
+            final Set<String> addPaths = new HashSet<>();
+            final Set<String> modifyPaths = new HashSet<>();
+            final Set<String> removePaths = new HashSet<>();
 
             for (final ResourceChange event : events) {
                 if (event.getType() == ChangeType.ADDED) {
@@ -342,7 +340,7 @@ public class JcrResourceListenerTest {
         }
 
         @Override
-        public List<ObserverConfiguration> getObserverConfigurations() {
+        public @NotNull List<ObserverConfiguration> getObserverConfigurations() {
             ObserverConfiguration config = new ObserverConfiguration() {
 
                 @Override
@@ -372,14 +370,14 @@ public class JcrResourceListenerTest {
 
                 @Override
                 public Set<String> getPropertyNamesHint() {
-                    return new HashSet<String>();
+                    return Collections.emptySet();
                 }
             };
             return Collections.singletonList(config);
         }
 
         @Override
-        public void reportChanges(ObserverConfiguration config, Iterable<ResourceChange> changes, boolean distribute) {
+        public void reportChanges(@NotNull ObserverConfiguration config, @NotNull Iterable<ResourceChange> changes, boolean distribute) {
             this.reportChanges(changes, distribute);
         }
     }

@@ -19,6 +19,8 @@
 package org.apache.sling.jcr.resource.internal;
 
 import org.apache.sling.api.resource.observation.ResourceChange;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Extension of {@code ResourceChange} to support user id (if available)
@@ -27,16 +29,16 @@ public class JcrResourceChange extends ResourceChange {
 
     private final String userId;
 
-    public JcrResourceChange(final ResourceChange.ChangeType changeType,
-            final String path,
-            final boolean isExternal,
-            final String userId) {
+    public JcrResourceChange(@NotNull final ResourceChange.ChangeType changeType,
+                             @NotNull final String path,
+                             final boolean isExternal,
+                             @Nullable final String userId) {
         super(changeType, path, isExternal);
         this.userId = userId;
     }
 
     @Override
-    public String getUserId() {
+    public @Nullable String getUserId() {
         return userId;
     }
 }

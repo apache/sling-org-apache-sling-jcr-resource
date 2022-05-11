@@ -25,10 +25,8 @@ import java.util.Map;
 import javax.jcr.Item;
 import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
-import javax.jcr.PathNotFoundException;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
-import javax.jcr.ValueFormatException;
 
 import org.apache.sling.adapter.annotations.Adaptable;
 import org.apache.sling.adapter.annotations.Adapter;
@@ -43,6 +41,7 @@ import org.apache.sling.jcr.resource.internal.HelperData;
 import org.apache.sling.jcr.resource.internal.JcrModifiableValueMap;
 import org.apache.sling.jcr.resource.internal.JcrValueMap;
 import org.apache.sling.jcr.resource.internal.NodeUtil;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,15 +70,15 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
      * Constructor
      * @param resourceResolver
      * @param path The path of the resource (lazily initialized if null)
+     * @param version
      * @param node The Node underlying this resource
-     * @param dynamicClassLoader Dynamic class loader for loading serialized objects.
-     * @throws RepositoryException
+     * @param helper the helper data providing access to the dynamic class loader for loading serialized objects.
      */
-    public JcrNodeResource(final ResourceResolver resourceResolver,
-                           final String path,
-                           final String version,
-                           final Node node,
-                           final HelperData helper) {
+    public JcrNodeResource(@NotNull final ResourceResolver resourceResolver,
+                           @NotNull final String path,
+                           @Nullable final String version,
+                           @NotNull final Node node,
+                           @NotNull final HelperData helper) {
         super(resourceResolver, path, version, node, new JcrNodeResourceMetadata(node));
         this.helper = helper;
         this.resourceSuperType = UNSET_RESOURCE_SUPER_TYPE;
@@ -89,7 +88,7 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
      * @see org.apache.sling.api.resource.Resource#getResourceType()
      */
     @Override
-    public String getResourceType() {
+    public @NotNull String getResourceType() {
         if ( this.resourceType == null ) {
             try {
                 this.resourceType = getResourceTypeForNode(getNode());
@@ -105,7 +104,7 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
      * @see org.apache.sling.api.resource.Resource#getResourceSuperType()
      */
     @Override
-    public String getResourceSuperType() {
+    public @Nullable String getResourceSuperType() {
         // Yes, this isn't how you're supposed to compare Strings, but this is intentional.
         if ( resourceSuperType == UNSET_RESOURCE_SUPER_TYPE ) {
             try {
@@ -164,7 +163,7 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
 
     // ---------- internal -----------------------------------------------------
 
-    private Node getNode() {
+    private @NotNull Node getNode() {
         return getItem();
     }
 
@@ -173,32 +172,29 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
      * {@link #getNode() node} is an <em>nt:file</em> or <em>nt:resource</em>
      * node. Otherwise returns <code>null</code>.
      */
-    private InputStream getInputStream() {
+    private @Nullable InputStream getInputStream() {
         // implement this for nt:file only
         final Node node = getNode();
-        if (node != null) {
+        try {
+            Property data;
             try {
-                Property data;
-                try {
-                    data = NodeUtil.getPrimaryProperty(node);
-                } catch (ItemNotFoundException infe) {
-                    // we don't actually care, but log for completeness
-                    LOGGER.debug("getInputStream: No primary items for {}", toString(), infe);
-                    data = null;
-                }
-                
-                URI uri =  convertToPublicURI();
-                if ( uri != null ) {
-                    return new JcrExternalizableInputStream(data, uri);
-                }
-                if (data != null) {
-                    return data.getBinary().getStream();
-                }
-
-            } catch (RepositoryException re) {
-                LOGGER.error("getInputStream: Cannot get InputStream for " + this,
-                    re);
+                data = NodeUtil.getPrimaryProperty(node);
+            } catch (ItemNotFoundException infe) {
+                // we don't actually care, but log for completeness
+                LOGGER.debug("getInputStream: No primary items for {}", this, infe);
+                data = null;
             }
+
+            URI uri = convertToPublicURI();
+            if (uri != null && data != null) {
+                return new JcrExternalizableInputStream(data, uri);
+            }
+            if (data != null) {
+                return data.getBinary().getStream();
+            }
+
+        } catch (RepositoryException re) { 
+            LOGGER.error("getInputStream: Cannot get InputStream for {}", this, re);
         }
 
         // fallback to non-streamable resource
@@ -210,7 +206,7 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
      * public URI provided.
      * @return a public URI.
      */
-    private URI convertToPublicURI() {
+    private @Nullable URI convertToPublicURI() {
         for (URIProvider up : helper.getURIProviders()) {
             try {
                 return up.toURI(this, URIProvider.Scope.EXTERNAL, URIProvider.Operation.READ);
@@ -225,7 +221,7 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
     // ---------- Descendable interface ----------------------------------------
 
     @Override
-    Iterator<Resource> listJcrChildren() {
+    @Nullable Iterator<Resource> listJcrChildren() {
         try {
             if (getNode().hasNodes()) {
                 return new JcrNodeResourceIterator(getResourceResolver(), path, version,

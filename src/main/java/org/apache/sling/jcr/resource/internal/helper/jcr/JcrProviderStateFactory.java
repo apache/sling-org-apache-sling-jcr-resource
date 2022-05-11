@@ -58,8 +58,8 @@ public class JcrProviderStateFactory {
     private final AtomicReference<URIProvider[]> uriProviderReference;
 
     public JcrProviderStateFactory(final ServiceReference<SlingRepository> repositoryReference,
-            final SlingRepository repository,
-            final AtomicReference<DynamicClassLoaderManager> dynamicClassLoaderManagerReference,
+                                   final SlingRepository repository,
+                                   final AtomicReference<DynamicClassLoaderManager> dynamicClassLoaderManagerReference,
                                    final AtomicReference<URIProvider[]> uriProviderReference) {
         this.repository = repository;
         this.repositoryReference = repositoryReference;
@@ -71,7 +71,7 @@ public class JcrProviderStateFactory {
      *  @throws LoginException if no calling bundle info provided
      */
     @Nullable
-    private Bundle extractCallingBundle(@NotNull Map<String, Object> authenticationInfo) throws LoginException {
+    private static Bundle extractCallingBundle(@NotNull Map<String, Object> authenticationInfo) throws LoginException {
         final Object obj = authenticationInfo.get(ResourceProvider.AUTH_SERVICE_BUNDLE);
         if(obj != null && !(obj instanceof Bundle)) {
             throw new LoginException("Invalid calling bundle object in authentication info");
@@ -80,7 +80,7 @@ public class JcrProviderStateFactory {
     }
 
     @SuppressWarnings("deprecation")
-    JcrProviderState createProviderState(final @NotNull Map<String, Object> authenticationInfo) throws LoginException {
+    @NotNull JcrProviderState createProviderState(final @NotNull Map<String, Object> authenticationInfo) throws LoginException {
         boolean isLoginAdministrative = Boolean.TRUE.equals(authenticationInfo.get(ResourceProvider.AUTH_ADMIN));
 
         // check whether a session is provided in the authenticationInfo
@@ -138,12 +138,11 @@ public class JcrProviderStateFactory {
         return createJcrProviderState(session, true, authenticationInfo, bc);
     }
 
-    private JcrProviderState createJcrProviderState(
+    private @NotNull JcrProviderState createJcrProviderState(
             @NotNull final Session session,
             final boolean logoutSession,
             @NotNull final Map<String, Object> authenticationInfo,
-            @Nullable final BundleContext ctx
-    ) throws LoginException {
+            @Nullable final BundleContext ctx) throws LoginException {
         boolean explicitSessionUsed = (getSession(authenticationInfo) != null);
         final Session impersonatedSession = handleImpersonation(session, authenticationInfo, logoutSession, explicitSessionUsed);
         if (impersonatedSession != session && explicitSessionUsed) {
@@ -178,7 +177,7 @@ public class JcrProviderStateFactory {
      *             If something goes wrong.
      */
     private static Session handleImpersonation(final Session session, final Map<String, Object> authenticationInfo,
-            final boolean logoutSession, boolean explicitSessionUsed) throws LoginException {
+                                               final boolean logoutSession, boolean explicitSessionUsed) throws LoginException {
         final String sudoUser = getSudoUser(authenticationInfo);
         // Do we need session.impersonate() because we are asked to impersonate another user?
         boolean needsSudo = (sudoUser != null) && !session.getUserID().equals(sudoUser);
@@ -310,7 +309,7 @@ public class JcrProviderStateFactory {
      * @throws NullPointerException
      *             if <code>name</code> is <code>null</code>
      */
-    private static boolean isAttributeVisible(final String name) {
+    private static boolean isAttributeVisible(@NotNull final String name) {
         return !name.equals(JcrResourceConstants.AUTHENTICATION_INFO_CREDENTIALS) && !name.contains("password");
     }
 
@@ -322,7 +321,7 @@ public class JcrProviderStateFactory {
      *            Authentication info (not {@code null}).
      * @return The configured sudo user information or <code>null</code>
      */
-    private static String getSudoUser(final Map<String, Object> authenticationInfo) {
+    private static @Nullable String getSudoUser(@NotNull final Map<String, Object> authenticationInfo) {
         final Object sudoObject = authenticationInfo.get(ResourceResolverFactory.USER_IMPERSONATION);
         if (sudoObject instanceof String) {
             return (String) sudoObject;
@@ -339,7 +338,7 @@ public class JcrProviderStateFactory {
      *            Authentication info (not {@code null}).
      * @return The user.jcr.session property or <code>null</code>
      */
-    private static Session getSession(final Map<String, Object> authenticationInfo) {
+    private static @Nullable Session getSession(@NotNull final Map<String, Object> authenticationInfo) {
         final Object sessionObject = authenticationInfo.get(JcrResourceConstants.AUTHENTICATION_INFO_SESSION);
         if (sessionObject instanceof Session) {
             return (Session) sessionObject;

@@ -26,6 +26,7 @@ import java.io.ObjectStreamClass;
 import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -41,13 +42,15 @@ import javax.jcr.Value;
 import javax.jcr.ValueFormatException;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class JcrPropertyMapCacheEntry {
 
     /** Global logger */
-    private static Logger LOGGER = LoggerFactory.getLogger(JcrPropertyMapCacheEntry.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JcrPropertyMapCacheEntry.class);
 
     /** The JCR property - only set for existing values. */
     private final Property property;
@@ -64,8 +67,7 @@ public class JcrPropertyMapCacheEntry {
      * @param prop the property
      * @throws RepositoryException if the provided property cannot be converted to a Java Object
      */
-    public JcrPropertyMapCacheEntry(final Property prop)
-    throws RepositoryException {
+    public JcrPropertyMapCacheEntry(@NotNull final Property prop) throws RepositoryException {
         this.property = prop;
         this.isArray = prop.isMultiple();
         if (property.getType() != PropertyType.BINARY) {
@@ -81,31 +83,29 @@ public class JcrPropertyMapCacheEntry {
      * @param node the node
      * @throws RepositoryException if the provided value cannot be stored
      */
-    public JcrPropertyMapCacheEntry(final Object value, final Node node)
-    throws RepositoryException {
+    public JcrPropertyMapCacheEntry(@NotNull final Object value, @NotNull final Node node) throws RepositoryException {
         this.property = null;
         this.propertyValue = value;
         this.isArray = value.getClass().isArray();
         // check if values can be stored in JCR
-        if ( isArray ) {
+        if (isArray) {
             final Object[] values = convertToObjectArray(value);
-            for(int i=0; i<values.length; i++) {
-                failIfCannotStore(values[i], node);
+            for (Object o : values) {
+                failIfCannotStore(o, node);
             }
         } else {
             failIfCannotStore(value, node);
         }
      }
 
-    private void failIfCannotStore(final Object value, final Node node)
-    throws RepositoryException {
+    private static void failIfCannotStore(@NotNull final Object value, @NotNull final Node node) throws RepositoryException {
         if (value instanceof InputStream) {
             // InputStream is storable and calling createValue for nothing
             // eats its contents
             return;
         }
-        final Value val = this.createValue(value, node);
-        if ( val == null ) {
+        final Value val = createValue(value, node);
+        if (val == null) {
             throw new IllegalArgumentException("Value can't be stored in the repository: " + value);
         }
     }
@@ -120,11 +120,10 @@ public class JcrPropertyMapCacheEntry {
      * @param  node the node
      * @return the converted value
      */
-    private Value createValue(final Object obj, final Node node)
-    throws RepositoryException {
+    private static @Nullable Value createValue(@NotNull final Object obj, @NotNull final Node node) throws RepositoryException {
         final Session session = node.getSession();
         Value value = JcrResourceUtil.createValue(obj, session);
-        if ( value == null && obj instanceof Serializable ) {
+        if (value == null && obj instanceof Serializable) {
             try {
                 final ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 final ObjectOutputStream oos = new ObjectOutputStream(baos);
@@ -144,24 +143,24 @@ public class JcrPropertyMapCacheEntry {
      * @param value The array
      * @return an object array
      */
-    private Object[] convertToObjectArray(final Object value) {
+    private static @NotNull Object[] convertToObjectArray(@NotNull final Object value) {
         final Object[] values;
         if (value instanceof long[]) {
-            values = ArrayUtils.toObject((long[])value);
+            values = ArrayUtils.toObject((long[]) value);
         } else if (value instanceof int[]) {
-            values = ArrayUtils.toObject((int[])value);
+            values = ArrayUtils.toObject((int[]) value);
         } else if (value instanceof double[]) {
-            values = ArrayUtils.toObject((double[])value);
+            values = ArrayUtils.toObject((double[]) value);
         } else if (value instanceof byte[]) {
-            values = ArrayUtils.toObject((byte[])value);
+            values = ArrayUtils.toObject((byte[]) value);
         } else if (value instanceof float[]) {
-            values = ArrayUtils.toObject((float[])value);
+            values = ArrayUtils.toObject((float[]) value);
         } else if (value instanceof short[]) {
-            values = ArrayUtils.toObject((short[])value);
+            values = ArrayUtils.toObject((short[]) value);
         } else if (value instanceof boolean[]) {
-            values = ArrayUtils.toObject((boolean[])value);
+            values = ArrayUtils.toObject((boolean[]) value);
         } else if (value instanceof char[]) {
-            values = ArrayUtils.toObject((char[])value);
+            values = ArrayUtils.toObject((char[]) value);
         } else {
             values = (Object[]) value;
         }
@@ -181,7 +180,7 @@ public class JcrPropertyMapCacheEntry {
      * @return The current value
      * @throws RepositoryException If something goes wrong
      */
-    public Object getPropertyValue() throws RepositoryException {
+    public @NotNull Object getPropertyValue() throws RepositoryException {
         return this.propertyValue != null ? this.propertyValue : JcrResourceUtil.toJavaObject(property);
     }
 
@@ -189,7 +188,7 @@ public class JcrPropertyMapCacheEntry {
      * Get the current property value.
      * @return The current value or {@code null} if not possible.
      */
-    public Object getPropertyValueOrNull() {
+    public @Nullable Object getPropertyValueOrNull() {
         try {
             return getPropertyValue();
         } catch (final RepositoryException e) {
@@ -207,8 +206,8 @@ public class JcrPropertyMapCacheEntry {
      */
     @SuppressWarnings("unchecked")
     public <T> T convertToType(final Class<T> type,
-            final Node node,
-            final ClassLoader dynamicClassLoader) {
+                               final Node node,
+                               final ClassLoader dynamicClassLoader) {
         T result = null;
 
         try {
@@ -227,23 +226,16 @@ public class JcrPropertyMapCacheEntry {
 
                 final Object sourceObject = this.getPropertyValue();
                 if (targetIsArray) {
-                    result = (T) convertToArray(new Object[] {sourceObject}, type.getComponentType(), node, dynamicClassLoader);
+                    result = (T) convertToArray(new Object[]{sourceObject}, type.getComponentType(), node, dynamicClassLoader);
                 } else {
                     result = convertToType(-1, sourceObject, type, node, dynamicClassLoader);
                 }
             }
 
-        } catch (final NumberFormatException vfe) {
-            LOGGER.info("converToType: Cannot convert value of " + this.getPropertyValueOrNull()
-                    + " to " + type, vfe);
-        } catch (final IllegalArgumentException vfe) {
-            LOGGER.info("converToType: Cannot convert value of " + this.getPropertyValueOrNull()
-                    + " to " + type, vfe);
-        } catch (final ValueFormatException vfe) {
-            LOGGER.info("converToType: Cannot convert value of " + this.getPropertyValueOrNull()
-                + " to " + type, vfe);
+        } catch (final IllegalArgumentException | ValueFormatException vfe) {
+            LOGGER.info("converToType: Cannot convert value of {} to {}", getPropertyValueOrNull(), type, vfe);
         } catch (RepositoryException re) {
-            LOGGER.info("converToType: Cannot get value of " + this.getPropertyValueOrNull(), re);
+            LOGGER.info("converToType: Cannot get value of {}", getPropertyValueOrNull(), re);
         }
 
         // fall back to nothing
@@ -251,10 +243,9 @@ public class JcrPropertyMapCacheEntry {
     }
 
     private <T> T[] convertToArray(final Object[] sourceArray,
-            final Class<T> type,
-            final Node node,
-            final ClassLoader dynamicClassLoader)
-    throws RepositoryException {
+                                   final Class<T> type,
+                                   final Node node,
+                                   final ClassLoader dynamicClassLoader) throws RepositoryException {
         List<T> values = new ArrayList<>();
         for (int i = 0; i < sourceArray.length; i++) {
             T value = convertToType(i, sourceArray[i], type, node, dynamicClassLoader);
@@ -274,8 +265,7 @@ public class JcrPropertyMapCacheEntry {
                                 final Object initialValue,
                                 final Class<T> type,
                                 final Node node,
-                                final ClassLoader dynamicClassLoader)
-    throws RepositoryException {
+                                final ClassLoader dynamicClassLoader) throws RepositoryException {
         if ( type.isInstance(initialValue) ) {
             return (T) initialValue;
         }
@@ -312,7 +302,7 @@ public class JcrPropertyMapCacheEntry {
                             baos.write(buffer, 0, l);
                         }
                     }
-                    value = new String(baos.toByteArray(), "UTF-8");
+                    value = new String(baos.toByteArray(), StandardCharsets.UTF_8);
                 } catch (final IOException e) {
                     throw new IllegalArgumentException(e);
                 } finally {
@@ -333,10 +323,8 @@ public class JcrPropertyMapCacheEntry {
                         return (T)obj;
                     }
                     value = obj;
-                } catch (final ClassNotFoundException cnfe) {
+                } catch (final ClassNotFoundException | IOException cnfe) {
                      // ignore and use fallback
-                } catch (final IOException ioe) {
-                    // ignore and use fallback
                 } finally {
                     if ( ois != null ) {
                         try {
@@ -387,7 +375,7 @@ public class JcrPropertyMapCacheEntry {
             return (T) ZonedDateTime.ofInstant(calendar.toInstant(), calendar.getTimeZone().toZoneId().normalized());
 
         } else if (Value.class == type) {
-            return (T) this.createValue(value, node);
+            return (T) createValue(value, node);
 
         } else if (Property.class == type) {
             return (T) this.property;
@@ -402,18 +390,18 @@ public class JcrPropertyMapCacheEntry {
      * @param value  The object to convert
      * @return  A converter for {@code value}
      */
-    private Converter getConverter(final Object value) {
-        if ( value instanceof Number ) {
+    private static @NotNull Converter getConverter(@NotNull final Object value) {
+        if (value instanceof Number) {
             // byte, short, int, long, double, float, BigDecimal
-            return new NumberConverter((Number)value);
-        } else if ( value instanceof Boolean ) {
-            return new BooleanConverter((Boolean)value);
-        } else if ( value instanceof Date ) {
-            return new DateConverter((Date)value);
-        } else if ( value instanceof Calendar ) {
-            return new CalendarConverter((Calendar)value);
-        } else if ( value instanceof ZonedDateTime ) {
-            return new ZonedDateTimeConverter((ZonedDateTime)value);
+            return new NumberConverter((Number) value);
+        } else if (value instanceof Boolean) {
+            return new BooleanConverter((Boolean) value);
+        } else if (value instanceof Date) {
+            return new DateConverter((Date) value);
+        } else if (value instanceof Calendar) {
+            return new CalendarConverter((Calendar) value);
+        } else if (value instanceof ZonedDateTime) {
+            return new ZonedDateTimeConverter((ZonedDateTime) value);
         }
         // default string based
         return new StringConverter(value);
@@ -427,7 +415,7 @@ public class JcrPropertyMapCacheEntry {
 
         private final ClassLoader classloader;
 
-        public PropertyObjectInputStream(final InputStream in, final ClassLoader classLoader) throws IOException {
+        public PropertyObjectInputStream(@NotNull final InputStream in, @Nullable final ClassLoader classLoader) throws IOException {
             super(in);
             this.classloader = classLoader;
         }
@@ -436,9 +424,8 @@ public class JcrPropertyMapCacheEntry {
          * @see java.io.ObjectInputStream#resolveClass(java.io.ObjectStreamClass)
          */
         @Override
-        protected Class<?> resolveClass(final ObjectStreamClass classDesc)
-        throws IOException, ClassNotFoundException {
-            if ( this.classloader != null ) {
+        protected Class<?> resolveClass(final ObjectStreamClass classDesc) throws IOException, ClassNotFoundException {
+            if (this.classloader != null) {
                 return this.classloader.loadClass(classDesc.getName());
             }
             return super.resolveClass(classDesc);

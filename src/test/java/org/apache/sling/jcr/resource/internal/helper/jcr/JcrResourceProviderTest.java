@@ -25,13 +25,10 @@ import javax.jcr.Node;
 import javax.jcr.Repository;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.nodetype.NodeType;
 
 import org.apache.jackrabbit.oak.commons.PathUtils;
 import org.apache.sling.api.resource.PersistenceException;
 import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.resource.external.URIProvider;
-import org.apache.sling.commons.classloader.DynamicClassLoaderManager;
 import org.apache.sling.jcr.resource.internal.HelperData;
 import org.apache.sling.spi.resource.provider.ResolveContext;
 import org.apache.sling.spi.resource.provider.ResourceContext;
@@ -79,14 +76,14 @@ public class JcrResourceProviderTest extends SlingRepositoryTestBase {
         return new JcrProviderState(session, new HelperData(new AtomicReference<>(), new AtomicReference<>()), false);
     }
     
-    private @NotNull ResolveContext mockResolveContext() {
-        ResolveContext ctx = mock(ResolveContext.class);
+    private @NotNull ResolveContext<JcrProviderState> mockResolveContext() {
+        ResolveContext<JcrProviderState> ctx = mock(ResolveContext.class);
         when(ctx.getProviderState()).thenReturn(createProviderState());
         return ctx;
     }
 
     public void testAdaptTo_Principal() {
-        ResolveContext ctx = mockResolveContext();
+        ResolveContext<JcrProviderState> ctx = mockResolveContext();
         Assert.assertNotNull(jcrResourceProvider.adaptTo(ctx, Principal.class));
     }
 
@@ -97,7 +94,7 @@ public class JcrResourceProviderTest extends SlingRepositoryTestBase {
         parentNode.addNode("child3", NT_UNSTRUCTURED);
         session.save();
 
-        ResolveContext ctx = mockResolveContext();
+        ResolveContext<JcrProviderState> ctx = mockResolveContext();
         Resource parent = jcrResourceProvider.getResource(ctx, "/parent", ResourceContext.EMPTY_CONTEXT, null);
         Assert.assertNotNull(parent);
         // order with invalid names
@@ -130,7 +127,7 @@ public class JcrResourceProviderTest extends SlingRepositoryTestBase {
         Node grandchild = child.addNode("grandchild", NT_UNSTRUCTURED);
         session.save();
 
-        ResolveContext ctx = mockResolveContext();
+        ResolveContext<JcrProviderState> ctx = mockResolveContext();
         Resource rootResource = jcrResourceProvider.getResource(ctx, PathUtils.ROOT_PATH, ResourceContext.EMPTY_CONTEXT, null);
         Resource parentResource = jcrResourceProvider.getResource(ctx, parentNode.getPath(), ResourceContext.EMPTY_CONTEXT, rootResource);
         Resource childResource = jcrResourceProvider.getResource(ctx, child.getPath(), ResourceContext.EMPTY_CONTEXT, parentResource);

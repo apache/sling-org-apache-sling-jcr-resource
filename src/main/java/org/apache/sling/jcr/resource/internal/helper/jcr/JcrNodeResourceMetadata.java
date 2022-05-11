@@ -39,6 +39,8 @@ import javax.jcr.RepositoryException;
 import javax.jcr.ValueFormatException;
 
 import org.apache.sling.api.resource.ResourceMetadata;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +49,7 @@ class JcrNodeResourceMetadata extends ResourceMetadata {
     private static final long serialVersionUID = 1L;
 
     /** default log */
-    private static final Logger LOGGER = LoggerFactory.getLogger(JcrNodeResource.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JcrNodeResourceMetadata.class);
 
     private final Node node;
     private Node contentNode;
@@ -89,9 +91,7 @@ class JcrNodeResourceMetadata extends ResourceMetadata {
         } catch (RepositoryException e) {
             // ignore
         }
-        LOGGER.info(
-            "setMetaData: Problem extracting metadata information for "
-                    + nodePath, re);
+        LOGGER.info("setMetaData: Problem extracting metadata information for {}", nodePath, re);
     }
 
     @Override
@@ -182,8 +182,7 @@ class JcrNodeResourceMetadata extends ResourceMetadata {
         return null;
     }
 
-    private Item getPrimaryItem(final Node node)
-    throws RepositoryException {
+    private static @Nullable Item getPrimaryItem(final @NotNull Node node) throws RepositoryException {
         String name = node.getPrimaryNodeType().getPrimaryItemName();
         if (name == null) {
             return null;
@@ -210,19 +209,19 @@ class JcrNodeResourceMetadata extends ResourceMetadata {
     }
 
     @Override
-    public Set<Map.Entry<String, Object>> entrySet() {
+    public @NotNull Set<Map.Entry<String, Object>> entrySet() {
         populate();
         return super.entrySet();
     }
 
     @Override
-    public Set<String> keySet() {
+    public @NotNull Set<String> keySet() {
         populate();
         return super.keySet();
     }
 
     @Override
-    public Collection<Object> values() {
+    public @NotNull Collection<Object> values() {
         populate();
         return super.values();
     }
@@ -243,14 +242,11 @@ class JcrNodeResourceMetadata extends ResourceMetadata {
         if (super.containsKey(key)) {
             return true;
         }
-        if (CREATION_TIME.equals(key) ||
-            CONTENT_TYPE.equals(key) ||
-            CHARACTER_ENCODING.equals(key) ||
-            MODIFICATION_TIME.equals(key) ||
-            CONTENT_LENGTH.equals(key)) {
-            return true;
-        }
-        return false;
+        return CREATION_TIME.equals(key) ||
+                CONTENT_TYPE.equals(key) ||
+                CHARACTER_ENCODING.equals(key) ||
+                MODIFICATION_TIME.equals(key) ||
+                CONTENT_LENGTH.equals(key);
     }
 
     @Override

@@ -21,6 +21,8 @@ import org.junit.Assert;
 import java.util.Calendar;
 
 public final class AssertCalendar {
+    
+    private AssertCalendar() {}
 
     /**
      * Asserts that two calendars are equal.

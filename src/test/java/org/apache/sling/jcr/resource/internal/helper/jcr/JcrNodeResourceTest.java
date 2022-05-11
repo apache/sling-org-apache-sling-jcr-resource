@@ -20,6 +20,7 @@ package org.apache.sling.jcr.resource.internal.helper.jcr;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -34,17 +35,20 @@ import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.resource.ModifiableValueMap;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceMetadata;
+import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ValueMap;
-import org.apache.sling.api.resource.external.URIProvider;
-import org.apache.sling.commons.classloader.DynamicClassLoaderManager;
 import org.apache.sling.jcr.resource.api.JcrResourceConstants;
 import org.apache.sling.jcr.resource.internal.HelperData;
 
+import static org.mockito.Mockito.mock;
+
 public class JcrNodeResourceTest extends JcrItemResourceTestBase {
 
-    private HelperData getHelperData() throws Exception {
-        return new HelperData(new AtomicReference<DynamicClassLoaderManager>(), new AtomicReference<URIProvider[]>());
+    private HelperData getHelperData() {
+        return new HelperData(new AtomicReference<>(), new AtomicReference<>());
     }
+    
+    private final ResourceResolver resourceResolver = mock(ResourceResolver.class);
 
     public void testLinkedFile() throws Exception {
         String fileName = "file";
@@ -61,7 +65,7 @@ public class JcrNodeResourceTest extends JcrItemResourceTestBase {
         linkedFile.setProperty(JcrConstants.JCR_CONTENT, file);
         session.save();
 
-        JcrNodeResource linkedFileResource = new JcrNodeResource(null, linkedFile.getPath(), null, linkedFile, getHelperData());
+        JcrNodeResource linkedFileResource = new JcrNodeResource(resourceResolver, linkedFile.getPath(), null, linkedFile, getHelperData());
         assertEquals(TEST_DATA, linkedFileResource.adaptTo(InputStream.class));
 
     }
@@ -76,7 +80,7 @@ public class JcrNodeResourceTest extends JcrItemResourceTestBase {
         getSession().save();
 
         file = rootNode.getNode(name);
-        JcrNodeResource jnr = new JcrNodeResource(null, file.getPath(), null, file, getHelperData());
+        JcrNodeResource jnr = new JcrNodeResource(resourceResolver, file.getPath(), null, file, getHelperData());
 
         assertEquals(file.getPath(), jnr.getPath());
 
@@ -94,7 +98,7 @@ public class JcrNodeResourceTest extends JcrItemResourceTestBase {
         getSession().save();
 
         file = rootNode.getNode(name);
-        JcrNodeResource jnr = new JcrNodeResource(null, file.getPath(), null, file, getHelperData());
+        JcrNodeResource jnr = new JcrNodeResource(resourceResolver, file.getPath(), null, file, getHelperData());
 
         assertEquals(file.getPath(), jnr.getPath());
 
@@ -110,7 +114,7 @@ public class JcrNodeResourceTest extends JcrItemResourceTestBase {
         getSession().save();
 
         res = rootNode.getNode(name);
-        JcrNodeResource jnr = new JcrNodeResource(null, res.getPath(), null, res, getHelperData());
+        JcrNodeResource jnr = new JcrNodeResource(resourceResolver, res.getPath(), null, res, getHelperData());
 
         assertEquals(res.getPath(), jnr.getPath());
 
@@ -126,7 +130,7 @@ public class JcrNodeResourceTest extends JcrItemResourceTestBase {
         getSession().save();
 
         res = rootNode.getNode(name);
-        JcrNodeResource jnr = new JcrNodeResource(null, res.getPath(), null, res, getHelperData());
+        JcrNodeResource jnr = new JcrNodeResource(resourceResolver, res.getPath(), null, res, getHelperData());
 
         assertEquals(res.getPath(), jnr.getPath());
 
@@ -139,14 +143,14 @@ public class JcrNodeResourceTest extends JcrItemResourceTestBase {
         Node node = rootNode.addNode(name, JcrConstants.NT_UNSTRUCTURED);
         getSession().save();
 
-        JcrNodeResource jnr = new JcrNodeResource(null, node.getPath(), null, node, getHelperData());
+        JcrNodeResource jnr = new JcrNodeResource(resourceResolver, node.getPath(), null, node, getHelperData());
         assertEquals(JcrConstants.NT_UNSTRUCTURED, jnr.getResourceType());
 
         String typeName = "some/resource/type";
         node.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY, typeName);
         getSession().save();
 
-        jnr = new JcrNodeResource(null, node.getPath(), null, node, getHelperData());
+        jnr = new JcrNodeResource(resourceResolver, node.getPath(), null, node, getHelperData());
         assertEquals(typeName, jnr.getResourceType());
     }
 
@@ -158,7 +162,7 @@ public class JcrNodeResourceTest extends JcrItemResourceTestBase {
         node.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY, typeName);
         getSession().save();
 
-        Resource jnr = new JcrNodeResource(null, node.getPath(), null, node, getHelperData());
+        Resource jnr = new JcrNodeResource(resourceResolver, node.getPath(), null, node, getHelperData());
         assertEquals(typeName, jnr.getResourceType());
 
         // default super type is null
@@ -169,7 +173,7 @@ public class JcrNodeResourceTest extends JcrItemResourceTestBase {
         typeNode.setProperty(JcrResourceConstants.SLING_RESOURCE_SUPER_TYPE_PROPERTY, superTypeName);
         getSession().save();
 
-        jnr = new JcrNodeResource(null, typeNode.getPath(), null, typeNode, getHelperData());
+        jnr = new JcrNodeResource(resourceResolver, typeNode.getPath(), null, typeNode, getHelperData());
         assertEquals(JcrConstants.NT_UNSTRUCTURED, jnr.getResourceType());
         assertEquals(superTypeName, jnr.getResourceSuperType());
 
@@ -178,7 +182,7 @@ public class JcrNodeResourceTest extends JcrItemResourceTestBase {
         node.setProperty(JcrResourceConstants.SLING_RESOURCE_SUPER_TYPE_PROPERTY, otherSuperTypeName);
         getSession().save();
 
-        jnr = new JcrNodeResource(null, node.getPath(), null, node, getHelperData());
+        jnr = new JcrNodeResource(resourceResolver, node.getPath(), null, node, getHelperData());
         assertEquals(typeName, jnr.getResourceType());
         assertEquals(otherSuperTypeName, jnr.getResourceSuperType());
 
@@ -186,7 +190,7 @@ public class JcrNodeResourceTest extends JcrItemResourceTestBase {
         node.getProperty(JcrResourceConstants.SLING_RESOURCE_SUPER_TYPE_PROPERTY).remove();
         getSession().save();
 
-        jnr = new JcrNodeResource(null, node.getPath(), null, node, getHelperData());
+        jnr = new JcrNodeResource(resourceResolver, node.getPath(), null, node, getHelperData());
         assertEquals(typeName, jnr.getResourceType());
         assertNull(jnr.getResourceSuperType());
     }
@@ -199,7 +203,7 @@ public class JcrNodeResourceTest extends JcrItemResourceTestBase {
         getSession().save();
 
         res = rootNode.getNode(name);
-        JcrNodeResource jnr = new JcrNodeResource(null, res.getPath(), null, res, getHelperData());
+        JcrNodeResource jnr = new JcrNodeResource(resourceResolver, res.getPath(), null, res, getHelperData());
 
         final Map<?, ?> props = jnr.adaptTo(Map.class);
 
@@ -218,13 +222,13 @@ public class JcrNodeResourceTest extends JcrItemResourceTestBase {
         assertEquals(JcrConstants.NT_UNSTRUCTURED, props.get(JcrConstants.JCR_PRIMARYTYPE));
 
         // assert we have nothing else left
-        final Set<String> existingKeys = new HashSet<String>();
+        final Set<String> existingKeys = new HashSet<>();
         existingKeys.add(JcrConstants.JCR_LASTMODIFIED);
         existingKeys.add(JcrConstants.JCR_MIMETYPE);
         existingKeys.add(JcrConstants.JCR_ENCODING);
         existingKeys.add(JcrConstants.JCR_DATA);
         existingKeys.add(JcrConstants.JCR_PRIMARYTYPE);
-        final Set<Object> crossCheck = new HashSet<Object>(props.keySet());
+        final Set<Object> crossCheck = new HashSet<>(props.keySet());
         crossCheck.removeAll(existingKeys);
         assertTrue(crossCheck.isEmpty());
 
@@ -246,13 +250,13 @@ public class JcrNodeResourceTest extends JcrItemResourceTestBase {
         assertEquals(JcrConstants.NT_UNSTRUCTURED, propsSecond.get(JcrConstants.JCR_PRIMARYTYPE));
 
         // assert we have nothing else left
-        final Set<Object> crossCheck2 = new HashSet<Object>(propsSecond.keySet());
+        final Set<Object> crossCheck2 = new HashSet<>(propsSecond.keySet());
         crossCheck2.removeAll(existingKeys);
         assertTrue(crossCheck2.isEmpty());
     }
 
     public void testCorrectUTF8ByteLength() throws Exception {
-        byte[] utf8bytes = "Übersättigung".getBytes("UTF-8");
+        byte[] utf8bytes = "Übersättigung".getBytes(StandardCharsets.UTF_8);
         String name = "utf8file";
         Node file = rootNode.addNode(name, JcrConstants.NT_FILE);
         Node res = file.addNode(JcrConstants.JCR_CONTENT,
@@ -266,7 +270,7 @@ public class JcrNodeResourceTest extends JcrItemResourceTestBase {
         getSession().save();
 
         file = rootNode.getNode(name);
-        JcrNodeResource jnr = new JcrNodeResource(null, file.getPath(), null, file, getHelperData());
+        JcrNodeResource jnr = new JcrNodeResource(resourceResolver, file.getPath(), null, file, getHelperData());
 
         assertEquals(utf8bytes, jnr.adaptTo(InputStream.class));
         assertEquals(utf8bytes.length, jnr.getResourceMetadata().getContentLength());
@@ -296,7 +300,7 @@ public class JcrNodeResourceTest extends JcrItemResourceTestBase {
         getSession().save();
 
         res = rootNode.getNode(name);
-        JcrNodeResource jnr = new JcrNodeResource(null, res.getPath(), null, res, getHelperData());
+        JcrNodeResource jnr = new JcrNodeResource(resourceResolver, res.getPath(), null, res, getHelperData());
 
         final ValueMap props = jnr.adaptTo(ValueMap.class);
         assertFalse(props instanceof ModifiableValueMap);
@@ -338,7 +342,7 @@ public class JcrNodeResourceTest extends JcrItemResourceTestBase {
         getSession().save();
 
         res = rootNode.getNode(name);
-        JcrNodeResource jnr = new JcrNodeResource(null, res.getPath(), null, res, getHelperData());
+        JcrNodeResource jnr = new JcrNodeResource(resourceResolver, res.getPath(), null, res, getHelperData());
 
         final ModifiableValueMap props = jnr.adaptTo(ModifiableValueMap.class);
         assertNotNull(props);

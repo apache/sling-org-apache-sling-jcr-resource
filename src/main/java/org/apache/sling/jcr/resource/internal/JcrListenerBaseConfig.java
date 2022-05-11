@@ -46,17 +46,14 @@ import org.slf4j.LoggerFactory;
  */
 public class JcrListenerBaseConfig implements Closeable {
 
-    private final Logger logger = LoggerFactory.getLogger(JcrResourceListener.class);
+    private final Logger logger = LoggerFactory.getLogger(JcrListenerBaseConfig.class);
 
     private final Session session;
 
     private final ObservationReporter reporter;
 
     @SuppressWarnings("deprecation")
-    public JcrListenerBaseConfig(
-                    final ObservationReporter reporter,
-                    final SlingRepository repository)
-    throws RepositoryException {
+    public JcrListenerBaseConfig(final ObservationReporter reporter, final SlingRepository repository) throws RepositoryException {
         this.reporter = reporter;
         // The session should have read access on the whole repository
         this.session = repository.loginService("observation", repository.getDefaultWorkspace());
@@ -67,7 +64,7 @@ public class JcrListenerBaseConfig implements Closeable {
      * Close session.
      */
     @Override
-    public void close() throws IOException {
+    public void close() {
         this.session.logout();
     }
 
@@ -77,16 +74,15 @@ public class JcrListenerBaseConfig implements Closeable {
      * @param config The configuration
      * @throws RepositoryException If registration fails.
      */
-    public void register(final EventListener listener, final ObserverConfiguration config)
-    throws RepositoryException {
+    public void register(final EventListener listener, final ObserverConfiguration config) throws RepositoryException {
         final ObservationManager mgr = this.session.getWorkspace().getObservationManager();
-        if ( mgr instanceof JackrabbitObservationManager ) {
+        if (mgr instanceof JackrabbitObservationManager) {
             final OakEventFilter filter = FilterFactory.wrap(new JackrabbitEventFilter());
             // paths
             final Set<String> paths = config.getPaths().toStringSet();
             int globCount = 0, pathCount = 0;
-            for(final String p : paths) {
-                if ( p.startsWith(Path.GLOB_PREFIX )) {
+            for (final String p : paths) {
+                if (p.startsWith(Path.GLOB_PREFIX)) {
                     globCount++;
                 } else {
                     pathCount++;
@@ -98,8 +94,8 @@ public class JcrListenerBaseConfig implements Closeable {
             globCount = 0;
 
             // create arrays and remove global prefix
-            for(final String p : paths) {
-                if ( p.startsWith(Path.GLOB_PREFIX )) {
+            for (final String p : paths) {
+                if (p.startsWith(Path.GLOB_PREFIX)) {
                     globArray[globCount] = p.substring(Path.GLOB_PREFIX.length());
                     globCount++;
                 } else {
@@ -107,17 +103,17 @@ public class JcrListenerBaseConfig implements Closeable {
                     pathCount++;
                 }
             }
-            if ( globArray != null ) {
+            if (globArray != null) {
                 filter.withIncludeGlobPaths(globArray);
             }
-            if ( pathArray != null ) {
+            if (pathArray != null) {
                 filter.setAdditionalPaths(pathArray);
             }
             filter.setIsDeep(true);
 
             // exclude paths
             final Set<String> excludePaths = config.getExcludedPaths().toStringSet();
-            if ( !excludePaths.isEmpty() ) {
+            if (!excludePaths.isEmpty()) {
                 filter.setExcludedPaths(excludePaths.toArray(new String[excludePaths.size()]));
             }
 
@@ -128,12 +124,12 @@ public class JcrListenerBaseConfig implements Closeable {
             filter.setEventTypes(this.getTypes(config));
 
             // nt:file handling
-            filter.withNodeTypeAggregate(new String[] {"nt:file"}, new String[] {"", "jcr:content"});
+            filter.withNodeTypeAggregate(new String[]{"nt:file"}, new String[]{"", "jcr:content"});
 
             // ancestors remove
             filter.withIncludeAncestorsRemove();
 
-            ((JackrabbitObservationManager)mgr).addEventListener(listener, filter);
+            ((JackrabbitObservationManager) mgr).addEventListener(listener, filter);
         } else {
             throw new RepositoryException("Observation manager is not a JackrabbitObservationManager");
         }

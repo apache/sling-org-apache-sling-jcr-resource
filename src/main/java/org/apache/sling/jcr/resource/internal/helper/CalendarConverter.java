@@ -23,6 +23,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 import org.apache.jackrabbit.util.ISO8601;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A converter for Calendar
@@ -31,13 +32,13 @@ public class CalendarConverter extends NumberConverter implements Converter {
 
     private final Calendar value;
 
-    public CalendarConverter(final Calendar val) {
+    public CalendarConverter(@NotNull final Calendar val) {
         super(val.getTimeInMillis());
         this.value = val;
     }
 
     @Override
-    public ZonedDateTime toZonedDateTime() {
+    public @NotNull ZonedDateTime toZonedDateTime() {
         return ZonedDateTime.ofInstant(this.value.toInstant(), this.value.getTimeZone().toZoneId().normalized());
     }
 
@@ -45,7 +46,7 @@ public class CalendarConverter extends NumberConverter implements Converter {
      * @see org.apache.sling.jcr.resource.internal.helper.Converter#toCalendar()
      */
     @Override
-    public Calendar toCalendar() {
+    public @NotNull Calendar toCalendar() {
         return this.value;
     }
 
@@ -53,7 +54,7 @@ public class CalendarConverter extends NumberConverter implements Converter {
      * @see org.apache.sling.jcr.resource.internal.helper.Converter#toDate()
      */
     @Override
-    public Date toDate() {
+    public @NotNull Date toDate() {
         return this.value.getTime();
     }
 

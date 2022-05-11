@@ -70,8 +70,7 @@ public class JcrItemResourceFactory {
      */
     public JcrItemResource<?> createResource(final ResourceResolver resourceResolver, final String resourcePath,
             final Resource parent, final Map<String, String> parameters) throws RepositoryException {
-        final String jcrPath = resourcePath;
-        if (jcrPath == null) {
+        if (resourcePath == null) {
             log.debug("createResource: {} maps to an empty JCR path", resourcePath);
             return null;
         }
@@ -98,7 +97,7 @@ public class JcrItemResourceFactory {
             }
             item = getSubitem(parentNode, subPath);
         } else {
-            item = getItemOrNull(jcrPath);
+            item = getItemOrNull(resourcePath);
         }
 
         if (item != null && version != null) {
@@ -106,7 +105,7 @@ public class JcrItemResourceFactory {
         }
 
         if (item == null) {
-            log.debug("createResource: No JCR Item exists at path '{}'", jcrPath);
+            log.debug("createResource: No JCR Item exists at path '{}'", resourcePath);
             return null;
         } else {
             final JcrItemResource<?> resource;
@@ -141,7 +140,7 @@ public class JcrItemResourceFactory {
         return null;
     }
 
-    private static Item getSubitem(Node node, String relPath) throws RepositoryException {
+    private static Item getSubitem(Node node, String relPath) {
         try {
             if (relPath.length() == 0) { // not using isEmpty() due to 1.5 compatibility
                 return node;
@@ -153,8 +152,7 @@ public class JcrItemResourceFactory {
                 return null;
             }
         } catch(RepositoryException e) {
-            log.debug("getSubitem: Can't get subitem {} of {}: {}",
-                    new Object[] { relPath, node.toString(), e.toString() });
+            log.debug("getSubitem: Can't get subitem {} of {}: {}", relPath, node, e);
             return null;
         }
     }
@@ -175,7 +173,7 @@ public class JcrItemResourceFactory {
         return item.isNode() && ((Node) item).isNodeType(NodeType.MIX_VERSIONABLE);
     }
 
-    Item getItemOrNull(String path) throws RepositoryException {
+    Item getItemOrNull(String path) {
         // Check first if the path is absolute. If it isn't, then we return null because the previous itemExists method,
         // which was replaced by this method, would have returned null as well (instead of throwing an exception).
         if (path.isEmpty() || path.charAt(0) != '/') {

@@ -38,6 +38,8 @@ import org.apache.jackrabbit.util.Text;
 import org.apache.sling.api.resource.ModifiableValueMap;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.jcr.resource.internal.helper.JcrPropertyMapCacheEntry;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This implementation of the value map allows to change
@@ -50,10 +52,10 @@ public class JcrValueMap
     protected final Node node;
 
     /** A cache for the properties. */
-    protected final Map<String, JcrPropertyMapCacheEntry> cache = new LinkedHashMap<String, JcrPropertyMapCacheEntry>();
+    protected final Map<String, JcrPropertyMapCacheEntry> cache = new LinkedHashMap<>();
 
     /** A cache for the values. */
-    protected final Map<String, Object> valueCache = new LinkedHashMap<String, Object>();
+    protected final Map<String, Object> valueCache = new LinkedHashMap<>();
 
     /** Has the node been read completely? */
     private boolean fullyRead = false;
@@ -73,11 +75,11 @@ public class JcrValueMap
 
     // ---------- ValueMap
 
-    protected String checkKey(final String key) {
-        if ( key == null ) {
+    protected @NotNull String checkKey(@Nullable final String key) {
+        if (key == null) {
             throw new NullPointerException("Key must not be null.");
         }
-        if ( key.startsWith("./") ) {
+        if (key.startsWith("./")) {
             return key.substring(2);
         }
         return key;
@@ -88,14 +90,14 @@ public class JcrValueMap
      */
     @Override
     @SuppressWarnings("unchecked")
-    public <T> T get(final String aKey, final Class<T> type) {
+    public @Nullable <T> T get(@NotNull final String aKey, @NotNull final Class<T> type) {
         final String key = checkKey(aKey);
         if (type == null) {
             return (T) get(key);
         }
 
         final JcrPropertyMapCacheEntry entry = this.read(key);
-        if ( entry == null ) {
+        if (entry == null) {
             return null;
         }
         return entry.convertToType(type, node, helper.getDynamicClassLoader());
@@ -106,7 +108,7 @@ public class JcrValueMap
      */
     @Override
     @SuppressWarnings("unchecked")
-    public <T> T get(final String aKey,final T defaultValue) {
+    public @NotNull <T> T get(@NotNull final String aKey, @NotNull final T defaultValue) {
         final String key = checkKey(aKey);
         if (defaultValue == null) {
             return (T) get(key);
@@ -133,8 +135,7 @@ public class JcrValueMap
     public Object get(final Object aKey) {
         final String key = checkKey(aKey.toString());
         final JcrPropertyMapCacheEntry entry = this.read(key);
-        final Object value = (entry == null ? null : entry.getPropertyValueOrNull());
-        return value;
+        return (entry == null ? null : entry.getPropertyValueOrNull());
     }
 
     /**
@@ -175,7 +176,7 @@ public class JcrValueMap
      * @see java.util.Map#entrySet()
      */
     @Override
-    public Set<java.util.Map.Entry<String, Object>> entrySet() {
+    public @NotNull Set<java.util.Map.Entry<String, Object>> entrySet() {
         readFully();
         final Map<String, Object> sourceMap;
         if (cache.size() == valueCache.size()) {
@@ -190,7 +191,7 @@ public class JcrValueMap
      * @see java.util.Map#keySet()
      */
     @Override
-    public Set<String> keySet() {
+    public @NotNull Set<String> keySet() {
         readFully();
         return Collections.unmodifiableSet(cache.keySet());
     }
@@ -199,7 +200,7 @@ public class JcrValueMap
      * @see java.util.Map#values()
      */
     @Override
-    public Collection<Object> values() {
+    public @NotNull Collection<Object> values() {
         readFully();
         final Map<String, Object> sourceMap;
         if (cache.size() == valueCache.size()) {
@@ -232,24 +233,24 @@ public class JcrValueMap
      * @return
      * @throws IllegalArgumentException if a repository exception occurs
      */
-    private JcrPropertyMapCacheEntry cacheProperty(final Property prop) {
+    private @NotNull JcrPropertyMapCacheEntry cacheProperty(final Property prop) {
         try {
             // calculate the key
             final String name = prop.getName();
             String key = null;
-            if ( name.indexOf("_x") != -1 ) {
+            if (name.indexOf("_x") != -1) {
                 // for compatibility with older versions we use the (wrong)
                 // ISO9075 path encoding
                 key = ISO9075.decode(name);
-                if ( key.equals(name) ) {
+                if (key.equals(name)) {
                     key = null;
                 }
             }
-            if ( key == null ) {
+            if (key == null) {
                 key = Text.unescapeIllegalJcrChars(name);
             }
             JcrPropertyMapCacheEntry entry = cache.get(key);
-            if ( entry == null ) {
+            if (entry == null) {
                 entry = new JcrPropertyMapCacheEntry(prop);
                 cache.put(key, entry);
 
@@ -270,16 +271,16 @@ public class JcrValueMap
      */
     JcrPropertyMapCacheEntry read(final String name) {
         // check for empty key
-        if ( name.length() == 0 ) {
+        if (name.length() == 0) {
             return null;
         }
         // if the name is a path, we should handle this differently
-        if ( name.indexOf('/') != -1 ) {
+        if (name.indexOf('/') != -1) {
             // first a compatibility check with the old (wrong) ISO9075
             // encoding
             final String path = ISO9075.encodePath(name);
             try {
-                if ( node.hasProperty(path) ) {
+                if (node.hasProperty(path)) {
                     return new JcrPropertyMapCacheEntry(node.getProperty(path));
                 }
             } catch (final RepositoryException re) {
@@ -289,9 +290,9 @@ public class JcrValueMap
             final StringBuilder sb = new StringBuilder();
             int pos = 0;
             int lastPos = -1;
-            while ( pos < name.length() ) {
-                if ( name.charAt(pos) == '/' ) {
-                    if ( lastPos + 1 < pos ) {
+            while (pos < name.length()) {
+                if (name.charAt(pos) == '/') {
+                    if (lastPos + 1 < pos) {
                         sb.append(Text.escapeIllegalJcrChars(name.substring(lastPos + 1, pos)));
                     }
                     sb.append('/');
@@ -299,12 +300,12 @@ public class JcrValueMap
                 }
                 pos++;
             }
-            if ( lastPos + 1 < pos ) {
+            if (lastPos + 1 < pos) {
                 sb.append(Text.escapeIllegalJcrChars(name.substring(lastPos + 1)));
             }
             final String newPath = sb.toString();
             try {
-                if ( node.hasProperty(newPath) ) {
+                if (node.hasProperty(newPath)) {
                     return new JcrPropertyMapCacheEntry(node.getProperty(newPath));
                 }
             } catch (final RepositoryException re) {
@@ -316,7 +317,7 @@ public class JcrValueMap
 
         // check cache
         JcrPropertyMapCacheEntry cachedValued = cache.get(name);
-        if ( fullyRead || cachedValued != null ) {
+        if (fullyRead || cachedValued != null) {
             return cachedValued;
         }
 

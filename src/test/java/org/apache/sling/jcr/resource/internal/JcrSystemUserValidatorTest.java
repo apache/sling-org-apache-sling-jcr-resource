@@ -18,15 +18,14 @@ package org.apache.sling.jcr.resource.internal;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.Collections;
 
-import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.naming.NamingException;
 
 import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.jackrabbit.api.security.user.Group;
@@ -54,17 +53,18 @@ public class JcrSystemUserValidatorTest {
     public final SlingContext context = new SlingContext(ResourceResolverType.JCR_OAK);
 
     @Before
-    public void setUp() throws IllegalArgumentException, IllegalAccessException, RepositoryException, NamingException,
-            NoSuchFieldException, SecurityException {
+    public void setUp() throws Exception {
         jcrSystemUserValidator = new JcrSystemUserValidator();
         final Field repositoryField = jcrSystemUserValidator.getClass().getDeclaredField("repository");
         repositoryField.setAccessible(true);
 
         final SlingRepository repository = context.getService(SlingRepository.class);
+        assertNotNull(repository);
         assertEquals("Apache Jackrabbit Oak", repository.getDescriptor("jcr.repository.name"));
         repositoryField.set(jcrSystemUserValidator, repository);
 
         session = (JackrabbitSession) context.resourceResolver().adaptTo(Session.class);
+        assertNotNull(session);
         UserManager userManager = session.getUserManager();
         group = userManager.createGroup(GROUP_ADMINISTRATORS);
         systemUser = userManager.createSystemUser(SYSTEM_USER_ID, null);
@@ -80,7 +80,7 @@ public class JcrSystemUserValidatorTest {
         session.save();
     }
 
-    private void setAllowOnlySystemUsers(boolean allowOnlySystemUsers) throws Exception {
+    private void setAllowOnlySystemUsers(boolean allowOnlySystemUsers) {
         final JcrSystemUserValidator.Config config = new JcrSystemUserValidator.Config() {
             @Override
             public Class<? extends Annotation> annotationType() {

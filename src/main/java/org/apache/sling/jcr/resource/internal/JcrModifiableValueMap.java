@@ -32,9 +32,7 @@ import org.apache.sling.jcr.resource.internal.helper.JcrPropertyMapCacheEntry;
 /**
  * Modifiable value map implementation leveraging the base class
  */
-public class JcrModifiableValueMap
-    extends JcrValueMap
-    implements ModifiableValueMap {
+public class JcrModifiableValueMap extends JcrValueMap implements ModifiableValueMap {
 
     /**
      * Constructor
@@ -51,10 +49,10 @@ public class JcrModifiableValueMap
     @Override
     public Object put(final String aKey, final Object value) {
         final String key = checkKey(aKey);
-        if ( key.indexOf('/') != -1 ) {
+        if (key.indexOf('/') != -1) {
             throw new IllegalArgumentException("Invalid key: " + key);
         }
-        if ( value == null ) {
+        if (value == null) {
             throw new NullPointerException("Value should not be null (key = " + key + ")");
         }
         readFully();

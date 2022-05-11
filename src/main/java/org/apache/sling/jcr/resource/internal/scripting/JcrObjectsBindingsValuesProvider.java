@@ -50,8 +50,7 @@ public class JcrObjectsBindingsValuesProvider implements BindingsValuesProvider 
                 bindings.put(PROP_CURRENT_NODE, node);
             }
             if (bindings.get(PROP_CURRENT_SESSION) == null) {
-                final Session session = resource.getResourceResolver().adaptTo(
-                        Session.class);
+                final Session session = resource.getResourceResolver().adaptTo(Session.class);
                 if (session != null) {
                     bindings.put(PROP_CURRENT_SESSION, session);
                 }

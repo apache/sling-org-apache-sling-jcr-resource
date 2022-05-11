@@ -25,6 +25,7 @@ import static javax.jcr.nodetype.NodeType.NT_FILE;
 import static javax.jcr.nodetype.NodeType.NT_FROZEN_NODE;
 import static javax.jcr.nodetype.NodeType.NT_LINKED_FILE;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -38,6 +39,8 @@ import javax.jcr.nodetype.NodeType;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class NodeUtil {
+    
+    private NodeUtil() {}
 
     /**
      * Update the mixin node types
@@ -46,26 +49,23 @@ public abstract class NodeUtil {
      * @param mixinTypes the mixins
      * @throws RepositoryException if the repository's namespaced prefixes cannot be retrieved
      */
-    public static void handleMixinTypes(final Node node, final String[] mixinTypes)
-    throws RepositoryException {
-        final Set<String> newTypes = new HashSet<String>();
-        if ( mixinTypes != null ) {
-            for(final String value : mixinTypes ) {
-                newTypes.add(value);
-            }
+    public static void handleMixinTypes(final Node node, final String[] mixinTypes) throws RepositoryException {
+        final Set<String> newTypes = new HashSet<>();
+        if (mixinTypes != null) {
+            Collections.addAll(newTypes, mixinTypes);
         }
-        final Set<String> oldTypes = new HashSet<String>();
-        for(final NodeType mixinType : node.getMixinNodeTypes()) {
+        final Set<String> oldTypes = new HashSet<>();
+        for (final NodeType mixinType : node.getMixinNodeTypes()) {
             oldTypes.add(mixinType.getName());
         }
-        for(final String name : oldTypes) {
-            if ( !newTypes.contains(name) ) {
+        for (final String name : oldTypes) {
+            if (!newTypes.contains(name)) {
                 node.removeMixin(name);
             } else {
                 newTypes.remove(name);
             }
         }
-        for(final String name : newTypes) {
+        for (final String name : newTypes) {
             node.addMixin(name);
         }
     }
