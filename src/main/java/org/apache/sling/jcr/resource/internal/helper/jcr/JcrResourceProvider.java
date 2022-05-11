@@ -131,9 +131,8 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
 
     @Activate
     protected void activate(final ComponentContext context) {
-        SlingRepository repository = context.locateService(REPOSITORY_REFERENCE_NAME,
-                this.repositoryReference);
-        if (repository == null) {
+        SlingRepository repo = context.locateService(REPOSITORY_REFERENCE_NAME, this.repositoryReference);
+        if (repo == null) {
             // concurrent unregistration of SlingRepository service
             // don't care, this component is going to be deactivated
             // so we just stop working
@@ -141,10 +140,9 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
             return;
         }
 
-        this.repository = repository;
+        this.repository = repo;
 
-        this.stateFactory = new JcrProviderStateFactory(repositoryReference, repository,
-                classLoaderManagerReference, uriProviderReference);
+        this.stateFactory = new JcrProviderStateFactory(repositoryReference, repo, classLoaderManagerReference, uriProviderReference);
     }
 
     @Deactivate
@@ -410,82 +408,37 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
         // check for node type
         final Object nodeObj = (properties != null ? properties.get(JcrConstants.JCR_PRIMARYTYPE) : null);
         // check for sling:resourcetype
-        final String nodeType;
-        if (nodeObj != null) {
-            nodeType = nodeObj.toString();
-        } else {
-            final Object rtObj = (properties != null ? properties.get(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY) : null);
-            boolean isNodeType = false;
-            if (rtObj != null) {
-                final String resourceType = rtObj.toString();
-                if (resourceType.indexOf(':') != -1 && resourceType.indexOf('/') == -1) {
-                    try {
-                        getSession(ctx).getWorkspace().getNodeTypeManager().getNodeType(resourceType);
-                        isNodeType = true;
-                    } catch (final RepositoryException ignore) {
-                        // we expect this, if this isn't a valid node type, therefore ignoring
-                    }
-                }
-            }
-            if (isNodeType) {
-                nodeType = rtObj.toString();
-            } else {
-                nodeType = null;
-            }
-        }
-        final String jcrPath = path;
-        if (jcrPath == null) {
+        final String nodeType = getNodeTypeName(nodeObj, properties, ctx);
+        
+        if (path == null) {
             throw new PersistenceException("Unable to create node at " + path, null, path, null);
         }
-        Node node = null;
+        Node node;
         try {
-            final int lastPos = jcrPath.lastIndexOf('/');
+            final int lastPos = path.lastIndexOf('/');
             final Node parent;
             if (lastPos == 0) {
                 parent = getSession(ctx).getRootNode();
             } else {
-                parent = (Node) getSession(ctx).getItem(jcrPath.substring(0, lastPos));
+                parent = (Node) getSession(ctx).getItem(path.substring(0, lastPos));
             }
-            final String name = jcrPath.substring(lastPos + 1);
+            final String name = path.substring(lastPos + 1);
             if (nodeType != null) {
                 node = parent.addNode(name, nodeType);
             } else {
                 node = parent.addNode(name);
             }
-
-            if (properties != null) {
-                // create modifiable map
-                final JcrModifiableValueMap jcrMap = new JcrModifiableValueMap(node, getHelperData(ctx));
-                // check mixin types first
-                final Object value = properties.get(JcrConstants.JCR_MIXINTYPES);
-                if (value != null) {
-                    jcrMap.put(JcrConstants.JCR_MIXINTYPES, value);
-                }
-                for (final Map.Entry<String, Object> entry : properties.entrySet()) {
-                    if (!IGNORED_PROPERTIES.contains(entry.getKey())) {
-                        try {
-                            jcrMap.put(entry.getKey(), entry.getValue());
-                        } catch (final IllegalArgumentException iae) {
-                            try {
-                                node.remove();
-                            } catch (final RepositoryException re) {
-                                // we ignore this
-                            }
-                            throw new PersistenceException(iae.getMessage(), iae, path, entry.getKey());
-                        }
-                    }
-                }
-            }
+            setProperties(node, path, properties, ctx);
 
             return new JcrNodeResource(ctx.getResourceResolver(), path, null, node, getHelperData(ctx));
         } catch (final RepositoryException e) {
-            throw new PersistenceException("Unable to create node at " + jcrPath, e, path, null);
+            throw new PersistenceException("Unable to create node at " + path, e, path, null);
         }
     }
-
+    
     @Override
     public boolean orderBefore(@NotNull ResolveContext<JcrProviderState> ctx, @NotNull Resource parent, @NotNull String name,
-            @Nullable String followingSiblingName) throws PersistenceException {
+                               @Nullable String followingSiblingName) throws PersistenceException {
         Node node = parent.adaptTo(Node.class);
         if (node == null) {
             throw new PersistenceException("The resource " + parent.getPath() + " cannot be adapted to Node. It is probably not provided by the JcrResourceProvider");
@@ -527,12 +480,8 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
         // try to adapt to Item
         Item item = resource.adaptTo(Item.class);
         try {
-            if ( item == null ) {
+            if (item == null) {
                 final String jcrPath = resource.getPath();
-                if (jcrPath == null) {
-                    logger.debug("delete: {} maps to an empty JCR path", resource.getPath());
-                    throw new PersistenceException("Unable to delete resource", null, resource.getPath(), null);
-                }
                 item = getSession(ctx).getItem(jcrPath);
             }
             item.remove();
@@ -649,5 +598,65 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     private static boolean isAttributeVisible(final String name) {
         return !name.equals(JcrResourceConstants.AUTHENTICATION_INFO_CREDENTIALS)
             && !name.contains("password");
+    }
+
+    @Nullable
+    private static String getNodeTypeName(@Nullable Object nodeObj, @Nullable Map<String, Object> properties,
+                                          @NotNull ResolveContext<JcrProviderState> ctx) {
+        final String nodeType;
+        if (nodeObj != null) {
+            nodeType = nodeObj.toString();
+        } else {
+            final Object rtObj = (properties != null ? properties.get(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY) : null);
+            if (isNodeType(rtObj, ctx)) {
+                nodeType = rtObj.toString();
+            } else {
+                nodeType = null;
+            }
+        }
+        return nodeType;
+    }
+    
+    private static boolean isNodeType(@Nullable Object rtObj, @NotNull ResolveContext<JcrProviderState> ctx) {
+        boolean isNodeType = false;
+        if (rtObj != null) {
+            final String resourceType = rtObj.toString();
+            if (resourceType.indexOf(':') != -1 && resourceType.indexOf('/') == -1) {
+                try {
+                    getSession(ctx).getWorkspace().getNodeTypeManager().getNodeType(resourceType);
+                    isNodeType = true;
+                } catch (final RepositoryException ignore) {
+                    // we expect this, if this isn't a valid node type, therefore ignoring
+                }
+            }
+        }
+        return isNodeType;
+    }
+    
+    private static void setProperties(@NotNull Node node, @NotNull String path, @Nullable Map<String, Object> properties, @NotNull ResolveContext<JcrProviderState> ctx) throws PersistenceException {
+        if (properties == null) {
+            return;
+        }
+        // create modifiable map
+        final JcrModifiableValueMap jcrMap = new JcrModifiableValueMap(node, getHelperData(ctx));
+        // check mixin types first
+        final Object value = properties.get(JcrConstants.JCR_MIXINTYPES);
+        if (value != null) {
+            jcrMap.put(JcrConstants.JCR_MIXINTYPES, value);
+        }
+        for (final Map.Entry<String, Object> entry : properties.entrySet()) {
+            if (!IGNORED_PROPERTIES.contains(entry.getKey())) {
+                try {
+                    jcrMap.put(entry.getKey(), entry.getValue());
+                } catch (final IllegalArgumentException iae) {
+                    try {
+                        node.remove();
+                    } catch (final RepositoryException re) {
+                        // we ignore this
+                    }
+                    throw new PersistenceException(iae.getMessage(), iae, path, entry.getKey());
+                }
+            }
+        }
     }
 }

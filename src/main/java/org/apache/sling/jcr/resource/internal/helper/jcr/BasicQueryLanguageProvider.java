@@ -49,7 +49,7 @@ import static org.apache.sling.jcr.resource.internal.helper.jcr.ContextUtil.getS
 
 public class BasicQueryLanguageProvider implements QueryLanguageProvider<JcrProviderState> {
 
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private static final Logger logger = LoggerFactory.getLogger(BasicQueryLanguageProvider.class);
 
     @SuppressWarnings("deprecation")
     private static final String DEFAULT_QUERY_LANGUAGE = Query.XPATH;
@@ -102,85 +102,91 @@ public class BasicQueryLanguageProvider implements QueryLanguageProvider<JcrProv
 
         try {
             final QueryResult result = JcrResourceUtil.query(getSession(ctx), query, queryLanguage);
-            final String[] colNames = result.getColumnNames();
-            final RowIterator rows = result.getRows();
-
-            return new Iterator<ValueMap>() {
-
-                private ValueMap next;
-
-                {
-                    next = seek();
-                }
-
-                @Override
-                public boolean hasNext() {
-                    return next != null;
-                }
-
-                @Override
-                public ValueMap next() {
-                    if ( next == null ) {
-                        throw new NoSuchElementException();
-                    }
-                    final ValueMap result = next;
-                    next = seek();
-                    return result;
-                }
-
-                private ValueMap seek() {
-                    ValueMap result = null;
-                    while ( result == null && rows.hasNext() ) {
-                        try {
-                            final Row jcrRow = rows.nextRow();
-                            final String resourcePath = jcrRow.getPath();
-                            if ( resourcePath != null && providerContext.getExcludedPaths().matches(resourcePath) == null) {
-                                final Map<String, Object> row = new HashMap<>();
-
-                                boolean didPath = false;
-                                boolean didScore = false;
-                                final Value[] values = jcrRow.getValues();
-                                for (int i = 0; i < values.length; i++) {
-                                    Value v = values[i];
-                                    if (v != null) {
-                                        String colName = colNames[i];
-                                        row.put(colName,
-                                            JcrResourceUtil.toJavaObject(values[i]));
-                                        if (colName.equals(QUERY_COLUMN_PATH)) {
-                                            didPath = true;
-                                            row.put(colName, JcrResourceUtil.toJavaObject(values[i]).toString());
-                                        }
-                                        if (colName.equals(QUERY_COLUMN_SCORE)) {
-                                            didScore = true;
-                                        }
-                                    }
-                                }
-                                if (!didPath) {
-                                    row.put(QUERY_COLUMN_PATH, jcrRow.getPath());
-                                }
-                                if (!didScore) {
-                                    row.put(QUERY_COLUMN_SCORE, jcrRow.getScore());
-                                }
-                                result = new ValueMapDecorator(row);
-                            }
-                        } catch (final RepositoryException re) {
-                            logger.error(
-                                "queryResources$next: Problem accessing row values",
-                                re);
-                        }
-                    }
-                    return result;
-                }
-
-                @Override
-                public void remove() {
-                    throw new UnsupportedOperationException("remove");
-                }
-            };
+            return new ValueMapIterator(result.getColumnNames(), result.getRows());
         } catch (final javax.jcr.query.InvalidQueryException iqe) {
             throw new QuerySyntaxException(iqe.getMessage(), query, language, iqe);
         } catch (final RepositoryException re) {
             throw new SlingException(re.getMessage(), re);
+        }
+    }
+    
+    private class ValueMapIterator implements Iterator<ValueMap> {
+
+        private final String[] colNames;
+        private final RowIterator rows;
+        
+        private ValueMap next;
+        
+        private ValueMapIterator(@NotNull String[] colNames, @NotNull RowIterator rows) {
+            this.colNames = colNames;
+            this.rows = rows;
+
+            next = seek();
+        }
+
+        @Override
+        public boolean hasNext() {
+            return next != null;
+        }
+
+        @Override
+        public ValueMap next() {
+            if ( next == null ) {
+                throw new NoSuchElementException();
+            }
+            final ValueMap result = next;
+            next = seek();
+            return result;
+        }
+
+        private ValueMap seek() {
+            ValueMap result = null;
+            while (result == null && rows.hasNext()) {
+                try {
+                    final Row jcrRow = rows.nextRow();
+                    final String resourcePath = jcrRow.getPath();
+                    if (resourcePath != null && providerContext.getExcludedPaths().matches(resourcePath) == null) {
+                        result = new ValueMapDecorator(getRow(jcrRow));
+                    }
+                } catch (final RepositoryException re) {
+                    logger.error("queryResources$next: Problem accessing row values", re);
+                }
+            }
+            return result;
+        }
+        
+        private Map<String, Object> getRow(@NotNull Row jcrRow) throws RepositoryException {
+            final Map<String, Object> row = new HashMap<>();
+
+            boolean didPath = false;
+            boolean didScore = false;
+            final Value[] values = jcrRow.getValues();
+            for (int i = 0; i < values.length; i++) {
+                Value v = values[i];
+                if (v != null) {
+                    String colName = colNames[i];
+                    row.put(colName, JcrResourceUtil.toJavaObject(values[i]));
+                    if (colName.equals(QUERY_COLUMN_PATH)) {
+                        didPath = true;
+                        row.put(colName, JcrResourceUtil.toJavaObject(values[i]).toString());
+                    }
+                    if (colName.equals(QUERY_COLUMN_SCORE)) {
+                        didScore = true;
+                    }
+                }
+            }
+            if (!didPath) {
+                row.put(QUERY_COLUMN_PATH, jcrRow.getPath());
+            }
+            if (!didScore) {
+                row.put(QUERY_COLUMN_SCORE, jcrRow.getScore());
+            }
+            return row;
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException("remove");
         }
     }
 }

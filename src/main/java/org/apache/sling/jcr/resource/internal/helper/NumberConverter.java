@@ -87,14 +87,14 @@ public class NumberConverter implements Converter {
     }
 
     @Override
-    public ZonedDateTime toZonedDateTime() {
+    public @NotNull ZonedDateTime toZonedDateTime() {
         return new CalendarConverter(toCalendar()).toZonedDateTime();
     }
 
     /**
      * @see org.apache.sling.jcr.resource.internal.helper.Converter#toCalendar()
      */
-    public Calendar toCalendar() {
+    public @NotNull Calendar toCalendar() {
         final Calendar c = Calendar.getInstance();
         c.setTimeInMillis(this.toLong());
         return c;
@@ -103,21 +103,21 @@ public class NumberConverter implements Converter {
     /**
      * @see org.apache.sling.jcr.resource.internal.helper.Converter#toDate()
      */
-    public Date toDate() {
+    public @NotNull Date toDate() {
         return new Date(this.toLong());
     }
 
     /**
      * @see org.apache.sling.jcr.resource.internal.helper.Converter#toBoolean()
      */
-    public Boolean toBoolean() {
+    public @NotNull Boolean toBoolean() {
         return false;
     }
 
     /**
      * @see org.apache.sling.jcr.resource.internal.helper.Converter#toBigDecimal()
      */
-    public BigDecimal toBigDecimal() {
+    public @NotNull BigDecimal toBigDecimal() {
         if ( this.value instanceof BigDecimal ) {
             return (BigDecimal)this.value;
         }
