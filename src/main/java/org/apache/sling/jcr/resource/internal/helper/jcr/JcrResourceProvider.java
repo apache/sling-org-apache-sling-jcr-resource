@@ -123,13 +123,13 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
 
     private final AtomicReference<DynamicClassLoaderManager> classLoaderManagerReference = new AtomicReference<>();
 
-    private AtomicReference<URIProvider[]> uriProviderReference = new AtomicReference<>();
+    private final AtomicReference<URIProvider[]> uriProviderReference = new AtomicReference<>();
 
     @Activate
     protected void activate(final ComponentContext context) {
-        SlingRepository repository = context.locateService(REPOSITORY_REFERENCE_NAME,
+        SlingRepository slingRepository = context.locateService(REPOSITORY_REFERENCE_NAME,
                 this.repositoryReference);
-        if (repository == null) {
+        if (slingRepository == null) {
             // concurrent unregistration of SlingRepository service
             // don't care, this component is going to be deactivated
             // so we just stop working
@@ -137,9 +137,9 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
             return;
         }
 
-        this.repository = repository;
+        this.repository = slingRepository;
 
-        this.stateFactory = new JcrProviderStateFactory(repositoryReference, repository,
+        this.stateFactory = new JcrProviderStateFactory(repositoryReference, slingRepository,
                 classLoaderManagerReference, uriProviderReference);
     }
 
@@ -151,10 +151,12 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     @Reference(name = "dynamicClassLoaderManager",
             service = DynamicClassLoaderManager.class,
             cardinality = ReferenceCardinality.OPTIONAL, policy = ReferencePolicy.DYNAMIC)
+    @SuppressWarnings("unused")
     protected void bindDynamicClassLoaderManager(final DynamicClassLoaderManager dynamicClassLoaderManager) {
         this.classLoaderManagerReference.set(dynamicClassLoaderManager);
     }
-
+    
+    @SuppressWarnings("unused")
     protected void unbindDynamicClassLoaderManager(final DynamicClassLoaderManager dynamicClassLoaderManager) {
         this.classLoaderManagerReference.compareAndSet(dynamicClassLoaderManager, null);
     }
@@ -167,18 +169,20 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
             bind = "bindUriProvider",
             unbind = "unbindUriProvider"
     )
+    @SuppressWarnings("unused")
     private void bindUriProvider(ServiceReference<URIProvider> srUriProvider, URIProvider uriProvider) {
         providers.put(srUriProvider, uriProvider);
         updateURIProviders();
     }
 
+    @SuppressWarnings("unused")
     private void unbindUriProvider(ServiceReference<URIProvider> srUriProvider) {
         providers.remove(srUriProvider);
         updateURIProviders();
     }
 
     private void updateURIProviders() {
-        URIProvider[] ups = providers.values().toArray(new URIProvider[providers.size()]);
+        URIProvider[] ups = providers.values().toArray(new URIProvider[0]);
         this.uriProviderReference.set(ups);
     }
 
@@ -423,20 +427,19 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
                 nodeType = null;
             }
         }
-        final String jcrPath = path;
-        if (jcrPath == null) {
+        if (path == null) {
             throw new PersistenceException("Unable to create node at " + path, null, path, null);
         }
         Node node = null;
         try {
-            final int lastPos = jcrPath.lastIndexOf('/');
+            final int lastPos = path.lastIndexOf('/');
             final Node parent;
             if (lastPos == 0) {
                 parent = ctx.getProviderState().getSession().getRootNode();
             } else {
-                parent = (Node) ctx.getProviderState().getSession().getItem(jcrPath.substring(0, lastPos));
+                parent = (Node) ctx.getProviderState().getSession().getItem(path.substring(0, lastPos));
             }
-            final String name = jcrPath.substring(lastPos + 1);
+            final String name = path.substring(lastPos + 1);
             if (nodeType != null) {
                 node = parent.addNode(name, nodeType);
             } else {
@@ -469,7 +472,7 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
 
             return new JcrNodeResource(ctx.getResourceResolver(), path, null, node, ctx.getProviderState().getHelperData());
         } catch (final RepositoryException e) {
-            throw new PersistenceException("Unable to create node at " + jcrPath, e, path, null);
+            throw new PersistenceException("Unable to create node at " + path, e, path, null);
         }
     }
 

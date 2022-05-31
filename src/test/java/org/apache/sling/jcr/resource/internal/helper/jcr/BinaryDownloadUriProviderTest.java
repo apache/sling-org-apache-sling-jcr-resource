@@ -57,7 +57,6 @@ public class BinaryDownloadUriProviderTest {
     @Rule
     public final SlingContext context = new SlingContext(ResourceResolverType.JCR_OAK);
 
-    private Session session;
     private BinaryDownloadUriProvider uriProvider;
     private Resource fileResource;
 
@@ -70,7 +69,7 @@ public class BinaryDownloadUriProviderTest {
     @Before
     public void setUp() throws IOException, RepositoryException {
         uriProvider = new BinaryDownloadUriProvider(false);
-        session = context.resourceResolver().adaptTo(Session.class);
+        Session session = context.resourceResolver().adaptTo(Session.class);
         try (InputStream input = this.getClass().getResourceAsStream("/SLING-INF/nodetypes/folder.cnd")) {
             JcrUtils.putFile(session.getRootNode(), "test", "myMimeType", input);
         }

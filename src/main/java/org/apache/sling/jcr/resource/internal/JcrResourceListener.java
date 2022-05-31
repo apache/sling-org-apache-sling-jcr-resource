@@ -154,21 +154,20 @@ public class JcrResourceListener implements EventListener, Closeable {
 
     }
 
-    private ResourceChange createResourceChange(final Event event,
-                                                final String path,
-                                                final ChangeType changeType) {
-        final String fullPath = path;
-        final boolean isExternal = this.isExternal(event);
+    private static ResourceChange createResourceChange(final Event event,
+                                                       final String path,
+                                                       final ChangeType changeType) {
+        final boolean isExternal = isExternal(event);
         final String userId;
         if (!isExternal) {
             userId = event.getUserID();
         } else {
             userId = null;
         }
-        return new JcrResourceChange(changeType, fullPath, isExternal, userId);
+        return new JcrResourceChange(changeType, path, isExternal, userId);
     }
 
-    private boolean isExternal(final Event event) {
+    private static boolean isExternal(final Event event) {
         if (event instanceof JackrabbitEvent) {
             final JackrabbitEvent jEvent = (JackrabbitEvent) event;
             return jEvent.isExternal();

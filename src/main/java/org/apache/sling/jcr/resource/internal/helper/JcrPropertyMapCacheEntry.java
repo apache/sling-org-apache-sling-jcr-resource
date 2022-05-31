@@ -26,6 +26,7 @@ import java.io.ObjectStreamClass;
 import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -47,7 +48,7 @@ import org.slf4j.LoggerFactory;
 public class JcrPropertyMapCacheEntry {
 
     /** Global logger */
-    private static Logger LOGGER = LoggerFactory.getLogger(JcrPropertyMapCacheEntry.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JcrPropertyMapCacheEntry.class);
 
     /** The JCR property - only set for existing values. */
     private final Property property;
@@ -87,21 +88,21 @@ public class JcrPropertyMapCacheEntry {
         // check if values can be stored in JCR
         if (isArray) {
             final Object[] values = convertToObjectArray(value);
-            for (int i = 0; i < values.length; i++) {
-                failIfCannotStore(values[i], node);
+            for (Object o : values) {
+                failIfCannotStore(o, node);
             }
         } else {
             failIfCannotStore(value, node);
         }
     }
 
-    private void failIfCannotStore(final Object value, final Node node) throws RepositoryException {
+    private static void failIfCannotStore(final Object value, final Node node) throws RepositoryException {
         if (value instanceof InputStream) {
             // InputStream is storable and calling createValue for nothing
             // eats its contents
             return;
         }
-        final Value val = this.createValue(value, node);
+        final Value val = createValue(value, node);
         if (val == null) {
             throw new IllegalArgumentException("Value can't be stored in the repository: " + value);
         }
@@ -117,7 +118,7 @@ public class JcrPropertyMapCacheEntry {
      * @param  node the node
      * @return the converted value
      */
-    private Value createValue(final Object obj, final Node node) throws RepositoryException {
+    private static Value createValue(final Object obj, final Node node) throws RepositoryException {
         final Session session = node.getSession();
         Value value = JcrResourceUtil.createValue(obj, session);
         if (value == null && obj instanceof Serializable) {
@@ -140,7 +141,7 @@ public class JcrPropertyMapCacheEntry {
      * @param value The array
      * @return an object array
      */
-    private Object[] convertToObjectArray(final Object value) {
+    private static Object[] convertToObjectArray(final Object value) {
         final Object[] values;
         if (value instanceof long[]) {
             values = ArrayUtils.toObject((long[]) value);
@@ -229,17 +230,10 @@ public class JcrPropertyMapCacheEntry {
                 }
             }
 
-        } catch (final NumberFormatException vfe) {
-            LOGGER.info("converToType: Cannot convert value of " + this.getPropertyValueOrNull()
-                    + " to " + type, vfe);
-        } catch (final IllegalArgumentException vfe) {
-            LOGGER.info("converToType: Cannot convert value of " + this.getPropertyValueOrNull()
-                    + " to " + type, vfe);
-        } catch (final ValueFormatException vfe) {
-            LOGGER.info("converToType: Cannot convert value of " + this.getPropertyValueOrNull()
-                    + " to " + type, vfe);
+        } catch (final IllegalArgumentException | ValueFormatException vfe) {
+            LOGGER.info("convertToType: Cannot convert value of {} to {}.", this.getPropertyValueOrNull(), type, vfe);
         } catch (RepositoryException re) {
-            LOGGER.info("converToType: Cannot get value of " + this.getPropertyValueOrNull(), re);
+            LOGGER.info("convertToType: Cannot get value of {}", this.getPropertyValueOrNull(), re);
         }
 
         // fall back to nothing
@@ -306,7 +300,7 @@ public class JcrPropertyMapCacheEntry {
                             baos.write(buffer, 0, l);
                         }
                     }
-                    value = new String(baos.toByteArray(), "UTF-8");
+                    value = new String(baos.toByteArray(), StandardCharsets.UTF_8);
                 } catch (final IOException e) {
                     throw new IllegalArgumentException(e);
                 } finally {
@@ -327,9 +321,7 @@ public class JcrPropertyMapCacheEntry {
                         return (T) obj;
                     }
                     value = obj;
-                } catch (final ClassNotFoundException cnfe) {
-                    // ignore and use fallback
-                } catch (final IOException ioe) {
+                } catch (final ClassNotFoundException | IOException cnfe) {
                     // ignore and use fallback
                 } finally {
                     if (ois != null) {
@@ -381,7 +373,7 @@ public class JcrPropertyMapCacheEntry {
             return (T) ZonedDateTime.ofInstant(calendar.toInstant(), calendar.getTimeZone().toZoneId().normalized());
 
         } else if (Value.class == type) {
-            return (T) this.createValue(value, node);
+            return (T) createValue(value, node);
 
         } else if (Property.class == type) {
             return (T) this.property;
@@ -397,7 +389,7 @@ public class JcrPropertyMapCacheEntry {
      * @param value The object to convert
      * @return A converter for {@code value}
      */
-    private Converter getConverter(final Object value) {
+    private static Converter getConverter(final Object value) {
         if (value instanceof Number) {
             // byte, short, int, long, double, float, BigDecimal
             return new NumberConverter((Number) value);

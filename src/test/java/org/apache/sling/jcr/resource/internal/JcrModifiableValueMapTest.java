@@ -53,8 +53,6 @@ import org.apache.sling.jcr.resource.internal.helper.jcr.SlingRepositoryTestBase
 
 public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
 
-    private String rootPath;
-
     private Node rootNode;
 
     public static final byte[] TEST_BYTE_ARRAY = {'T', 'e', 's', 't'};
@@ -63,7 +61,7 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        rootPath = "/test_" + System.currentTimeMillis();
+        String rootPath = "/test_" + System.currentTimeMillis();
         rootNode = getSession().getRootNode().addNode(rootPath.substring(1),
                 "nt:unstructured");
 
@@ -150,8 +148,7 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
         pvm.put("binary", stream);
         getSession().save();
         final ValueMap valueMap2 = new JcrValueMap(this.rootNode, getHelperData());
-        assertTrue("The read stream is not what we wrote.", IOUtils.toString(valueMap2.get("binary", InputStream.class)).equals
-                (TEST_BYTE_ARRAY_TO_STRING));
+        assertEquals("The read stream is not what we wrote.", IOUtils.toString(valueMap2.get("binary", InputStream.class)), TEST_BYTE_ARRAY_TO_STRING);
     }
 
     public void testPut()
@@ -189,7 +186,7 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
 
         final Object removedValue = pvm.remove(key);
         assertTrue(removedValue instanceof Long);
-        assertTrue(removedValue == longValue);
+        assertSame(removedValue, longValue);
         assertFalse(pvm.containsKey(key));
     }
 
