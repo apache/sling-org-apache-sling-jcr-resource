@@ -227,8 +227,8 @@ public class JcrValueMap implements ValueMap {
 
     /**
      * Put a single property into the cache
-     * @param prop
-     * @return
+     * @param prop The property to be cached
+     * @return A JcrPropertyMapCacheEntry for the given property
      * @throws IllegalArgumentException if a repository exception occurs
      */
     private JcrPropertyMapCacheEntry cacheProperty(final Property prop) {

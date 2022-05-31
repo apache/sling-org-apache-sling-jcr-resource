@@ -66,11 +66,10 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
 
     /**
      * Constructor
-     * @param resourceResolver
+     * @param resourceResolver The resource resolver
      * @param path The path of the resource (lazily initialized if null)
      * @param node The Node underlying this resource
-     * @param dynamicClassLoader Dynamic class loader for loading serialized objects.
-     * @throws RepositoryException
+     * @param helper The helper providing access to dynamic class loader for loading serialized objects and uri provider reference.
      */
     public JcrNodeResource(final ResourceResolver resourceResolver,
                            final String path,
