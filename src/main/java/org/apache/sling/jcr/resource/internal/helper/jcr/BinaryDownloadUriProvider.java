@@ -23,7 +23,6 @@ import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
-import javax.jcr.ValueFormatException;
 
 import org.apache.jackrabbit.api.binary.BinaryDownload;
 import org.apache.jackrabbit.api.binary.BinaryDownloadOptions;
@@ -109,7 +108,7 @@ public class BinaryDownloadUriProvider implements URIProvider {
         return ((Scope.PUBLIC.equals(scope) || Scope.EXTERNAL.equals(scope)) && Operation.READ.equals(operation));
     }
 
-    private @NotNull URI getUriFromProperty(@NotNull Resource resource, @NotNull Node node, @NotNull Property binaryProperty) throws ValueFormatException, RepositoryException {
+    private @NotNull URI getUriFromProperty(@NotNull Resource resource, @NotNull Node node, @NotNull Property binaryProperty) throws RepositoryException {
         Binary binary = binaryProperty.getBinary();
         if (!(binary instanceof BinaryDownload)) {
             binary.dispose();

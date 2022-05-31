@@ -31,8 +31,6 @@ import javax.jcr.Session;
 import org.apache.jackrabbit.commons.JcrUtils;
 import org.apache.jackrabbit.commons.iterator.NodeIteratorAdapter;
 import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.resource.external.URIProvider;
-import org.apache.sling.commons.classloader.DynamicClassLoaderManager;
 import org.apache.sling.jcr.resource.internal.HelperData;
 import org.apache.sling.jcr.resource.internal.helper.jcr.JcrNodeResourceIterator;
 import org.apache.sling.testing.mock.jcr.MockJcr;
@@ -42,7 +40,7 @@ import junit.framework.TestCase;
 public class JcrNodeResourceIteratorTest extends TestCase {
 
     private HelperData getHelperData() {
-        return new HelperData(new AtomicReference<DynamicClassLoaderManager>(), new AtomicReference<URIProvider[]>());
+        return new HelperData(new AtomicReference<>(), new AtomicReference<>());
     }
 
     public void testEmpty() {

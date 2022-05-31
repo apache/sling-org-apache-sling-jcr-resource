@@ -35,15 +35,13 @@ import org.apache.sling.api.resource.ModifiableValueMap;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceMetadata;
 import org.apache.sling.api.resource.ValueMap;
-import org.apache.sling.api.resource.external.URIProvider;
-import org.apache.sling.commons.classloader.DynamicClassLoaderManager;
 import org.apache.sling.jcr.resource.api.JcrResourceConstants;
 import org.apache.sling.jcr.resource.internal.HelperData;
 
 public class JcrNodeResourceTest extends JcrItemResourceTestBase {
 
-    private HelperData getHelperData() throws Exception {
-        return new HelperData(new AtomicReference<DynamicClassLoaderManager>(), new AtomicReference<URIProvider[]>());
+    private HelperData getHelperData() {
+        return new HelperData(new AtomicReference<>(), new AtomicReference<>());
     }
 
     public void testLinkedFile() throws Exception {
@@ -218,13 +216,13 @@ public class JcrNodeResourceTest extends JcrItemResourceTestBase {
         assertEquals(JcrConstants.NT_UNSTRUCTURED, props.get(JcrConstants.JCR_PRIMARYTYPE));
 
         // assert we have nothing else left
-        final Set<String> existingKeys = new HashSet<String>();
+        final Set<String> existingKeys = new HashSet<>();
         existingKeys.add(JcrConstants.JCR_LASTMODIFIED);
         existingKeys.add(JcrConstants.JCR_MIMETYPE);
         existingKeys.add(JcrConstants.JCR_ENCODING);
         existingKeys.add(JcrConstants.JCR_DATA);
         existingKeys.add(JcrConstants.JCR_PRIMARYTYPE);
-        final Set<Object> crossCheck = new HashSet<Object>(props.keySet());
+        final Set<Object> crossCheck = new HashSet<>(props.keySet());
         crossCheck.removeAll(existingKeys);
         assertTrue(crossCheck.isEmpty());
 
@@ -246,7 +244,7 @@ public class JcrNodeResourceTest extends JcrItemResourceTestBase {
         assertEquals(JcrConstants.NT_UNSTRUCTURED, propsSecond.get(JcrConstants.JCR_PRIMARYTYPE));
 
         // assert we have nothing else left
-        final Set<Object> crossCheck2 = new HashSet<Object>(propsSecond.keySet());
+        final Set<Object> crossCheck2 = new HashSet<>(propsSecond.keySet());
         crossCheck2.removeAll(existingKeys);
         assertTrue(crossCheck2.isEmpty());
     }

@@ -114,8 +114,6 @@ public class BasicQueryLanguageProvider implements QueryLanguageProvider<JcrProv
                     return next != null;
                 }
 
-                ;
-
                 @Override
                 public ValueMap next() {
                     if (next == null) {

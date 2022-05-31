@@ -32,7 +32,6 @@ import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.ValueFormatException;
 
 import org.apache.jackrabbit.api.binary.BinaryDownload;
 import org.apache.jackrabbit.api.binary.BinaryDownloadOptions;
@@ -79,10 +78,10 @@ public class BinaryDownloadUriProviderTest {
     }
 
     @Test
-    public void testMockedProperty() throws ValueFormatException, RepositoryException, URISyntaxException {
+    public void testMockedProperty() throws RepositoryException, URISyntaxException {
         uriProvider = new BinaryDownloadUriProvider(false) {
             @Override
-            protected Property getPrimaryProperty(Node node) throws RepositoryException {
+            protected Property getPrimaryProperty(Node node) {
                 return property;
             }
         };
@@ -99,7 +98,7 @@ public class BinaryDownloadUriProviderTest {
     }
 
     @Test
-    public void testPropertyWithoutExternallyAccessibleBlobStore() throws URISyntaxException, RepositoryException, IOException {
+    public void testPropertyWithoutExternallyAccessibleBlobStore() {
         IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> uriProvider.toURI(fileResource, Scope.EXTERNAL, Operation.READ));
         assertEquals("Cannot provide url for downloading the binary property at '/test/jcr:content/jcr:data'", e.getMessage());
     }

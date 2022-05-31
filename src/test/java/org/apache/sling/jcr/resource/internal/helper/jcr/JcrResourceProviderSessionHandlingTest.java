@@ -37,8 +37,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.jcr.Credentials;
-import javax.jcr.LoginException;
-import javax.jcr.NoSuchWorkspaceException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;
@@ -60,13 +58,12 @@ import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
 
 @RunWith(Parameterized.class)
 public class JcrResourceProviderSessionHandlingTest {
 
-    private enum LoginStyle {USER, SESSION, SERVICE};
+    private enum LoginStyle {USER, SESSION, SERVICE}
 
     private static final String AUTH_USER = "admin";
     private static final char[] AUTH_PASSWORD = "admin".toCharArray();
@@ -124,8 +121,7 @@ public class JcrResourceProviderSessionHandlingTest {
 
         @SuppressWarnings("deprecation")
         @Override
-        public Session loginService(String subServiceName, String workspace)
-                throws LoginException, RepositoryException {
+        public Session loginService(String subServiceName, String workspace) throws RepositoryException {
             // just fake service logins by doing administrative logins instead
             return wrapped.loginAdministrative(workspace);
         }
@@ -163,24 +159,22 @@ public class JcrResourceProviderSessionHandlingTest {
         }
 
         @Override
-        public Session login(Credentials credentials, String workspaceName)
-                throws LoginException, NoSuchWorkspaceException, RepositoryException {
+        public Session login(Credentials credentials, String workspaceName) throws RepositoryException {
             return wrapped.login(credentials, workspaceName);
         }
 
         @Override
-        public Session login(Credentials credentials) throws LoginException, RepositoryException {
+        public Session login(Credentials credentials) throws RepositoryException {
             return wrapped.login(credentials);
         }
 
         @Override
-        public Session login(String workspaceName)
-                throws LoginException, NoSuchWorkspaceException, RepositoryException {
+        public Session login(String workspaceName) throws RepositoryException {
             return wrapped.login(workspaceName);
         }
 
         @Override
-        public Session login() throws LoginException, RepositoryException {
+        public Session login() throws RepositoryException {
             return wrapped.login();
         }
 
@@ -191,7 +185,7 @@ public class JcrResourceProviderSessionHandlingTest {
 
         @SuppressWarnings("deprecation")
         @Override
-        public Session loginAdministrative(String workspace) throws LoginException, RepositoryException {
+        public Session loginAdministrative(String workspace) throws RepositoryException {
             return wrapped.loginAdministrative(workspace);
         }
 
@@ -217,7 +211,7 @@ public class JcrResourceProviderSessionHandlingTest {
                 Bundle mockBundle = mock(Bundle.class);
                 BundleContext mockBundleContext = mock(BundleContext.class);
                 when(mockBundle.getBundleContext()).thenReturn(mockBundleContext);
-                when(mockBundleContext.getService(Matchers.<ServiceReference<Object>>any())).thenReturn(repo);
+                when(mockBundleContext.getService(Matchers.any())).thenReturn(repo);
                 authInfo.put(ResourceResolverFactory.SUBSERVICE, "dummy-service");
                 authInfo.put(ResourceProvider.AUTH_SERVICE_BUNDLE, mockBundle);
                 break;
@@ -232,7 +226,7 @@ public class JcrResourceProviderSessionHandlingTest {
         }
 
         ComponentContext ctx = mock(ComponentContext.class);
-        when(ctx.locateService(anyString(), Mockito.<ServiceReference<Object>>any())).thenReturn(repo);
+        when(ctx.locateService(anyString(), Mockito.any())).thenReturn(repo);
 
         jcrResourceProvider = new JcrResourceProvider();
         jcrResourceProvider.activate(ctx);
@@ -241,7 +235,7 @@ public class JcrResourceProviderSessionHandlingTest {
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
 
         // Some tests do a logout, so check for liveness before trying to log out.
         if (jcrProviderState.getSession().isLive()) {

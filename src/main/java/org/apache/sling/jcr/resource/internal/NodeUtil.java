@@ -47,13 +47,13 @@ public abstract class NodeUtil {
      * @throws RepositoryException if the repository's namespaced prefixes cannot be retrieved
      */
     public static void handleMixinTypes(final Node node, final String[] mixinTypes) throws RepositoryException {
-        final Set<String> newTypes = new HashSet<String>();
+        final Set<String> newTypes = new HashSet<>();
         if (mixinTypes != null) {
             for (final String value : mixinTypes) {
                 newTypes.add(value);
             }
         }
-        final Set<String> oldTypes = new HashSet<String>();
+        final Set<String> oldTypes = new HashSet<>();
         for (final NodeType mixinType : node.getMixinNodeTypes()) {
             oldTypes.add(mixinType.getName());
         }

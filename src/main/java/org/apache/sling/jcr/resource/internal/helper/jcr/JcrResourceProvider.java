@@ -251,11 +251,7 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
         }
         this.listeners.clear();
         if (this.listenerConfig != null) {
-            try {
-                this.listenerConfig.close();
-            } catch (final IOException e) {
-                // ignore this as the method above does not throw it
-            }
+            this.listenerConfig.close();
             this.listenerConfig = null;
         }
         logger.debug("Unregistered resource listeners");
@@ -378,7 +374,7 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
 
     @Override
     public Collection<String> getAttributeNames(final @NotNull ResolveContext<JcrProviderState> ctx) {
-        final Set<String> names = new HashSet<String>();
+        final Set<String> names = new HashSet<>();
         final String[] sessionNames = ctx.getProviderState().getSession().getAttributeNames();
         for (final String name : sessionNames) {
             if (isAttributeVisible(name)) {
@@ -601,7 +597,7 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     @Override
     public boolean copy(final @NotNull ResolveContext<JcrProviderState> ctx,
                         final String srcAbsPath,
-                        final String destAbsPath) throws PersistenceException {
+                        final String destAbsPath) {
         return false;
     }
 

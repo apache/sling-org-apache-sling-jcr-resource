@@ -25,7 +25,6 @@ import static javax.jcr.observation.Event.PROPERTY_CHANGED;
 import static javax.jcr.observation.Event.PROPERTY_REMOVED;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -81,7 +80,7 @@ public class JcrResourceListener implements EventListener, Closeable {
      * Dispose this listener.
      */
     @Override
-    public void close() throws IOException {
+    public void close() {
         // unregister from observations
         this.baseConfig.unregister(this);
     }
@@ -91,9 +90,9 @@ public class JcrResourceListener implements EventListener, Closeable {
      */
     @Override
     public void onEvent(final EventIterator events) {
-        final Map<String, ResourceChange> addedEvents = new HashMap<String, ResourceChange>();
-        final Map<String, ResourceChange> changedEvents = new HashMap<String, ResourceChange>();
-        final Map<String, ResourceChange> removedEvents = new HashMap<String, ResourceChange>();
+        final Map<String, ResourceChange> addedEvents = new HashMap<>();
+        final Map<String, ResourceChange> changedEvents = new HashMap<>();
+        final Map<String, ResourceChange> removedEvents = new HashMap<>();
 
         while (events.hasNext()) {
             final Event event = events.nextEvent();
@@ -147,7 +146,7 @@ public class JcrResourceListener implements EventListener, Closeable {
             }
         }
 
-        final List<ResourceChange> changes = new ArrayList<ResourceChange>();
+        final List<ResourceChange> changes = new ArrayList<>();
         changes.addAll(addedEvents.values());
         changes.addAll(removedEvents.values());
         changes.addAll(changedEvents.values());

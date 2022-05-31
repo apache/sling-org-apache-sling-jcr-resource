@@ -49,8 +49,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.jackrabbit.util.Text;
 import org.apache.sling.api.resource.ModifiableValueMap;
 import org.apache.sling.api.resource.ValueMap;
-import org.apache.sling.api.resource.external.URIProvider;
-import org.apache.sling.commons.classloader.DynamicClassLoaderManager;
 import org.apache.sling.jcr.resource.internal.helper.jcr.SlingRepositoryTestBase;
 
 public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
@@ -71,7 +69,7 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
 
         final Map<String, Object> values = this.initialSet();
         for (Map.Entry<String, Object> entry : values.entrySet()) {
-            setProperty(rootNode, entry.getKey().toString(), entry.getValue());
+            setProperty(rootNode, entry.getKey(), entry.getValue());
         }
         getSession().save();
     }
@@ -134,12 +132,12 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
         super.tearDown();
     }
 
-    private HelperData getHelperData() throws Exception {
-        return new HelperData(new AtomicReference<DynamicClassLoaderManager>(), new AtomicReference<URIProvider[]>());
+    private HelperData getHelperData() {
+        return new HelperData(new AtomicReference<>(), new AtomicReference<>());
     }
 
     private Map<String, Object> initialSet() {
-        final Map<String, Object> values = new HashMap<String, Object>();
+        final Map<String, Object> values = new HashMap<>();
         values.put("string", "test");
         values.put("long", 1L);
         values.put("bool", Boolean.TRUE);
@@ -203,7 +201,7 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
         assertNull(pvm.get("something"));
 
         // now put a serializable object
-        final List<String> strings = new ArrayList<String>();
+        final List<String> strings = new ArrayList<>();
         strings.add("a");
         strings.add("b");
         pvm.put("something", strings);
@@ -242,7 +240,7 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
     }
 
     private Set<String> getMixinNodeTypes(final Node node) throws RepositoryException {
-        final Set<String> mixinTypes = new HashSet<String>();
+        final Set<String> mixinTypes = new HashSet<>();
         for (final NodeType mixinNodeType : node.getMixinNodeTypes()) {
             mixinTypes.add(mixinNodeType.getName());
         }

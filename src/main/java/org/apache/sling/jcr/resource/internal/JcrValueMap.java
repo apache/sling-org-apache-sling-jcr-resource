@@ -49,10 +49,10 @@ public class JcrValueMap implements ValueMap {
     protected final Node node;
 
     /** A cache for the properties. */
-    protected final Map<String, JcrPropertyMapCacheEntry> cache = new LinkedHashMap<String, JcrPropertyMapCacheEntry>();
+    protected final Map<String, JcrPropertyMapCacheEntry> cache = new LinkedHashMap<>();
 
     /** A cache for the values. */
-    protected final Map<String, Object> valueCache = new LinkedHashMap<String, Object>();
+    protected final Map<String, Object> valueCache = new LinkedHashMap<>();
 
     /** Has the node been read completely? */
     private boolean fullyRead = false;
@@ -406,7 +406,7 @@ public class JcrValueMap implements ValueMap {
 
     private Map<String, Object> transformEntries(final Map<String, JcrPropertyMapCacheEntry> map) {
 
-        final Map<String, Object> transformedEntries = new LinkedHashMap<String, Object>(map.size());
+        final Map<String, Object> transformedEntries = new LinkedHashMap<>(map.size());
         for (final Map.Entry<String, JcrPropertyMapCacheEntry> entry : map.entrySet())
             transformedEntries.put(entry.getKey(), entry.getValue().getPropertyValueOrNull());
 

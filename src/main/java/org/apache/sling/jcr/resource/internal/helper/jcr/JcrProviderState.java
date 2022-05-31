@@ -19,7 +19,6 @@
 package org.apache.sling.jcr.resource.internal.helper.jcr;
 
 import java.io.Closeable;
-import java.io.IOException;
 
 import javax.jcr.Session;
 
@@ -72,7 +71,7 @@ class JcrProviderState implements Closeable {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         logout();
     }
 

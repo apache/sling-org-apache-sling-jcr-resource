@@ -26,7 +26,6 @@ import java.util.Collections;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.naming.NamingException;
 
 import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.jackrabbit.api.security.user.Group;
@@ -54,7 +53,7 @@ public class JcrSystemUserValidatorTest {
     public final SlingContext context = new SlingContext(ResourceResolverType.JCR_OAK);
 
     @Before
-    public void setUp() throws IllegalArgumentException, IllegalAccessException, RepositoryException, NamingException,
+    public void setUp() throws IllegalArgumentException, IllegalAccessException, RepositoryException,
             NoSuchFieldException, SecurityException {
         jcrSystemUserValidator = new JcrSystemUserValidator();
         final Field repositoryField = jcrSystemUserValidator.getClass().getDeclaredField("repository");
@@ -80,7 +79,7 @@ public class JcrSystemUserValidatorTest {
         session.save();
     }
 
-    private void setAllowOnlySystemUsers(boolean allowOnlySystemUsers) throws Exception {
+    private void setAllowOnlySystemUsers(boolean allowOnlySystemUsers) {
         final JcrSystemUserValidator.Config config = new JcrSystemUserValidator.Config() {
             @Override
             public Class<? extends Annotation> annotationType() {

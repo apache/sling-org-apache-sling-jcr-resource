@@ -79,8 +79,8 @@ public class JcrSystemUserValidator implements ServiceUserValidator, ServicePrin
 
     private final Method isSystemUserMethod;
 
-    private final Set<String> validIds = new CopyOnWriteArraySet<String>();
-    private final Set<String> validPrincipalNames = new CopyOnWriteArraySet<String>();
+    private final Set<String> validIds = new CopyOnWriteArraySet<>();
+    private final Set<String> validPrincipalNames = new CopyOnWriteArraySet<>();
 
     private boolean allowOnlySystemUsers;
 

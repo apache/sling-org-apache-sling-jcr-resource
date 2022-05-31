@@ -141,7 +141,7 @@ public class JcrItemResourceFactory {
         return null;
     }
 
-    private static Item getSubitem(Node node, String relPath) throws RepositoryException {
+    private static Item getSubitem(Node node, String relPath) {
         try {
             if (relPath.length() == 0) { // not using isEmpty() due to 1.5 compatibility
                 return node;
@@ -153,8 +153,7 @@ public class JcrItemResourceFactory {
                 return null;
             }
         } catch (RepositoryException e) {
-            log.debug("getSubitem: Can't get subitem {} of {}: {}",
-                    new Object[]{relPath, node.toString(), e.toString()});
+            log.debug("getSubitem: Can't get subitem {} of {}: {}", relPath, node.toString(), e.toString());
             return null;
         }
     }
@@ -175,7 +174,7 @@ public class JcrItemResourceFactory {
         return item.isNode() && ((Node) item).isNodeType(NodeType.MIX_VERSIONABLE);
     }
 
-    Item getItemOrNull(String path) throws RepositoryException {
+    Item getItemOrNull(String path) {
         // Check first if the path is absolute. If it isn't, then we return null because the previous itemExists method,
         // which was replaced by this method, would have returned null as well (instead of throwing an exception).
         if (path.isEmpty() || path.charAt(0) != '/') {

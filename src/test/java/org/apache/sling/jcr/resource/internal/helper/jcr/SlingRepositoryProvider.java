@@ -53,7 +53,6 @@ public class SlingRepositoryProvider {
 
 
     private static BundleContext getFakeContext() {
-        BundleContext mockContext = Mockito.mock(BundleContext.class);
-        return mockContext;
+        return Mockito.mock(BundleContext.class);
     }
 }

@@ -23,8 +23,6 @@ import org.apache.jackrabbit.commons.JcrUtils;
 import org.apache.jackrabbit.commons.jackrabbit.authorization.AccessControlUtils;
 import org.apache.jackrabbit.oak.commons.PathUtils;
 import org.apache.jackrabbit.oak.spi.security.principal.EveryonePrincipal;
-import org.apache.sling.api.resource.external.URIProvider;
-import org.apache.sling.commons.classloader.DynamicClassLoaderManager;
 import org.apache.sling.jcr.resource.internal.HelperData;
 
 import javax.jcr.GuestCredentials;
@@ -98,7 +96,7 @@ public class JcrItemResourceFactoryTest extends SlingRepositoryTestBase {
     }
 
     private void compareGetItemOrNull(String path, String expectedPath) throws RepositoryException {
-        HelperData helper = new HelperData(new AtomicReference<DynamicClassLoaderManager>(), new AtomicReference<URIProvider[]>());
+        HelperData helper = new HelperData(new AtomicReference<>(), new AtomicReference<>());
         Item item1 = new JcrItemResourceFactory(session, helper).getItemOrNull(path);
         Item item2 = new JcrItemResourceFactory(nonJackrabbitSession, helper).getItemOrNull(path);
         if (expectedPath == null) {
@@ -149,7 +147,7 @@ public class JcrItemResourceFactoryTest extends SlingRepositoryTestBase {
     }
 
     private void compareGetParentOrNull(Session s, String path, boolean nullExpected) throws RepositoryException {
-        HelperData helper = new HelperData(new AtomicReference<DynamicClassLoaderManager>(), new AtomicReference<URIProvider[]>());
+        HelperData helper = new HelperData(new AtomicReference<>(), new AtomicReference<>());
 
         String parentPath = PathUtils.getParentPath(path);
         Node parent = new JcrItemResourceFactory(s, helper).getParentOrNull(s.getItem(path), parentPath);

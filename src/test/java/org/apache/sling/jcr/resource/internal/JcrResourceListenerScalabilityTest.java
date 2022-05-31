@@ -25,7 +25,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Workspace;
 import javax.jcr.observation.Event;
@@ -43,7 +42,6 @@ import org.apache.sling.spi.resource.provider.ProviderContext;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.osgi.framework.InvalidSyntaxException;
 
 /**
  * This test case asserts that JcrResourceListener scales to an
@@ -86,7 +84,7 @@ public class JcrResourceListenerScalabilityTest {
 
     @Ignore("SLING-3399")  // FIXME SLING-3399
     @Test
-    public void testManyEvents() throws RepositoryException, InterruptedException, InvalidSyntaxException {
+    public void testManyEvents() {
         jcrResourceListener.onEvent(events);
     }
 
@@ -94,7 +92,7 @@ public class JcrResourceListenerScalabilityTest {
         int count;
 
         @Override
-        public String getPath() throws RepositoryException {
+        public String getPath() {
             return "path-" + count++;
         }
     }
@@ -144,7 +142,7 @@ public class JcrResourceListenerScalabilityTest {
 
                         @Override
                         public Set<String> getPropertyNamesHint() {
-                            return new HashSet<String>();
+                            return new HashSet<>();
                         }
                     };
                     return Collections.singletonList(config);
