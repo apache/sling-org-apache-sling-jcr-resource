@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
  */
 public class JcrListenerBaseConfig implements Closeable {
 
-    private final Logger logger = LoggerFactory.getLogger(JcrResourceListener.class);
+    private final Logger logger = LoggerFactory.getLogger(JcrListenerBaseConfig.class);
 
     private final Session session;
 
