@@ -92,7 +92,7 @@ public class BasicQueryLanguageProvider implements QueryLanguageProvider<JcrProv
     }
 
     @Override
-    public Iterator<ValueMap> queryResources(final ResolveContext<JcrProviderState> ctx,
+    public Iterator<ValueMap> queryResources(final @NotNull ResolveContext<JcrProviderState> ctx,
                                              final String query,
                                              final String language) {
         final String queryLanguage = ArrayUtils.contains(getSupportedLanguages(ctx), language) ? language : DEFAULT_QUERY_LANGUAGE;

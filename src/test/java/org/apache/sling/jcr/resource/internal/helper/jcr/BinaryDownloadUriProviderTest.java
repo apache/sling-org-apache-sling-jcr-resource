@@ -41,6 +41,7 @@ import org.apache.sling.api.resource.external.URIProvider.Operation;
 import org.apache.sling.api.resource.external.URIProvider.Scope;
 import org.apache.sling.testing.mock.sling.ResourceResolverType;
 import org.apache.sling.testing.mock.sling.junit.SlingContext;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -80,7 +81,7 @@ public class BinaryDownloadUriProviderTest {
     public void testMockedProperty() throws RepositoryException, URISyntaxException {
         uriProvider = new BinaryDownloadUriProvider(false) {
             @Override
-            protected Property getPrimaryProperty(Node node) {
+            protected @NotNull Property getPrimaryProperty(@NotNull Node node) {
                 return property;
             }
         };

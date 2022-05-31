@@ -33,6 +33,7 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceMetadata;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.jcr.resource.api.JcrResourceConstants;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,7 +72,7 @@ abstract class JcrItemResource<T extends Item> // this should be package private
      * @see org.apache.sling.api.resource.Resource#getResourceResolver()
      */
     @Override
-    public ResourceResolver getResourceResolver() {
+    public @NotNull ResourceResolver getResourceResolver() {
         return resourceResolver;
     }
 
@@ -79,7 +80,7 @@ abstract class JcrItemResource<T extends Item> // this should be package private
      * @see org.apache.sling.api.resource.Resource#getPath()
      */
     @Override
-    public String getPath() {
+    public @NotNull String getPath() {
         if (version == null) {
             return path;
         } else if (version.contains(".")) {
@@ -93,7 +94,7 @@ abstract class JcrItemResource<T extends Item> // this should be package private
      * @see org.apache.sling.api.resource.Resource#getResourceMetadata()
      */
     @Override
-    public ResourceMetadata getResourceMetadata() {
+    public @NotNull ResourceMetadata getResourceMetadata() {
         return metadata;
     }
 

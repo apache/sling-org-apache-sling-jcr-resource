@@ -38,6 +38,7 @@ import org.apache.jackrabbit.util.Text;
 import org.apache.sling.api.resource.ModifiableValueMap;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.jcr.resource.internal.helper.JcrPropertyMapCacheEntry;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This implementation of the value map allows to change
@@ -87,7 +88,7 @@ public class JcrValueMap implements ValueMap {
      */
     @Override
     @SuppressWarnings("unchecked")
-    public <T> T get(final String aKey, final Class<T> type) {
+    public <T> T get(final @NotNull String aKey, final @NotNull Class<T> type) {
         final String key = checkKey(aKey);
         if (type == null) {
             return (T) get(key);
@@ -105,7 +106,7 @@ public class JcrValueMap implements ValueMap {
      */
     @Override
     @SuppressWarnings("unchecked")
-    public <T> T get(final String aKey, final T defaultValue) {
+    public <T> @NotNull T get(final @NotNull String aKey, final @NotNull T defaultValue) {
         final String key = checkKey(aKey);
         if (defaultValue == null) {
             return (T) get(key);
@@ -173,7 +174,7 @@ public class JcrValueMap implements ValueMap {
      * @see java.util.Map#entrySet()
      */
     @Override
-    public Set<java.util.Map.Entry<String, Object>> entrySet() {
+    public @NotNull Set<java.util.Map.Entry<String, Object>> entrySet() {
         readFully();
         final Map<String, Object> sourceMap;
         if (cache.size() == valueCache.size()) {
@@ -188,7 +189,7 @@ public class JcrValueMap implements ValueMap {
      * @see java.util.Map#keySet()
      */
     @Override
-    public Set<String> keySet() {
+    public @NotNull Set<String> keySet() {
         readFully();
         return Collections.unmodifiableSet(cache.keySet());
     }
@@ -197,7 +198,7 @@ public class JcrValueMap implements ValueMap {
      * @see java.util.Map#values()
      */
     @Override
-    public Collection<Object> values() {
+    public @NotNull Collection<Object> values() {
         readFully();
         final Map<String, Object> sourceMap;
         if (cache.size() == valueCache.size()) {
@@ -434,7 +435,7 @@ public class JcrValueMap implements ValueMap {
      * @see java.util.Map#putAll(java.util.Map)
      */
     @Override
-    public void putAll(final Map<? extends String, ? extends Object> t) {
+    public void putAll(final @NotNull Map<? extends String, ? extends Object> t) {
         throw new UnsupportedOperationException();
     }
 

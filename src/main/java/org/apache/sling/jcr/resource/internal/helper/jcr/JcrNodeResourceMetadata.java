@@ -39,6 +39,7 @@ import javax.jcr.RepositoryException;
 import javax.jcr.ValueFormatException;
 
 import org.apache.sling.api.resource.ResourceMetadata;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -207,19 +208,19 @@ class JcrNodeResourceMetadata extends ResourceMetadata {
     }
 
     @Override
-    public Set<Map.Entry<String, Object>> entrySet() {
+    public @NotNull Set<Map.Entry<String, Object>> entrySet() {
         populate();
         return super.entrySet();
     }
 
     @Override
-    public Set<String> keySet() {
+    public @NotNull Set<String> keySet() {
         populate();
         return super.keySet();
     }
 
     @Override
-    public Collection<Object> values() {
+    public @NotNull Collection<Object> values() {
         populate();
         return super.values();
     }

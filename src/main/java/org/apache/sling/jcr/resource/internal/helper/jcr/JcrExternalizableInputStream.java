@@ -20,6 +20,7 @@ package org.apache.sling.jcr.resource.internal.helper.jcr;
 
 
 import org.apache.sling.api.resource.external.ExternalizableInputStream;
+import org.jetbrains.annotations.NotNull;
 
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
@@ -74,7 +75,7 @@ public class JcrExternalizableInputStream extends InputStream implements Externa
     }
 
     @Override
-    public URI getURI() {
+    public @NotNull URI getURI() {
         return uri;
     }
 

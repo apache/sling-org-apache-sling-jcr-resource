@@ -28,6 +28,7 @@ import javax.jcr.Value;
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.resource.ModifiableValueMap;
 import org.apache.sling.jcr.resource.internal.helper.JcrPropertyMapCacheEntry;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Modifiable value map implementation leveraging the base class
@@ -82,7 +83,7 @@ public class JcrModifiableValueMap extends JcrValueMap implements ModifiableValu
      * @see java.util.Map#putAll(java.util.Map)
      */
     @Override
-    public void putAll(final Map<? extends String, ? extends Object> t) {
+    public void putAll(final @NotNull Map<? extends String, ? extends Object> t) {
         if (t != null) {
             final Iterator<?> i = t.entrySet().iterator();
             while (i.hasNext()) {

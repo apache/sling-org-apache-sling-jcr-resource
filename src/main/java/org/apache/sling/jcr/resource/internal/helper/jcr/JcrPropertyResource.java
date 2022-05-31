@@ -36,6 +36,8 @@ import org.apache.sling.adapter.annotations.Adapter;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceMetadata;
 import org.apache.sling.api.resource.ResourceResolver;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,11 +68,11 @@ class JcrPropertyResource extends JcrItemResource<Property> { // this should be 
         this.getResourceMetadata().setContentLength(getContentLength(property));
     }
 
-    public String getResourceType() {
+    public @NotNull String getResourceType() {
         return resourceType;
     }
 
-    public String getResourceSuperType() {
+    public @Nullable String getResourceSuperType() {
         return null;
     }
 

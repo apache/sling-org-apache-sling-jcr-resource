@@ -114,14 +114,14 @@ public class JcrListenerBaseConfig implements Closeable {
             // exclude paths
             final Set<String> excludePaths = config.getExcludedPaths().toStringSet();
             if (!excludePaths.isEmpty()) {
-                filter.setExcludedPaths(excludePaths.toArray(new String[excludePaths.size()]));
+                filter.setExcludedPaths(excludePaths.toArray(new String[0]));
             }
 
             // external
             filter.setNoExternal(!config.includeExternal());
 
             // types
-            filter.setEventTypes(this.getTypes(config));
+            filter.setEventTypes(getTypes(config));
 
             // nt:file handling
             filter.withNodeTypeAggregate(new String[]{"nt:file"}, new String[]{"", "jcr:content"});

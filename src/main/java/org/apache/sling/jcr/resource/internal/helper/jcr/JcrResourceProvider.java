@@ -187,7 +187,7 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     }
 
     @Override
-    public void start(final ProviderContext ctx) {
+    public void start(final @NotNull ProviderContext ctx) {
         super.start(ctx);
         this.registerListeners();
     }
@@ -311,8 +311,10 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     }
 
     @Override
-    public void logout(final @NotNull JcrProviderState state) {
-        state.logout();
+    public void logout(final @Nullable JcrProviderState state) {
+        if (state != null) {
+            state.logout();
+        }
     }
 
     @Override
@@ -321,7 +323,9 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     }
 
     @Override
-    public Resource getResource(ResolveContext<JcrProviderState> ctx, String path, ResourceContext rCtx, Resource parent) {
+    @Nullable
+    public Resource getResource(@NotNull ResolveContext<JcrProviderState> ctx, @NotNull String path, 
+                                @NotNull ResourceContext rCtx, @Nullable Resource parent) {
         try {
             return ctx.getProviderState().getResourceFactory().createResource(ctx.getResourceResolver(), path, parent, rCtx.getResolveParameters());
         } catch (RepositoryException e) {
@@ -330,7 +334,8 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     }
 
     @Override
-    public Iterator<Resource> listChildren(ResolveContext<JcrProviderState> ctx, Resource parent) {
+    @Nullable
+    public Iterator<Resource> listChildren(@NotNull ResolveContext<JcrProviderState> ctx, @NotNull Resource parent) {
         JcrItemResource<?> parentItemResource;
 
         // short cut for known JCR resources
@@ -377,6 +382,7 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     }
 
     @Override
+    @NotNull
     public Collection<String> getAttributeNames(final @NotNull ResolveContext<JcrProviderState> ctx) {
         final Set<String> names = new HashSet<>();
         final String[] sessionNames = ctx.getProviderState().getSession().getAttributeNames();
@@ -389,6 +395,7 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     }
 
     @Override
+    @Nullable
     public Object getAttribute(final @NotNull ResolveContext<JcrProviderState> ctx, final @NotNull String name) {
         if (isAttributeVisible(name)) {
             if (ResourceResolverFactory.USER.equals(name)) {
@@ -400,6 +407,7 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     }
 
     @Override
+    @NotNull
     public Resource create(final @NotNull ResolveContext<JcrProviderState> ctx, final String path, final Map<String, Object> properties) throws PersistenceException {
         // check for node type
         final Object nodeObj = (properties != null ? properties.get(JcrConstants.JCR_PRIMARYTYPE) : null);
@@ -599,15 +607,15 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
 
     @Override
     public boolean copy(final @NotNull ResolveContext<JcrProviderState> ctx,
-                        final String srcAbsPath,
-                        final String destAbsPath) {
+                        final @NotNull String srcAbsPath,
+                        final @NotNull String destAbsPath) {
         return false;
     }
 
     @Override
     public boolean move(final @NotNull ResolveContext<JcrProviderState> ctx,
-                        final String srcAbsPath,
-                        final String destAbsPath) throws PersistenceException {
+                        final @NotNull String srcAbsPath,
+                        final @NotNull String destAbsPath) throws PersistenceException {
         final String srcNodePath = srcAbsPath;
         final String dstNodePath = destAbsPath + '/' + ResourceUtil.getName(srcAbsPath);
         try {

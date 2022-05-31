@@ -41,6 +41,7 @@ import org.apache.sling.jcr.resource.internal.HelperData;
 import org.apache.sling.jcr.resource.internal.JcrModifiableValueMap;
 import org.apache.sling.jcr.resource.internal.JcrValueMap;
 import org.apache.sling.jcr.resource.internal.NodeUtil;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,7 +86,7 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
      * @see org.apache.sling.api.resource.Resource#getResourceType()
      */
     @Override
-    public String getResourceType() {
+    public @NotNull String getResourceType() {
         if (this.resourceType == null) {
             try {
                 this.resourceType = getResourceTypeForNode(getNode());
