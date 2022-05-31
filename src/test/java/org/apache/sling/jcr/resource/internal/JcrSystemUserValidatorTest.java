@@ -95,11 +95,11 @@ public class JcrSystemUserValidatorTest {
         };
         jcrSystemUserValidator.activate(config);
     }
-    
+
     @Test
     public void testIsValidWithEnforcementOfSystemUsersEnabled() throws Exception {
         setAllowOnlySystemUsers(true);
-        
+
         //testing null user
         assertFalse(jcrSystemUserValidator.isValid((String) null, null, null));
         //testing not existing user     
@@ -123,11 +123,11 @@ public class JcrSystemUserValidatorTest {
         // systemUser is valid
         assertTrue(jcrSystemUserValidator.isValid(Collections.singleton(systemUser.getPrincipal().getName()), null, null));
     }
-    
+
     @Test
     public void testIsValidWithEnforcementOfSystemUsersDisabled() throws Exception {
         setAllowOnlySystemUsers(false);
-        
+
         //testing null user
         assertFalse(jcrSystemUserValidator.isValid((String) null, null, null));
         //testing not existing user (is considered valid here)

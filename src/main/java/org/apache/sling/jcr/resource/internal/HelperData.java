@@ -44,9 +44,8 @@ public class HelperData {
         this.uriProviderReference = uriProviderReference;
     }
 
-    public String[] getNamespacePrefixes(final Session session)
-    throws RepositoryException {
-        if ( this.namespacePrefixes == null ) {
+    public String[] getNamespacePrefixes(final Session session) throws RepositoryException {
+        if (this.namespacePrefixes == null) {
             this.namespacePrefixes = session.getNamespacePrefixes();
         }
         return this.namespacePrefixes;
@@ -54,7 +53,7 @@ public class HelperData {
 
     public ClassLoader getDynamicClassLoader() {
         final DynamicClassLoaderManager dclm = this.dynamicClassLoaderManagerReference.get();
-        if ( dclm == null ) {
+        if (dclm == null) {
             return null;
         }
         return dclm.getDynamicClassLoader();
@@ -62,7 +61,7 @@ public class HelperData {
 
     public URIProvider[] getURIProviders() {
         URIProvider[] ups = this.uriProviderReference.get();
-        if ( ups == null) {
+        if (ups == null) {
             ups = EMPTY_URLPROVIDERS;
         }
         return ups;

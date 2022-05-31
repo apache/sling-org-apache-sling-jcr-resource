@@ -67,25 +67,25 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
         super.setUp();
         rootPath = "/test_" + System.currentTimeMillis();
         rootNode = getSession().getRootNode().addNode(rootPath.substring(1),
-            "nt:unstructured");
+                "nt:unstructured");
 
         final Map<String, Object> values = this.initialSet();
-        for(Map.Entry<String, Object> entry : values.entrySet()) {
+        for (Map.Entry<String, Object> entry : values.entrySet()) {
             setProperty(rootNode, entry.getKey().toString(), entry.getValue());
         }
         getSession().save();
     }
 
     private void setProperty(final Node node,
-            final String propertyName,
-            final Object propertyValue)
-    throws RepositoryException {
-        if ( propertyValue == null ) {
-            node.setProperty(propertyName, (String)null);
-        } else if ( propertyValue.getClass().isArray() ) {
+                             final String propertyName,
+                             final Object propertyValue)
+            throws RepositoryException {
+        if (propertyValue == null) {
+            node.setProperty(propertyName, (String) null);
+        } else if (propertyValue.getClass().isArray()) {
             final int length = Array.getLength(propertyValue);
             final Value[] setValues = new Value[length];
-            for(int i=0; i<length; i++) {
+            for (int i = 0; i < length; i++) {
                 final Object value = Array.get(propertyValue, i);
                 setValues[i] = createValue(value, node.getSession());
             }
@@ -97,33 +97,33 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
 
     Value createValue(final Object value, final Session session)
             throws RepositoryException {
-                Value val;
-                ValueFactory fac = session.getValueFactory();
-                if(value instanceof Calendar) {
-                    val = fac.createValue((Calendar)value);
-                } else if (value instanceof InputStream) {
-                    val = fac.createValue(fac.createBinary((InputStream)value));
-                } else if (value instanceof Node) {
-                    val = fac.createValue((Node)value);
-                } else if (value instanceof BigDecimal) {
-                    val = fac.createValue((BigDecimal)value);
-                } else if (value instanceof Long) {
-                    val = fac.createValue((Long)value);
-                } else if (value instanceof Short) {
-                    val = fac.createValue((Short)value);
-                } else if (value instanceof Integer) {
-                    val = fac.createValue((Integer)value);
-                } else if (value instanceof Number) {
-                    val = fac.createValue(((Number)value).doubleValue());
-                } else if (value instanceof Boolean) {
-                    val = fac.createValue((Boolean) value);
-                } else if ( value instanceof String ) {
-                    val = fac.createValue((String)value);
-                } else {
-                    val = null;
-                }
-                return val;
-            }
+        Value val;
+        ValueFactory fac = session.getValueFactory();
+        if (value instanceof Calendar) {
+            val = fac.createValue((Calendar) value);
+        } else if (value instanceof InputStream) {
+            val = fac.createValue(fac.createBinary((InputStream) value));
+        } else if (value instanceof Node) {
+            val = fac.createValue((Node) value);
+        } else if (value instanceof BigDecimal) {
+            val = fac.createValue((BigDecimal) value);
+        } else if (value instanceof Long) {
+            val = fac.createValue((Long) value);
+        } else if (value instanceof Short) {
+            val = fac.createValue((Short) value);
+        } else if (value instanceof Integer) {
+            val = fac.createValue((Integer) value);
+        } else if (value instanceof Number) {
+            val = fac.createValue(((Number) value).doubleValue());
+        } else if (value instanceof Boolean) {
+            val = fac.createValue((Boolean) value);
+        } else if (value instanceof String) {
+            val = fac.createValue((String) value);
+        } else {
+            val = null;
+        }
+        return val;
+    }
 
     @Override
     protected void tearDown() throws Exception {
@@ -157,7 +157,7 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
     }
 
     public void testPut()
-    throws Exception {
+            throws Exception {
         getSession().refresh(false);
         final ModifiableValueMap pvm = new JcrModifiableValueMap(this.rootNode, getHelperData());
         assertContains(pvm, initialSet());
@@ -180,7 +180,7 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
     }
 
     public void testRemove()
-    throws Exception {
+            throws Exception {
         getSession().refresh(false);
         final ModifiableValueMap pvm = new JcrModifiableValueMap(this.rootNode, getHelperData());
 
@@ -196,7 +196,7 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
     }
 
     public void testSerializable()
-    throws Exception {
+            throws Exception {
         this.rootNode.getSession().refresh(false);
         final ModifiableValueMap pvm = new JcrModifiableValueMap(this.rootNode, getHelperData());
         assertContains(pvm, initialSet());
@@ -209,16 +209,14 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
         pvm.put("something", strings);
 
         // check if we get the list again
-        @SuppressWarnings("unchecked")
-        final List<String> strings2 = (List<String>) pvm.get("something");
+        @SuppressWarnings("unchecked") final List<String> strings2 = (List<String>) pvm.get("something");
         assertEquals(strings, strings2);
 
         getSession().save();
 
         final ValueMap pvm2 = new JcrValueMap(this.rootNode, getHelperData());
         // check if we get the list again
-        @SuppressWarnings("unchecked")
-        final List<String> strings3 = (List<String>) pvm2.get("something", Serializable.class);
+        @SuppressWarnings("unchecked") final List<String> strings3 = (List<String>) pvm2.get("something", Serializable.class);
         assertEquals(strings, strings3);
 
     }
@@ -229,20 +227,23 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
         try {
             pvm.put(null, "something");
             fail("Put with null key");
-        } catch (NullPointerException iae) {}
+        } catch (NullPointerException iae) {
+        }
         try {
             pvm.put("something", null);
             fail("Put with null value");
-        } catch (NullPointerException iae) {}
+        } catch (NullPointerException iae) {
+        }
         try {
             pvm.put("something", pvm);
             fail("Put with non serializable");
-        } catch (IllegalArgumentException iae) {}
+        } catch (IllegalArgumentException iae) {
+        }
     }
 
     private Set<String> getMixinNodeTypes(final Node node) throws RepositoryException {
         final Set<String> mixinTypes = new HashSet<String>();
-        for(final NodeType mixinNodeType : node.getMixinNodeTypes() ) {
+        for (final NodeType mixinNodeType : node.getMixinNodeTypes()) {
             mixinTypes.add(mixinNodeType.getName());
         }
         return mixinTypes;
@@ -258,8 +259,8 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
         final Set<String> exNodeTypes = getMixinNodeTypes(testNode);
 
         assertEquals(exNodeTypes.size(), (types == null ? 0 : types.length));
-        if ( types != null ) {
-            for(final String name : types) {
+        if (types != null) {
+            for (final String name : types) {
                 assertTrue(exNodeTypes.contains(name));
             }
             String[] newTypes = new String[types.length + 1];
@@ -336,7 +337,7 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
 
         // read properties
         assertEquals(VALUE3, testNode.getProperty(PROP3).getString());
-        assertEquals(VALUE3, testNode.getProperty("jcr:"+Text.escapeIllegalJcrChars("a:b")).getString());
+        assertEquals(VALUE3, testNode.getProperty("jcr:" + Text.escapeIllegalJcrChars("a:b")).getString());
         assertEquals(VALUE3, testNode.getProperty(Text.escapeIllegalJcrChars("jcr:")).getString());
         assertFalse(testNode.hasProperty(Text.escapeIllegalJcrChars(PROP3)));
         assertFalse(testNode.hasProperty(Text.escapeIllegalJcrChars("jcr:a:b")));
@@ -346,7 +347,7 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
      * Check that the value map contains all supplied values
      */
     private void assertContains(ValueMap map, Map<String, Object> values) {
-        for(Map.Entry<String, Object> entry : values.entrySet()) {
+        for (Map.Entry<String, Object> entry : values.entrySet()) {
             final Object stored = map.get(entry.getKey());
             assertEquals(values.get(entry.getKey()), stored);
         }

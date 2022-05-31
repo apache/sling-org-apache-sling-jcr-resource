@@ -69,7 +69,7 @@ public class JcrItemResourceFactory {
      *             item in the repository.
      */
     public JcrItemResource<?> createResource(final ResourceResolver resourceResolver, final String resourcePath,
-            final Resource parent, final Map<String, String> parameters) throws RepositoryException {
+                                             final Resource parent, final Map<String, String> parameters) throws RepositoryException {
         final String jcrPath = resourcePath;
         if (jcrPath == null) {
             log.debug("createResource: {} maps to an empty JCR path", resourcePath);
@@ -152,9 +152,9 @@ public class JcrItemResourceFactory {
             } else {
                 return null;
             }
-        } catch(RepositoryException e) {
+        } catch (RepositoryException e) {
             log.debug("getSubitem: Can't get subitem {} of {}: {}",
-                    new Object[] { relPath, node.toString(), e.toString() });
+                    new Object[]{relPath, node.toString(), e.toString()});
             return null;
         }
     }
@@ -184,7 +184,7 @@ public class JcrItemResourceFactory {
 
         Item item = null;
         try {
-         // Use fast getItemOrNull if session is a JackrabbitSession
+            // Use fast getItemOrNull if session is a JackrabbitSession
             if (this.isJackrabbit) {
                 item = ((JackrabbitSession) session).getItemOrNull(path);
             }

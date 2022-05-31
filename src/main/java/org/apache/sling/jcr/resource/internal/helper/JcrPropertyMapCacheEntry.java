@@ -64,8 +64,7 @@ public class JcrPropertyMapCacheEntry {
      * @param prop the property
      * @throws RepositoryException if the provided property cannot be converted to a Java Object
      */
-    public JcrPropertyMapCacheEntry(final Property prop)
-    throws RepositoryException {
+    public JcrPropertyMapCacheEntry(final Property prop) throws RepositoryException {
         this.property = prop;
         this.isArray = prop.isMultiple();
         if (property.getType() != PropertyType.BINARY) {
@@ -81,31 +80,29 @@ public class JcrPropertyMapCacheEntry {
      * @param node the node
      * @throws RepositoryException if the provided value cannot be stored
      */
-    public JcrPropertyMapCacheEntry(final Object value, final Node node)
-    throws RepositoryException {
+    public JcrPropertyMapCacheEntry(final Object value, final Node node) throws RepositoryException {
         this.property = null;
         this.propertyValue = value;
         this.isArray = value.getClass().isArray();
         // check if values can be stored in JCR
-        if ( isArray ) {
+        if (isArray) {
             final Object[] values = convertToObjectArray(value);
-            for(int i=0; i<values.length; i++) {
+            for (int i = 0; i < values.length; i++) {
                 failIfCannotStore(values[i], node);
             }
         } else {
             failIfCannotStore(value, node);
         }
-     }
+    }
 
-    private void failIfCannotStore(final Object value, final Node node)
-    throws RepositoryException {
+    private void failIfCannotStore(final Object value, final Node node) throws RepositoryException {
         if (value instanceof InputStream) {
             // InputStream is storable and calling createValue for nothing
             // eats its contents
             return;
         }
         final Value val = this.createValue(value, node);
-        if ( val == null ) {
+        if (val == null) {
             throw new IllegalArgumentException("Value can't be stored in the repository: " + value);
         }
     }
@@ -120,11 +117,10 @@ public class JcrPropertyMapCacheEntry {
      * @param  node the node
      * @return the converted value
      */
-    private Value createValue(final Object obj, final Node node)
-    throws RepositoryException {
+    private Value createValue(final Object obj, final Node node) throws RepositoryException {
         final Session session = node.getSession();
         Value value = JcrResourceUtil.createValue(obj, session);
-        if ( value == null && obj instanceof Serializable ) {
+        if (value == null && obj instanceof Serializable) {
             try {
                 final ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 final ObjectOutputStream oos = new ObjectOutputStream(baos);
@@ -147,21 +143,21 @@ public class JcrPropertyMapCacheEntry {
     private Object[] convertToObjectArray(final Object value) {
         final Object[] values;
         if (value instanceof long[]) {
-            values = ArrayUtils.toObject((long[])value);
+            values = ArrayUtils.toObject((long[]) value);
         } else if (value instanceof int[]) {
-            values = ArrayUtils.toObject((int[])value);
+            values = ArrayUtils.toObject((int[]) value);
         } else if (value instanceof double[]) {
-            values = ArrayUtils.toObject((double[])value);
+            values = ArrayUtils.toObject((double[]) value);
         } else if (value instanceof byte[]) {
-            values = ArrayUtils.toObject((byte[])value);
+            values = ArrayUtils.toObject((byte[]) value);
         } else if (value instanceof float[]) {
-            values = ArrayUtils.toObject((float[])value);
+            values = ArrayUtils.toObject((float[]) value);
         } else if (value instanceof short[]) {
-            values = ArrayUtils.toObject((short[])value);
+            values = ArrayUtils.toObject((short[]) value);
         } else if (value instanceof boolean[]) {
-            values = ArrayUtils.toObject((boolean[])value);
+            values = ArrayUtils.toObject((boolean[]) value);
         } else if (value instanceof char[]) {
-            values = ArrayUtils.toObject((char[])value);
+            values = ArrayUtils.toObject((char[]) value);
         } else {
             values = (Object[]) value;
         }
@@ -207,8 +203,8 @@ public class JcrPropertyMapCacheEntry {
      */
     @SuppressWarnings("unchecked")
     public <T> T convertToType(final Class<T> type,
-            final Node node,
-            final ClassLoader dynamicClassLoader) {
+                               final Node node,
+                               final ClassLoader dynamicClassLoader) {
         T result = null;
 
         try {
@@ -227,7 +223,7 @@ public class JcrPropertyMapCacheEntry {
 
                 final Object sourceObject = this.getPropertyValue();
                 if (targetIsArray) {
-                    result = (T) convertToArray(new Object[] {sourceObject}, type.getComponentType(), node, dynamicClassLoader);
+                    result = (T) convertToArray(new Object[]{sourceObject}, type.getComponentType(), node, dynamicClassLoader);
                 } else {
                     result = convertToType(-1, sourceObject, type, node, dynamicClassLoader);
                 }
@@ -241,7 +237,7 @@ public class JcrPropertyMapCacheEntry {
                     + " to " + type, vfe);
         } catch (final ValueFormatException vfe) {
             LOGGER.info("converToType: Cannot convert value of " + this.getPropertyValueOrNull()
-                + " to " + type, vfe);
+                    + " to " + type, vfe);
         } catch (RepositoryException re) {
             LOGGER.info("converToType: Cannot get value of " + this.getPropertyValueOrNull(), re);
         }
@@ -251,10 +247,9 @@ public class JcrPropertyMapCacheEntry {
     }
 
     private <T> T[] convertToArray(final Object[] sourceArray,
-            final Class<T> type,
-            final Node node,
-            final ClassLoader dynamicClassLoader)
-    throws RepositoryException {
+                                   final Class<T> type,
+                                   final Node node,
+                                   final ClassLoader dynamicClassLoader) throws RepositoryException {
         List<T> values = new ArrayList<>();
         for (int i = 0; i < sourceArray.length; i++) {
             T value = convertToType(i, sourceArray[i], type, node, dynamicClassLoader);
@@ -274,41 +269,40 @@ public class JcrPropertyMapCacheEntry {
                                 final Object initialValue,
                                 final Class<T> type,
                                 final Node node,
-                                final ClassLoader dynamicClassLoader)
-    throws RepositoryException {
-        if ( type.isInstance(initialValue) ) {
+                                final ClassLoader dynamicClassLoader) throws RepositoryException {
+        if (type.isInstance(initialValue)) {
             return (T) initialValue;
         }
 
         Object value = initialValue;
 
         // special case input stream first
-        if ( value instanceof InputStream ) {
+        if (value instanceof InputStream) {
             // object input stream
-            if ( ObjectInputStream.class.isAssignableFrom(type) ) {
+            if (ObjectInputStream.class.isAssignableFrom(type)) {
                 try {
-                    return (T) new PropertyObjectInputStream((InputStream)value, dynamicClassLoader);
+                    return (T) new PropertyObjectInputStream((InputStream) value, dynamicClassLoader);
                 } catch (final IOException ioe) {
                     // ignore and use fallback
                 }
 
-            // any number: length of binary
-            } else if ( Number.class.isAssignableFrom(type) ) {
+                // any number: length of binary
+            } else if (Number.class.isAssignableFrom(type)) {
                 if (index == -1) {
                     value = Long.valueOf(this.property.getLength());
                 } else {
                     value = Long.valueOf(this.property.getLengths()[index]);
                 }
 
-            // string: read binary
-            } else if ( String.class == type) {
-                final InputStream in = (InputStream)value;
+                // string: read binary
+            } else if (String.class == type) {
+                final InputStream in = (InputStream) value;
                 try {
                     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
                     final byte[] buffer = new byte[2048];
                     int l;
-                    while ( (l = in.read(buffer)) >= 0 ) {
-                        if ( l > 0 ) {
+                    while ((l = in.read(buffer)) >= 0) {
+                        if (l > 0) {
                             baos.write(buffer, 0, l);
                         }
                     }
@@ -323,22 +317,22 @@ public class JcrPropertyMapCacheEntry {
                     }
                 }
 
-            // any serializable
-            } else if ( Serializable.class.isAssignableFrom(type) ) {
+                // any serializable
+            } else if (Serializable.class.isAssignableFrom(type)) {
                 ObjectInputStream ois = null;
                 try {
-                    ois = new PropertyObjectInputStream((InputStream)value, dynamicClassLoader);
+                    ois = new PropertyObjectInputStream((InputStream) value, dynamicClassLoader);
                     final Object obj = ois.readObject();
-                    if ( type.isInstance(obj) ) {
-                        return (T)obj;
+                    if (type.isInstance(obj)) {
+                        return (T) obj;
                     }
                     value = obj;
                 } catch (final ClassNotFoundException cnfe) {
-                     // ignore and use fallback
+                    // ignore and use fallback
                 } catch (final IOException ioe) {
                     // ignore and use fallback
                 } finally {
-                    if ( ois != null ) {
+                    if (ois != null) {
                         try {
                             ois.close();
                         } catch (final IOException ignore) {
@@ -399,21 +393,22 @@ public class JcrPropertyMapCacheEntry {
 
     /**
      * Create a converter for an object.
-     * @param value  The object to convert
-     * @return  A converter for {@code value}
+     *
+     * @param value The object to convert
+     * @return A converter for {@code value}
      */
     private Converter getConverter(final Object value) {
-        if ( value instanceof Number ) {
+        if (value instanceof Number) {
             // byte, short, int, long, double, float, BigDecimal
-            return new NumberConverter((Number)value);
-        } else if ( value instanceof Boolean ) {
-            return new BooleanConverter((Boolean)value);
-        } else if ( value instanceof Date ) {
-            return new DateConverter((Date)value);
-        } else if ( value instanceof Calendar ) {
-            return new CalendarConverter((Calendar)value);
-        } else if ( value instanceof ZonedDateTime ) {
-            return new ZonedDateTimeConverter((ZonedDateTime)value);
+            return new NumberConverter((Number) value);
+        } else if (value instanceof Boolean) {
+            return new BooleanConverter((Boolean) value);
+        } else if (value instanceof Date) {
+            return new DateConverter((Date) value);
+        } else if (value instanceof Calendar) {
+            return new CalendarConverter((Calendar) value);
+        } else if (value instanceof ZonedDateTime) {
+            return new ZonedDateTimeConverter((ZonedDateTime) value);
         }
         // default string based
         return new StringConverter(value);
@@ -437,8 +432,8 @@ public class JcrPropertyMapCacheEntry {
          */
         @Override
         protected Class<?> resolveClass(final ObjectStreamClass classDesc)
-        throws IOException, ClassNotFoundException {
-            if ( this.classloader != null ) {
+                throws IOException, ClassNotFoundException {
+            if (this.classloader != null) {
                 return this.classloader.loadClass(classDesc.getName());
             }
             return super.resolveClass(classDesc);

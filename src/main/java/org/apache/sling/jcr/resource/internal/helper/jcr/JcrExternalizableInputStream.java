@@ -36,11 +36,11 @@ import java.net.URI;
  * class is written intentionally to *only* support URIs that may be used where the client is external and/or internal.
  */
 public class JcrExternalizableInputStream extends InputStream implements ExternalizableInputStream {
+
     private final Property data;
     private final URI uri;
     private InputStream inputStream;
-
-
+    
     /**
      * Construct the InputStream wrapping this existing stream and
      * using a public URI
@@ -58,7 +58,7 @@ public class JcrExternalizableInputStream extends InputStream implements Externa
     }
 
     private InputStream getInputStream() throws IOException {
-        if ( inputStream == null) {
+        if (inputStream == null) {
             try {
                 // perform lazy initialisation so that a consumer of
                 // this object can use the getURI method without triggering

@@ -140,15 +140,13 @@ abstract class JcrItemResource<T extends Item> // this should be package private
         }
 
         long length = -1;
-        if (property.getType() == PropertyType.BINARY ) {
+        if (property.getType() == PropertyType.BINARY) {
             // we're interested in the number of bytes, not the
             // number of characters
             try {
-                length =  property.getLength();
+                length = property.getLength();
             } catch (final ValueFormatException vfe) {
-                LOGGER.debug(
-                    "Length of Property {} cannot be retrieved, ignored ({})",
-                    property.getPath(), vfe);
+                LOGGER.debug("Length of Property {} cannot be retrieved, ignored ({})", property.getPath(), vfe);
             }
         } else {
             length = property.getString().getBytes(StandardCharsets.UTF_8).length;

@@ -62,16 +62,16 @@ class JcrNodeResourceMetadata extends ResourceMetadata {
     private Node promoteNode() {
         // check stuff for nt:file nodes
         try {
-            if ( (!nodePromotionChecked) &&
+            if ((!nodePromotionChecked) &&
                     (node.isNodeType(NT_FILE) ||
-                     (node.isNodeType(NT_FROZEN_NODE) &&
-                      node.getProperty(JCR_FROZEN_PRIMARY_TYPE).getString().equals(NT_FILE)))) {
+                            (node.isNodeType(NT_FROZEN_NODE) &&
+                                    node.getProperty(JCR_FROZEN_PRIMARY_TYPE).getString().equals(NT_FILE)))) {
                 creationTime = node.getProperty(JCR_CREATED).getLong();
 
                 // continue our stuff with the jcr:content node
                 // which might be nt:resource, which we support below
                 // if the node is new, the content node might not exist yet
-                if (!node.isNew() || node.hasNode(JCR_CONTENT) ) {
+                if (!node.isNew() || node.hasNode(JCR_CONTENT)) {
                     contentNode = node.getNode(JCR_CONTENT);
                 }
                 nodePromotionChecked = true;
@@ -89,9 +89,7 @@ class JcrNodeResourceMetadata extends ResourceMetadata {
         } catch (RepositoryException e) {
             // ignore
         }
-        LOGGER.info(
-            "setMetaData: Problem extracting metadata information for "
-                    + nodePath, re);
+        LOGGER.info("setMetaData: Problem extracting metadata information for " + nodePath, re);
     }
 
     @Override
@@ -141,7 +139,7 @@ class JcrNodeResourceMetadata extends ResourceMetadata {
                         modificationTime = prop.getLong();
                     } catch (final ValueFormatException vfe) {
                         LOGGER.debug("Property {} cannot be converted to a long, ignored ({})",
-                            prop.getPath(), vfe);
+                                prop.getPath(), vfe);
                     }
                 }
             } catch (final RepositoryException re) {
@@ -163,7 +161,7 @@ class JcrNodeResourceMetadata extends ResourceMetadata {
                     while (item != null && item.isNode()) {
                         item = getPrimaryItem((Node) item);
                     }
-                    if ( item != null ) {
+                    if (item != null) {
                         final Property data = (Property) item;
 
                         // set the content length property as a side effect
@@ -182,8 +180,7 @@ class JcrNodeResourceMetadata extends ResourceMetadata {
         return null;
     }
 
-    private Item getPrimaryItem(final Node node)
-    throws RepositoryException {
+    private Item getPrimaryItem(final Node node) throws RepositoryException {
         String name = node.getPrimaryNodeType().getPrimaryItemName();
         if (name == null) {
             return null;
@@ -244,10 +241,10 @@ class JcrNodeResourceMetadata extends ResourceMetadata {
             return true;
         }
         if (CREATION_TIME.equals(key) ||
-            CONTENT_TYPE.equals(key) ||
-            CHARACTER_ENCODING.equals(key) ||
-            MODIFICATION_TIME.equals(key) ||
-            CONTENT_LENGTH.equals(key)) {
+                CONTENT_TYPE.equals(key) ||
+                CHARACTER_ENCODING.equals(key) ||
+                MODIFICATION_TIME.equals(key) ||
+                CONTENT_LENGTH.equals(key)) {
             return true;
         }
         return false;

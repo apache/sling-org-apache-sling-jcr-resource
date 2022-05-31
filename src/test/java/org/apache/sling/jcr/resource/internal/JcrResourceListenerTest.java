@@ -151,15 +151,15 @@ public class JcrResourceListenerTest {
 
     @After
     public void tearDown() throws Exception {
-        if ( adminSession != null ) {
+        if (adminSession != null) {
             adminSession.logout();
             adminSession = null;
         }
-        if ( listener != null ) {
+        if (listener != null) {
             listener.close();
             listener = null;
         }
-        if ( config != null ) {
+        if (config != null) {
             config.close();
             config = null;
         }
@@ -235,10 +235,10 @@ public class JcrResourceListenerTest {
         this.config.unregister(this.listener);
         this.listener = null;
         final Session session = this.adminSession;
-        if ( !session.nodeExists("/libs") ) {
+        if (!session.nodeExists("/libs")) {
             createNode(session, "/libs");
         }
-        if ( !session.nodeExists("/apps") ) {
+        if (!session.nodeExists("/apps")) {
             createNode(session, "/apps");
         }
         session.getNode("/libs").addNode("foo" + System.currentTimeMillis());
@@ -250,11 +250,11 @@ public class JcrResourceListenerTest {
 
         this.events.clear();
 
-        try ( final JcrResourceListener l = new JcrResourceListener(this.config, observerConfig)) {
+        try (final JcrResourceListener l = new JcrResourceListener(this.config, observerConfig)) {
             final String rootName = "test_" + System.currentTimeMillis();
-            for ( final String path : new String[] {"/libs", "/", "/apps", "/content"}) {
+            for (final String path : new String[]{"/libs", "/", "/apps", "/content"}) {
                 final Node parent;
-                if ( !session.nodeExists(path) ) {
+                if (!session.nodeExists(path)) {
                     parent = createNode(session, path);
                 } else {
                     parent = session.getNode(path);

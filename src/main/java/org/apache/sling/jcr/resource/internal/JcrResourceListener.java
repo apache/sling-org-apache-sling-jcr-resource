@@ -54,8 +54,7 @@ public class JcrResourceListener implements EventListener, Closeable {
     private final JcrListenerBaseConfig baseConfig;
 
     public JcrResourceListener(final JcrListenerBaseConfig listenerConfig,
-                    final ObserverConfiguration config)
-    throws RepositoryException {
+                               final ObserverConfiguration config) throws RepositoryException {
         this.baseConfig = listenerConfig;
         this.config = config;
         this.baseConfig.register(this, config);
@@ -96,14 +95,14 @@ public class JcrResourceListener implements EventListener, Closeable {
         final Map<String, ResourceChange> changedEvents = new HashMap<String, ResourceChange>();
         final Map<String, ResourceChange> removedEvents = new HashMap<String, ResourceChange>();
 
-        while ( events.hasNext() ) {
+        while (events.hasNext()) {
             final Event event = events.nextEvent();
 
             final String identifier;
             final String path;
             try {
                 identifier = event.getIdentifier();
-                path =  event.getPath();
+                path = event.getPath();
             } catch (final RepositoryException e) {
                 // event.getPath or event.getIdentifier threw an exception
                 // there is nothing we can do about it anyway
@@ -113,34 +112,34 @@ public class JcrResourceListener implements EventListener, Closeable {
             final String eventPath = (identifier != null && identifier.startsWith("/") ? identifier : path);
             final int type = event.getType();
 
-            if ( type == PROPERTY_ADDED && path.endsWith("/jcr:primaryType") ) {
+            if (type == PROPERTY_ADDED && path.endsWith("/jcr:primaryType")) {
                 final int lastSlash = path.lastIndexOf('/');
                 final String rsrcPath = path.substring(0, lastSlash);
 
                 // add is stronger than update
                 changedEvents.remove(rsrcPath);
                 addedEvents.put(rsrcPath, createResourceChange(event, rsrcPath, ChangeType.ADDED));
-            } else if ( type == PROPERTY_ADDED
-                     || type == PROPERTY_REMOVED
-                     || type == PROPERTY_CHANGED ) {
+            } else if (type == PROPERTY_ADDED
+                    || type == PROPERTY_REMOVED
+                    || type == PROPERTY_CHANGED) {
                 final String rsrcPath;
-                if ( identifier == null || !identifier.startsWith("/") ) {
+                if (identifier == null || !identifier.startsWith("/")) {
                     final int lastSlash = eventPath.lastIndexOf('/');
                     rsrcPath = eventPath.substring(0, lastSlash);
                 } else {
                     rsrcPath = eventPath;
                 }
-                if ( !addedEvents.containsKey(rsrcPath)
-                  && !removedEvents.containsKey(rsrcPath)
-                  && !changedEvents.containsKey(rsrcPath) ) {
+                if (!addedEvents.containsKey(rsrcPath)
+                        && !removedEvents.containsKey(rsrcPath)
+                        && !changedEvents.containsKey(rsrcPath)) {
 
                     changedEvents.put(rsrcPath, createResourceChange(event, rsrcPath, ChangeType.CHANGED));
                 }
-            } else if ( type == NODE_ADDED ) {
+            } else if (type == NODE_ADDED) {
                 // add is stronger than update
                 changedEvents.remove(eventPath);
                 addedEvents.put(eventPath, createResourceChange(event, eventPath, ChangeType.ADDED));
-            } else if ( type == NODE_REMOVED) {
+            } else if (type == NODE_REMOVED) {
                 // remove is stronger than add and change
                 addedEvents.remove(eventPath);
                 changedEvents.remove(eventPath);
@@ -157,8 +156,8 @@ public class JcrResourceListener implements EventListener, Closeable {
     }
 
     private ResourceChange createResourceChange(final Event event,
-            final String path,
-            final ChangeType changeType) {
+                                                final String path,
+                                                final ChangeType changeType) {
         final String fullPath = path;
         final boolean isExternal = this.isExternal(event);
         final String userId;
@@ -171,8 +170,8 @@ public class JcrResourceListener implements EventListener, Closeable {
     }
 
     private boolean isExternal(final Event event) {
-        if ( event instanceof JackrabbitEvent) {
-            final JackrabbitEvent jEvent = (JackrabbitEvent)event;
+        if (event instanceof JackrabbitEvent) {
+            final JackrabbitEvent jEvent = (JackrabbitEvent) event;
             return jEvent.isExternal();
         }
         return false;

@@ -191,7 +191,7 @@ public class JcrSystemUserValidator implements ServiceUserValidator, ServicePrin
                     if (session == null) {
                         /*
                          * We have to prevent a cycle if we are trying to login ourselves
-                        */
+                         */
                         cycleDetection.set(true);
                         try {
                             session = repository.loginService(VALIDATION_SERVICE_USER, null);
@@ -231,7 +231,7 @@ public class JcrSystemUserValidator implements ServiceUserValidator, ServicePrin
         return invalid.isEmpty();
     }
 
-    private boolean isValidSystemUser(final Authorizable authorizable){
+    private boolean isValidSystemUser(final Authorizable authorizable) {
         if (authorizable == null || authorizable.isGroup()) {
             return false;
         }

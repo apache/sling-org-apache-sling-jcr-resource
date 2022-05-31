@@ -90,7 +90,7 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
      */
     @Override
     public String getResourceType() {
-        if ( this.resourceType == null ) {
+        if (this.resourceType == null) {
             try {
                 this.resourceType = getResourceTypeForNode(getNode());
             } catch (final RepositoryException e) {
@@ -107,7 +107,7 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
     @Override
     public String getResourceSuperType() {
         // Yes, this isn't how you're supposed to compare Strings, but this is intentional.
-        if ( resourceSuperType == UNSET_RESOURCE_SUPER_TYPE ) {
+        if (resourceSuperType == UNSET_RESOURCE_SUPER_TYPE) {
             try {
                 if (getNode().hasProperty(JcrResourceConstants.SLING_RESOURCE_SUPER_TYPE_PROPERTY)) {
                     resourceSuperType = getNode().getProperty(JcrResourceConstants.SLING_RESOURCE_SUPER_TYPE_PROPERTY).getValue().getString();
@@ -115,7 +115,7 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
             } catch (RepositoryException re) {
                 // we ignore this
             }
-            if ( resourceSuperType == UNSET_RESOURCE_SUPER_TYPE ) {
+            if (resourceSuperType == UNSET_RESOURCE_SUPER_TYPE) {
                 resourceSuperType = null;
             }
         }
@@ -131,22 +131,21 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
             return (Type) getInputStream(); // unchecked cast
         } else if (type == Map.class || type == ValueMap.class) {
             return (Type) new JcrValueMap(getNode(), this.helper);
-        } else if (type == ModifiableValueMap.class ) {
+        } else if (type == ModifiableValueMap.class) {
             // check write
             try {
-                getNode().getSession().checkPermission(getPath(),
-                    "set_property");
+                getNode().getSession().checkPermission(getPath(), "set_property");
                 return (Type) new JcrModifiableValueMap(getNode(), this.helper);
             } catch (AccessControlException ace) {
                 // the user has no write permission, cannot adapt
                 LOGGER.debug(
-                    "adaptTo(ModifiableValueMap): Cannot set properties on {}",
-                    this);
+                        "adaptTo(ModifiableValueMap): Cannot set properties on {}",
+                        this);
             } catch (RepositoryException e) {
                 // some other problem, cannot adapt
                 LOGGER.debug(
-                    "adaptTo(ModifiableValueMap): Unexpected problem for {}",
-                    this);
+                        "adaptTo(ModifiableValueMap): Unexpected problem for {}",
+                        this);
             }
         }
 
@@ -157,9 +156,9 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
     @Override
     public String toString() {
         return getClass().getSimpleName()
-        	+ ", type=" + getResourceType()
-        	+ ", superType=" + getResourceSuperType()
-            + ", path=" + getPath();
+                + ", type=" + getResourceType()
+                + ", superType=" + getResourceSuperType()
+                + ", path=" + getPath();
     }
 
     // ---------- internal -----------------------------------------------------
@@ -186,9 +185,9 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
                     LOGGER.debug("getInputStream: No primary items for {}", toString(), infe);
                     data = null;
                 }
-                
-                URI uri =  convertToPublicURI();
-                if ( uri != null ) {
+
+                URI uri = convertToPublicURI();
+                if (uri != null) {
                     return new JcrExternalizableInputStream(data, uri);
                 }
                 if (data != null) {
@@ -197,7 +196,7 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
 
             } catch (RepositoryException re) {
                 LOGGER.error("getInputStream: Cannot get InputStream for " + this,
-                    re);
+                        re);
             }
         }
 
@@ -229,7 +228,7 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
         try {
             if (getNode().hasNodes()) {
                 return new JcrNodeResourceIterator(getResourceResolver(), path, version,
-                    getNode().getNodes(), this.helper, null);
+                        getNode().getNodes(), this.helper, null);
             }
         } catch (final RepositoryException re) {
             LOGGER.error("listChildren: Cannot get children of " + this, re);

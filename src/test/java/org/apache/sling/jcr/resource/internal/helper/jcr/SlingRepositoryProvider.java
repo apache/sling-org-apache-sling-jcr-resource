@@ -27,34 +27,33 @@ import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
 
 public class SlingRepositoryProvider {
-    
-        private static OakMockSlingRepository INSTANCE;
 
-        private SlingRepositoryProvider() {
-        }
-        
-        public synchronized static SlingRepository getRepository() throws Exception {
-            if(INSTANCE == null) {
-                OakMockSlingRepository r = new OakMockSlingRepository();
-                Method activateMethod = OakMockSlingRepository.class.getDeclaredMethod("activate", BundleContext.class);
-                activateMethod.setAccessible(true);
-                activateMethod.invoke(r, getFakeContext());
-                INSTANCE = r;
-            }
-            return INSTANCE;
-        }
-        
+    private static OakMockSlingRepository INSTANCE;
 
-        
-        public static void shutdown() throws Exception {
-            Method deactivateMethod = OakMockSlingRepository.class.getDeclaredMethod("deactivate",ComponentContext.class);
-            deactivateMethod.setAccessible(true);
-            deactivateMethod.invoke(getRepository(),(ComponentContext) null);
+    private SlingRepositoryProvider() {
+    }
+
+    public synchronized static SlingRepository getRepository() throws Exception {
+        if (INSTANCE == null) {
+            OakMockSlingRepository r = new OakMockSlingRepository();
+            Method activateMethod = OakMockSlingRepository.class.getDeclaredMethod("activate", BundleContext.class);
+            activateMethod.setAccessible(true);
+            activateMethod.invoke(r, getFakeContext());
+            INSTANCE = r;
         }
-        
-        
-        private static BundleContext getFakeContext() {
-            BundleContext mockContext = Mockito.mock(BundleContext.class);
-            return mockContext;
-        }
+        return INSTANCE;
+    }
+
+
+    public static void shutdown() throws Exception {
+        Method deactivateMethod = OakMockSlingRepository.class.getDeclaredMethod("deactivate", ComponentContext.class);
+        deactivateMethod.setAccessible(true);
+        deactivateMethod.invoke(getRepository(), (ComponentContext) null);
+    }
+
+
+    private static BundleContext getFakeContext() {
+        BundleContext mockContext = Mockito.mock(BundleContext.class);
+        return mockContext;
+    }
 }

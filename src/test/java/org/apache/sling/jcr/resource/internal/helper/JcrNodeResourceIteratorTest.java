@@ -87,13 +87,13 @@ public class JcrNodeResourceIteratorTest extends TestCase {
         String pathBase = "/parent/path/node/";
         Session session = MockJcr.newSession();
         Node[] nodes = new Node[numNodes];
-        for (int i=0; i < nodes.length; i++) {
+        for (int i = 0; i < nodes.length; i++) {
             nodes[i] = JcrUtils.getOrCreateByPath(pathBase + i, "nt:folder", session);
         }
         NodeIterator ni = new NodeIteratorAdapter(Arrays.asList(nodes));
         JcrNodeResourceIterator ri = new JcrNodeResourceIterator(null, null, null, ni, getHelperData(), null);
 
-        for (int i=0; i < nodes.length; i++) {
+        for (int i = 0; i < nodes.length; i++) {
             assertTrue(ri.hasNext());
             Resource res = ri.next();
             assertEquals(pathBase + i, res.getPath());

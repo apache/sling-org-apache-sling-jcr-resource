@@ -58,8 +58,8 @@ public class JcrProviderStateFactory {
     private final AtomicReference<URIProvider[]> uriProviderReference;
 
     public JcrProviderStateFactory(final ServiceReference<SlingRepository> repositoryReference,
-            final SlingRepository repository,
-            final AtomicReference<DynamicClassLoaderManager> dynamicClassLoaderManagerReference,
+                                   final SlingRepository repository,
+                                   final AtomicReference<DynamicClassLoaderManager> dynamicClassLoaderManagerReference,
                                    final AtomicReference<URIProvider[]> uriProviderReference) {
         this.repository = repository;
         this.repositoryReference = repositoryReference;
@@ -73,10 +73,10 @@ public class JcrProviderStateFactory {
     @Nullable
     private Bundle extractCallingBundle(@NotNull Map<String, Object> authenticationInfo) throws LoginException {
         final Object obj = authenticationInfo.get(ResourceProvider.AUTH_SERVICE_BUNDLE);
-        if(obj != null && !(obj instanceof Bundle)) {
+        if (obj != null && !(obj instanceof Bundle)) {
             throw new LoginException("Invalid calling bundle object in authentication info");
         }
-        return (Bundle)obj;
+        return (Bundle) obj;
     }
 
     @SuppressWarnings("deprecation")
@@ -138,12 +138,9 @@ public class JcrProviderStateFactory {
         return createJcrProviderState(session, true, authenticationInfo, bc);
     }
 
-    private JcrProviderState createJcrProviderState(
-            @NotNull final Session session,
-            final boolean logoutSession,
-            @NotNull final Map<String, Object> authenticationInfo,
-            @Nullable final BundleContext ctx
-    ) throws LoginException {
+    private JcrProviderState createJcrProviderState(@NotNull final Session session, final boolean logoutSession,
+                                                    @NotNull final Map<String, Object> authenticationInfo, 
+                                                    @Nullable final BundleContext ctx) throws LoginException {
         boolean explicitSessionUsed = (getSession(authenticationInfo) != null);
         final Session impersonatedSession = handleImpersonation(session, authenticationInfo, logoutSession, explicitSessionUsed);
         if (impersonatedSession != session && explicitSessionUsed) {
@@ -178,7 +175,7 @@ public class JcrProviderStateFactory {
      *             If something goes wrong.
      */
     private static Session handleImpersonation(final Session session, final Map<String, Object> authenticationInfo,
-            final boolean logoutSession, boolean explicitSessionUsed) throws LoginException {
+                                               final boolean logoutSession, boolean explicitSessionUsed) throws LoginException {
         final String sudoUser = getSudoUser(authenticationInfo);
         // Do we need session.impersonate() because we are asked to impersonate another user?
         boolean needsSudo = (sudoUser != null) && !session.getUserID().equals(sudoUser);

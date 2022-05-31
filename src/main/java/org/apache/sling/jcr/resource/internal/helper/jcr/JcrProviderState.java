@@ -47,10 +47,10 @@ class JcrProviderState implements Closeable {
     }
 
     JcrProviderState(final Session session,
-            final HelperData helperData,
-            final boolean logout,
-            final BundleContext bundleContext,
-            final ServiceReference<SlingRepository> repositoryRef) {
+                     final HelperData helperData,
+                     final boolean logout,
+                     final BundleContext bundleContext,
+                     final ServiceReference<SlingRepository> repositoryRef) {
         this.session = session;
         this.bundleContext = bundleContext;
         this.repositoryRef = repositoryRef;
@@ -83,7 +83,7 @@ class JcrProviderState implements Closeable {
         if (bundleContext != null) {
             try {
                 bundleContext.ungetService(repositoryRef);
-            } catch ( final IllegalStateException ise ) {
+            } catch (final IllegalStateException ise) {
                 // this might happen on shutdown / updates (bundle is invalid)
                 // we can ignore this.
             }

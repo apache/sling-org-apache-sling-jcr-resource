@@ -76,8 +76,8 @@ public class JcrResourceProviderSessionHandlingTest {
     public static List<Object[]> data() {
 
         LoginStyle[] loginStyles = LoginStyle.values();
-        boolean[] sudoOptions = new boolean[] {false, true};
-        boolean[] cloneOptions = new boolean[] {false, true};
+        boolean[] sudoOptions = new boolean[]{false, true};
+        boolean[] cloneOptions = new boolean[]{false, true};
 
         // Generate all possible combinations into data.
         List<Object[]> data = new ArrayList<>();
@@ -117,11 +117,11 @@ public class JcrResourceProviderSessionHandlingTest {
 
     private static class SlingRepositoryWithDummyServiceUsers implements SlingRepository {
         private final SlingRepository wrapped;
-        
+
         SlingRepositoryWithDummyServiceUsers(SlingRepository wrapped) {
             this.wrapped = wrapped;
         }
-        
+
         @SuppressWarnings("deprecation")
         @Override
         public Session loginService(String subServiceName, String workspace)
@@ -194,7 +194,7 @@ public class JcrResourceProviderSessionHandlingTest {
         public Session loginAdministrative(String workspace) throws LoginException, RepositoryException {
             return wrapped.loginAdministrative(workspace);
         }
-        
+
     }
 
     @Before
@@ -205,22 +205,22 @@ public class JcrResourceProviderSessionHandlingTest {
 
         Map<String, Object> authInfo = new HashMap<>();
         switch (loginStyle) {
-        case USER:
-            authInfo.put(ResourceResolverFactory.USER, AUTH_USER);
-            authInfo.put(ResourceResolverFactory.PASSWORD, AUTH_PASSWORD);
-            break;
-        case SESSION:
-            explicitSession = repo.loginAdministrative(null);
-            authInfo.put(JcrResourceConstants.AUTHENTICATION_INFO_SESSION, explicitSession);
-            break;
-        case SERVICE:
-            Bundle mockBundle = mock(Bundle.class);
-            BundleContext mockBundleContext = mock(BundleContext.class);
-            when(mockBundle.getBundleContext()).thenReturn(mockBundleContext);
-            when(mockBundleContext.getService(Matchers.<ServiceReference<Object>>any())).thenReturn(repo);
-            authInfo.put(ResourceResolverFactory.SUBSERVICE, "dummy-service");
-            authInfo.put(ResourceProvider.AUTH_SERVICE_BUNDLE, mockBundle);
-            break;
+            case USER:
+                authInfo.put(ResourceResolverFactory.USER, AUTH_USER);
+                authInfo.put(ResourceResolverFactory.PASSWORD, AUTH_PASSWORD);
+                break;
+            case SESSION:
+                explicitSession = repo.loginAdministrative(null);
+                authInfo.put(JcrResourceConstants.AUTHENTICATION_INFO_SESSION, explicitSession);
+                break;
+            case SERVICE:
+                Bundle mockBundle = mock(Bundle.class);
+                BundleContext mockBundleContext = mock(BundleContext.class);
+                when(mockBundle.getBundleContext()).thenReturn(mockBundleContext);
+                when(mockBundleContext.getService(Matchers.<ServiceReference<Object>>any())).thenReturn(repo);
+                authInfo.put(ResourceResolverFactory.SUBSERVICE, "dummy-service");
+                authInfo.put(ResourceProvider.AUTH_SERVICE_BUNDLE, mockBundle);
+                break;
         }
 
         if (useSudo) {

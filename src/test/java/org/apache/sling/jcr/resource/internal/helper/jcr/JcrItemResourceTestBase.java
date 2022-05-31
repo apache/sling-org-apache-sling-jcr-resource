@@ -37,8 +37,8 @@ public class JcrItemResourceTestBase extends SlingRepositoryTestBase {
 
     protected static final String TEST_ENCODING = "ISO-8859-1";
 
-    protected static final byte[] TEST_DATA = { 'S', 'o', 'm', 'e', ' ', 'T',
-        'e', 's', 't' };
+    protected static final byte[] TEST_DATA = {'S', 'o', 'm', 'e', ' ', 'T',
+            'e', 's', 't'};
 
     protected String rootPath;
 
@@ -54,14 +54,14 @@ public class JcrItemResourceTestBase extends SlingRepositoryTestBase {
         try {
             NamespaceRegistry nsr = session.getWorkspace().getNamespaceRegistry();
             nsr.registerNamespace(SlingConstants.NAMESPACE_PREFIX,
-                JcrResourceConstants.SLING_NAMESPACE_URI);
+                    JcrResourceConstants.SLING_NAMESPACE_URI);
         } catch (Exception e) {
             // don't care for now
         }
 
         rootPath = "/test" + System.currentTimeMillis();
         rootNode = getSession().getRootNode().addNode(rootPath.substring(1),
-            "nt:unstructured");
+                "nt:unstructured");
         getSession().save();
     }
 
@@ -82,7 +82,7 @@ public class JcrItemResourceTestBase extends SlingRepositoryTestBase {
         } else {
             try {
                 for (byte b : expected) {
-                    assertEquals(b, (byte)actual.read());
+                    assertEquals(b, (byte) actual.read());
                 }
             } finally {
                 try {

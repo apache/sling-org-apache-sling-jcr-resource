@@ -50,8 +50,7 @@ public class JcrResourceUtil {
      * @return the query's result
      * @throws RepositoryException if the {@link QueryManager} cannot be retrieved
      */
-    public static QueryResult query(Session session, String query,
-            String language) throws RepositoryException {
+    public static QueryResult query(Session session, String query, String language) throws RepositoryException {
         QueryManager qManager = session.getWorkspace().getQueryManager();
         Query q = qManager.createQuery(query, language);
         return q.execute();
@@ -104,17 +103,17 @@ public class JcrResourceUtil {
             Value[] values = property.getValues();
             final Object firstValue = values.length > 0 ? toJavaObject(values[0]) : null;
             final Object[] result;
-            if ( firstValue instanceof Boolean ) {
+            if (firstValue instanceof Boolean) {
                 result = new Boolean[values.length];
-            } else if ( firstValue instanceof Calendar ) {
+            } else if (firstValue instanceof Calendar) {
                 result = new Calendar[values.length];
-            } else if ( firstValue instanceof Double ) {
+            } else if (firstValue instanceof Double) {
                 result = new Double[values.length];
-            } else if ( firstValue instanceof Long ) {
+            } else if (firstValue instanceof Long) {
                 result = new Long[values.length];
-            } else if ( firstValue instanceof BigDecimal) {
+            } else if (firstValue instanceof BigDecimal) {
                 result = new BigDecimal[values.length];
-            } else if ( firstValue instanceof InputStream) {
+            } else if (firstValue instanceof InputStream) {
                 result = new Object[values.length];
             } else {
                 result = new String[values.length];
@@ -143,32 +142,31 @@ public class JcrResourceUtil {
      * @return the value or null if not convertible to a valid PropertyType
      * @throws RepositoryException in case of error, accessing the Repository
      */
-    public static Value createValue(final Object value, final Session session)
-    throws RepositoryException {
+    public static Value createValue(final Object value, final Session session) throws RepositoryException {
         Value val;
         ValueFactory fac = session.getValueFactory();
-        if(value instanceof ZonedDateTime) {
-            val = fac.createValue(new ZonedDateTimeConverter((ZonedDateTime)value).toCalendar());
-        } else if(value instanceof Calendar) {
-            val = fac.createValue((Calendar)value);
+        if (value instanceof ZonedDateTime) {
+            val = fac.createValue(new ZonedDateTimeConverter((ZonedDateTime) value).toCalendar());
+        } else if (value instanceof Calendar) {
+            val = fac.createValue((Calendar) value);
         } else if (value instanceof InputStream) {
-            val = fac.createValue(fac.createBinary((InputStream)value));
+            val = fac.createValue(fac.createBinary((InputStream) value));
         } else if (value instanceof Node) {
-            val = fac.createValue((Node)value);
+            val = fac.createValue((Node) value);
         } else if (value instanceof BigDecimal) {
-            val = fac.createValue((BigDecimal)value);
+            val = fac.createValue((BigDecimal) value);
         } else if (value instanceof Long) {
-            val = fac.createValue((Long)value);
+            val = fac.createValue((Long) value);
         } else if (value instanceof Short) {
-            val = fac.createValue((Short)value);
+            val = fac.createValue((Short) value);
         } else if (value instanceof Integer) {
-            val = fac.createValue((Integer)value);
+            val = fac.createValue((Integer) value);
         } else if (value instanceof Number) {
-            val = fac.createValue(((Number)value).doubleValue());
+            val = fac.createValue(((Number) value).doubleValue());
         } else if (value instanceof Boolean) {
             val = fac.createValue((Boolean) value);
-        } else if ( value instanceof String ) {
-            val = fac.createValue((String)value);
+        } else if (value instanceof String) {
+            val = fac.createValue((String) value);
         } else {
             val = null;
         }

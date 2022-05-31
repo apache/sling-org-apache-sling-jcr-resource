@@ -49,7 +49,7 @@ public class JcrItemResourceFactoryTest extends SlingRepositoryTestBase {
 
     private Node node;
     private Session nonJackrabbitSession;
-    
+
     @Override
     protected void setUp() throws Exception {
         super.setUp();
@@ -61,11 +61,11 @@ public class JcrItemResourceFactoryTest extends SlingRepositoryTestBase {
                 getClass().getClassLoader(),
                 new Class<?>[]{Session.class},
                 new InvocationHandler() {
-            @Override
-            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                return method.invoke(session, args);
-            }
-        });
+                    @Override
+                    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                        return method.invoke(session, args);
+                    }
+                });
 
         AccessControlUtils.allow(node, EveryonePrincipal.NAME, Privilege.JCR_READ);
         session.save();
@@ -111,17 +111,17 @@ public class JcrItemResourceFactoryTest extends SlingRepositoryTestBase {
             assertEquals(expectedPath, item2.getPath());
         }
     }
-    
+
     public void testGetParentOrNullExistingNode() throws RepositoryException {
         compareGetParentOrNull(session, EXISTING_NODE_PATH, false);
         compareGetParentOrNull(nonJackrabbitSession, EXISTING_NODE_PATH, false);
     }
 
     public void testGetParentOrNullExistingProperty() throws RepositoryException {
-        compareGetParentOrNull(session,EXISTING_NODE_PATH + "/" + JcrConstants.JCR_PRIMARYTYPE, false);
-        compareGetParentOrNull(nonJackrabbitSession,EXISTING_NODE_PATH + "/" + JcrConstants.JCR_PRIMARYTYPE, false);
+        compareGetParentOrNull(session, EXISTING_NODE_PATH + "/" + JcrConstants.JCR_PRIMARYTYPE, false);
+        compareGetParentOrNull(nonJackrabbitSession, EXISTING_NODE_PATH + "/" + JcrConstants.JCR_PRIMARYTYPE, false);
     }
-    
+
     public void testGetParentOrNullNonAccessibleParent() throws RepositoryException {
         Session guestSession = null;
         try {
@@ -133,7 +133,7 @@ public class JcrItemResourceFactoryTest extends SlingRepositoryTestBase {
             }
         }
     }
-    
+
     public void testGetParentOrNullNonExistingParentNode() throws RepositoryException {
         Session s = mock(Session.class);
         when(s.getItem(EXISTING_NODE_PATH)).thenReturn(nonJackrabbitSession.getItem(EXISTING_NODE_PATH));
@@ -147,7 +147,7 @@ public class JcrItemResourceFactoryTest extends SlingRepositoryTestBase {
         when(s.nodeExists(PathUtils.getParentPath(EXISTING_NODE_PATH))).thenThrow(new RepositoryException());
         compareGetParentOrNull(s, EXISTING_NODE_PATH, true);
     }
- 
+
     private void compareGetParentOrNull(Session s, String path, boolean nullExpected) throws RepositoryException {
         HelperData helper = new HelperData(new AtomicReference<DynamicClassLoaderManager>(), new AtomicReference<URIProvider[]>());
 

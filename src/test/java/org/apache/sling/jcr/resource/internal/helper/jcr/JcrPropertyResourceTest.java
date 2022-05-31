@@ -60,20 +60,24 @@ public class JcrPropertyResourceTest {
         final ResourceResolver resolver = this.context.mock(ResourceResolver.class);
         for (final Entry<Object, Integer> data : testData.entrySet()) {
             final String stringValue = data.getKey().toString();
-            final long stringByteLength =  stringValue.getBytes("UTF-8").length;
+            final long stringByteLength = stringValue.getBytes("UTF-8").length;
             final Property property = this.context.mock(Property.class, stringValue);
             this.context.checking(new Expectations() {{
                 ignoring(resolver);
                 allowing(property).getParent();
                 allowing(property).getName();
-                allowing(property).isMultiple(); will(returnValue(false));
-                allowing(property).getLength(); will(returnValue((long) stringValue.length()));
+                allowing(property).isMultiple();
+                will(returnValue(false));
+                allowing(property).getLength();
+                will(returnValue((long) stringValue.length()));
 
-                allowing(property).getType(); will(returnValue(data.getValue()));
-                allowing(property).getString(); will(returnValue(stringValue));
+                allowing(property).getType();
+                will(returnValue(data.getValue()));
+                allowing(property).getString();
+                will(returnValue(stringValue));
             }});
             final JcrPropertyResource propResource = new JcrPropertyResource(resolver, "/path/to/string-property", null, property);
-            assertEquals("Byte length of " +  stringValue, stringByteLength, propResource.getResourceMetadata().getContentLength());
+            assertEquals("Byte length of " + stringValue, stringByteLength, propResource.getResourceMetadata().getContentLength());
         }
     }
 }

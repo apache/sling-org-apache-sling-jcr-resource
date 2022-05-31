@@ -116,8 +116,8 @@ public class NumberConverter implements Converter {
      * @see org.apache.sling.jcr.resource.internal.helper.Converter#toBigDecimal()
      */
     public BigDecimal toBigDecimal() {
-        if ( this.value instanceof BigDecimal ) {
-            return (BigDecimal)this.value;
+        if (this.value instanceof BigDecimal) {
+            return (BigDecimal) this.value;
         }
         return new BigDecimal(this.value.toString());
     }

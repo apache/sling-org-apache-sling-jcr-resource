@@ -43,8 +43,7 @@ import org.apache.sling.jcr.resource.internal.helper.JcrPropertyMapCacheEntry;
  * This implementation of the value map allows to change
  * the properties.
  */
-public class JcrValueMap
-    implements ValueMap {
+public class JcrValueMap implements ValueMap {
 
     /** The underlying node. */
     protected final Node node;
@@ -74,10 +73,10 @@ public class JcrValueMap
     // ---------- ValueMap
 
     protected String checkKey(final String key) {
-        if ( key == null ) {
+        if (key == null) {
             throw new NullPointerException("Key must not be null.");
         }
-        if ( key.startsWith("./") ) {
+        if (key.startsWith("./")) {
             return key.substring(2);
         }
         return key;
@@ -95,7 +94,7 @@ public class JcrValueMap
         }
 
         final JcrPropertyMapCacheEntry entry = this.read(key);
-        if ( entry == null ) {
+        if (entry == null) {
             return null;
         }
         return entry.convertToType(type, node, helper.getDynamicClassLoader());
@@ -106,7 +105,7 @@ public class JcrValueMap
      */
     @Override
     @SuppressWarnings("unchecked")
-    public <T> T get(final String aKey,final T defaultValue) {
+    public <T> T get(final String aKey, final T defaultValue) {
         final String key = checkKey(aKey);
         if (defaultValue == null) {
             return (T) get(key);
@@ -237,19 +236,19 @@ public class JcrValueMap
             // calculate the key
             final String name = prop.getName();
             String key = null;
-            if ( name.indexOf("_x") != -1 ) {
+            if (name.indexOf("_x") != -1) {
                 // for compatibility with older versions we use the (wrong)
                 // ISO9075 path encoding
                 key = ISO9075.decode(name);
-                if ( key.equals(name) ) {
+                if (key.equals(name)) {
                     key = null;
                 }
             }
-            if ( key == null ) {
+            if (key == null) {
                 key = Text.unescapeIllegalJcrChars(name);
             }
             JcrPropertyMapCacheEntry entry = cache.get(key);
-            if ( entry == null ) {
+            if (entry == null) {
                 entry = new JcrPropertyMapCacheEntry(prop);
                 cache.put(key, entry);
 
@@ -270,16 +269,16 @@ public class JcrValueMap
      */
     JcrPropertyMapCacheEntry read(final String name) {
         // check for empty key
-        if ( name.length() == 0 ) {
+        if (name.length() == 0) {
             return null;
         }
         // if the name is a path, we should handle this differently
-        if ( name.indexOf('/') != -1 ) {
+        if (name.indexOf('/') != -1) {
             // first a compatibility check with the old (wrong) ISO9075
             // encoding
             final String path = ISO9075.encodePath(name);
             try {
-                if ( node.hasProperty(path) ) {
+                if (node.hasProperty(path)) {
                     return new JcrPropertyMapCacheEntry(node.getProperty(path));
                 }
             } catch (final RepositoryException re) {
@@ -289,9 +288,9 @@ public class JcrValueMap
             final StringBuilder sb = new StringBuilder();
             int pos = 0;
             int lastPos = -1;
-            while ( pos < name.length() ) {
-                if ( name.charAt(pos) == '/' ) {
-                    if ( lastPos + 1 < pos ) {
+            while (pos < name.length()) {
+                if (name.charAt(pos) == '/') {
+                    if (lastPos + 1 < pos) {
                         sb.append(Text.escapeIllegalJcrChars(name.substring(lastPos + 1, pos)));
                     }
                     sb.append('/');
@@ -299,12 +298,12 @@ public class JcrValueMap
                 }
                 pos++;
             }
-            if ( lastPos + 1 < pos ) {
+            if (lastPos + 1 < pos) {
                 sb.append(Text.escapeIllegalJcrChars(name.substring(lastPos + 1)));
             }
             final String newPath = sb.toString();
             try {
-                if ( node.hasProperty(newPath) ) {
+                if (node.hasProperty(newPath)) {
                     return new JcrPropertyMapCacheEntry(node.getProperty(newPath));
                 }
             } catch (final RepositoryException re) {
@@ -316,7 +315,7 @@ public class JcrValueMap
 
         // check cache
         JcrPropertyMapCacheEntry cachedValued = cache.get(name);
-        if ( fullyRead || cachedValued != null ) {
+        if (fullyRead || cachedValued != null) {
             return cachedValued;
         }
 
@@ -364,7 +363,7 @@ public class JcrValueMap
                     return prefix
                             + ":"
                             + Text.escapeIllegalJcrChars(key
-                                    .substring(indexOfPrefix + 1));
+                            .substring(indexOfPrefix + 1));
                 }
             }
         }
@@ -408,7 +407,7 @@ public class JcrValueMap
     private Map<String, Object> transformEntries(final Map<String, JcrPropertyMapCacheEntry> map) {
 
         final Map<String, Object> transformedEntries = new LinkedHashMap<String, Object>(map.size());
-        for ( final Map.Entry<String, JcrPropertyMapCacheEntry> entry : map.entrySet() )
+        for (final Map.Entry<String, JcrPropertyMapCacheEntry> entry : map.entrySet())
             transformedEntries.put(entry.getKey(), entry.getValue().getPropertyValueOrNull());
 
         return transformedEntries;
@@ -451,7 +450,7 @@ public class JcrValueMap
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
-        if ( this instanceof ModifiableValueMap ) {
+        if (this instanceof ModifiableValueMap) {
             sb.append("JcrModifiablePropertyMap");
         } else {
             sb.append("JcrPropertyMap");
@@ -461,8 +460,8 @@ public class JcrValueMap
         sb.append(", values={");
         final Iterator<Map.Entry<String, Object>> iter = this.entrySet().iterator();
         boolean first = true;
-        while ( iter.hasNext() ) {
-            if ( first ) {
+        while (iter.hasNext()) {
+            if (first) {
                 first = false;
             } else {
                 sb.append(", ");

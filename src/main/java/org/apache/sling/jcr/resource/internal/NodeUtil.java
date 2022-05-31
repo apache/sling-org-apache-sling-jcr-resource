@@ -46,26 +46,25 @@ public abstract class NodeUtil {
      * @param mixinTypes the mixins
      * @throws RepositoryException if the repository's namespaced prefixes cannot be retrieved
      */
-    public static void handleMixinTypes(final Node node, final String[] mixinTypes)
-    throws RepositoryException {
+    public static void handleMixinTypes(final Node node, final String[] mixinTypes) throws RepositoryException {
         final Set<String> newTypes = new HashSet<String>();
-        if ( mixinTypes != null ) {
-            for(final String value : mixinTypes ) {
+        if (mixinTypes != null) {
+            for (final String value : mixinTypes) {
                 newTypes.add(value);
             }
         }
         final Set<String> oldTypes = new HashSet<String>();
-        for(final NodeType mixinType : node.getMixinNodeTypes()) {
+        for (final NodeType mixinType : node.getMixinNodeTypes()) {
             oldTypes.add(mixinType.getName());
         }
-        for(final String name : oldTypes) {
-            if ( !newTypes.contains(name) ) {
+        for (final String name : oldTypes) {
+            if (!newTypes.contains(name)) {
                 node.removeMixin(name);
             } else {
                 newTypes.remove(name);
             }
         }
-        for(final String name : newTypes) {
+        for (final String name : newTypes) {
             node.addMixin(name);
         }
     }
@@ -83,8 +82,8 @@ public abstract class NodeUtil {
         // find the content node: for nt:file it is jcr:content
         // otherwise it is the node of this resource
         Node content = (node.isNodeType(NT_FILE) ||
-                        (node.isNodeType(NT_FROZEN_NODE) &&
-                         node.getProperty(JCR_FROZEN_PRIMARY_TYPE).getString().equals(NT_FILE)))
+                (node.isNodeType(NT_FROZEN_NODE) &&
+                        node.getProperty(JCR_FROZEN_PRIMARY_TYPE).getString().equals(NT_FILE)))
                 ? node.getNode(JCR_CONTENT)
                 : node.isNodeType(NT_LINKED_FILE) ? node.getProperty(JCR_CONTENT).getNode() : node;
         Property data;

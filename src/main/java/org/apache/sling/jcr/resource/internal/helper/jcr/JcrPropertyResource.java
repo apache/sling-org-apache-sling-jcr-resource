@@ -54,8 +54,7 @@ class JcrPropertyResource extends JcrItemResource<Property> { // this should be 
     public JcrPropertyResource(final ResourceResolver resourceResolver,
                                final String path,
                                final String version,
-                               final Property property)
-    throws RepositoryException {
+                               final Property property) throws RepositoryException {
         super(resourceResolver, path, version, property, new ResourceMetadata());
         this.resourceType = getResourceTypeForNode(property.getParent())
                 + "/" + property.getName();
@@ -108,90 +107,89 @@ class JcrPropertyResource extends JcrItemResource<Property> { // this should be 
                 return (AdapterType) getProperty().getValue();
 
             } else if (type == Node.class
-                && (getProperty().getType() == PropertyType.REFERENCE ||
+                    && (getProperty().getType() == PropertyType.REFERENCE ||
                     getProperty().getType() == PropertyType.WEAKREFERENCE)) {
                 return (AdapterType) getProperty().getNode();
 
             } else if (type == InputStream.class) {
                 return (AdapterType) getInputStream();
 
-            } else if ( type == String[].class ) {
-                if ( getProperty().getDefinition().isMultiple() ) {
+            } else if (type == String[].class) {
+                if (getProperty().getDefinition().isMultiple()) {
                     final Value[] values = getProperty().getValues();
                     final String[] result = new String[values.length];
-                    for(int i=0; i<values.length; i++) {
+                    for (int i = 0; i < values.length; i++) {
                         result[i] = values[i].getString();
                     }
-                    return (AdapterType)result;
+                    return (AdapterType) result;
                 }
-                return (AdapterType)new String[] {getProperty().getString()};
+                return (AdapterType) new String[]{getProperty().getString()};
 
             } else if (type == Boolean[].class) {
-                if ( getProperty().getDefinition().isMultiple() ) {
+                if (getProperty().getDefinition().isMultiple()) {
                     final Value[] values = getProperty().getValues();
                     final Boolean[] result = new Boolean[values.length];
-                    for(int i=0; i<values.length; i++) {
+                    for (int i = 0; i < values.length; i++) {
                         result[i] = values[i].getBoolean();
                     }
-                    return (AdapterType)result;
+                    return (AdapterType) result;
                 }
-                return (AdapterType)new Boolean[] {getProperty().getBoolean()};
+                return (AdapterType) new Boolean[]{getProperty().getBoolean()};
 
             } else if (type == Long[].class) {
-                if ( getProperty().getDefinition().isMultiple() ) {
+                if (getProperty().getDefinition().isMultiple()) {
                     final Value[] values = getProperty().getValues();
                     final Long[] result = new Long[values.length];
-                    for(int i=0; i<values.length; i++) {
+                    for (int i = 0; i < values.length; i++) {
                         result[i] = values[i].getLong();
                     }
-                    return (AdapterType)result;
+                    return (AdapterType) result;
                 }
-                return (AdapterType)new Long[] {getProperty().getLong()};
+                return (AdapterType) new Long[]{getProperty().getLong()};
 
             } else if (type == Double[].class) {
-                if ( getProperty().getDefinition().isMultiple() ) {
+                if (getProperty().getDefinition().isMultiple()) {
                     final Value[] values = getProperty().getValues();
                     final Double[] result = new Double[values.length];
-                    for(int i=0; i<values.length; i++) {
+                    for (int i = 0; i < values.length; i++) {
                         result[i] = values[i].getDouble();
                     }
-                    return (AdapterType)result;
+                    return (AdapterType) result;
                 }
-                return (AdapterType)new Double[] {getProperty().getDouble()};
+                return (AdapterType) new Double[]{getProperty().getDouble()};
 
             } else if (type == BigDecimal[].class) {
-                if ( getProperty().getDefinition().isMultiple() ) {
+                if (getProperty().getDefinition().isMultiple()) {
                     final Value[] values = getProperty().getValues();
                     final BigDecimal[] result = new BigDecimal[values.length];
-                    for(int i=0; i<values.length; i++) {
+                    for (int i = 0; i < values.length; i++) {
                         result[i] = values[i].getDecimal();
                     }
-                    return (AdapterType)result;
+                    return (AdapterType) result;
                 }
-                return (AdapterType)new BigDecimal[] {getProperty().getDecimal()};
+                return (AdapterType) new BigDecimal[]{getProperty().getDecimal()};
 
             } else if (type == Calendar[].class) {
-                if ( getProperty().getDefinition().isMultiple() ) {
+                if (getProperty().getDefinition().isMultiple()) {
                     final Value[] values = getProperty().getValues();
                     final Calendar[] result = new Calendar[values.length];
-                    for(int i=0; i<values.length; i++) {
+                    for (int i = 0; i < values.length; i++) {
                         result[i] = values[i].getDate();
                     }
-                    return (AdapterType)result;
+                    return (AdapterType) result;
                 }
-                return (AdapterType)new Calendar[] {getProperty().getDate()};
+                return (AdapterType) new Calendar[]{getProperty().getDate()};
 
             } else if (type == Value[].class) {
-                if ( getProperty().getDefinition().isMultiple() ) {
-                    return (AdapterType)getProperty().getValues();
+                if (getProperty().getDefinition().isMultiple()) {
+                    return (AdapterType) getProperty().getValues();
                 }
-                return (AdapterType)new Value[] {getProperty().getValue()};
+                return (AdapterType) new Value[]{getProperty().getValue()};
 
             }
 
         } catch (ValueFormatException vfe) {
-            LOGGER.debug("adaptTo: Problem accessing the property value of {}: {}",
-                getPath(), vfe.getMessage());
+            LOGGER.debug("adaptTo: Problem accessing the property value of {}: {}", getPath(), vfe.getMessage());
             LOGGER.debug("adaptTo: Cause", vfe);
 
         } catch (RepositoryException re) {
@@ -204,8 +202,7 @@ class JcrPropertyResource extends JcrItemResource<Property> { // this should be 
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + ", type=" + getResourceType()
-            + ", path=" + getPath();
+        return getClass().getSimpleName() + ", type=" + getResourceType() + ", path=" + getPath();
     }
 
     private Property getProperty() {
@@ -218,8 +215,7 @@ class JcrPropertyResource extends JcrItemResource<Property> { // this should be 
         try {
             return prop.getBinary().getStream();
         } catch (RepositoryException re) {
-            LOGGER.error("getInputStream: Problem accessing the property "
-                + getPath() + " stream", re);
+            LOGGER.error("getInputStream: Problem accessing the property " + getPath() + " stream", re);
         }
 
         // fall back to none in case of an error
@@ -232,7 +228,7 @@ class JcrPropertyResource extends JcrItemResource<Property> { // this should be 
     }
 
     @Override
-	public boolean hasChildren() {
-		return false;
-	}
+    public boolean hasChildren() {
+        return false;
+    }
 }

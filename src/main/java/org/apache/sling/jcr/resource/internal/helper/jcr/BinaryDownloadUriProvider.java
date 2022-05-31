@@ -106,7 +106,7 @@ public class BinaryDownloadUriProvider implements URIProvider {
     }
 
     private boolean isRelevantScopeAndOperation(@NotNull Scope scope, @NotNull Operation operation) {
-       return ((Scope.PUBLIC.equals(scope) || Scope.EXTERNAL.equals(scope)) && Operation.READ.equals(operation));
+        return ((Scope.PUBLIC.equals(scope) || Scope.EXTERNAL.equals(scope)) && Operation.READ.equals(operation));
     }
 
     private @NotNull URI getUriFromProperty(@NotNull Resource resource, @NotNull Node node, @NotNull Property binaryProperty) throws ValueFormatException, RepositoryException {

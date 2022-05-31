@@ -32,9 +32,7 @@ import org.apache.sling.jcr.resource.internal.helper.JcrPropertyMapCacheEntry;
 /**
  * Modifiable value map implementation leveraging the base class
  */
-public class JcrModifiableValueMap
-    extends JcrValueMap
-    implements ModifiableValueMap {
+public class JcrModifiableValueMap extends JcrValueMap implements ModifiableValueMap {
 
     /**
      * Constructor
@@ -51,10 +49,10 @@ public class JcrModifiableValueMap
     @Override
     public Object put(final String aKey, final Object value) {
         final String key = checkKey(aKey);
-        if ( key.indexOf('/') != -1 ) {
+        if (key.indexOf('/') != -1) {
             throw new IllegalArgumentException("Invalid key: " + key);
         }
-        if ( value == null ) {
+        if (value == null) {
             throw new NullPointerException("Value should not be null (key = " + key + ")");
         }
         readFully();
@@ -63,17 +61,17 @@ public class JcrModifiableValueMap
             final JcrPropertyMapCacheEntry entry = new JcrPropertyMapCacheEntry(value, this.node);
             this.cache.put(key, entry);
             final String name = escapeKeyName(key);
-            if ( JcrConstants.JCR_MIXINTYPES.equals(name) ) {
+            if (JcrConstants.JCR_MIXINTYPES.equals(name)) {
                 NodeUtil.handleMixinTypes(node, entry.convertToType(String[].class, node, this.helper.getDynamicClassLoader()));
-            } else if ( "jcr:primaryType".equals(name) ) {
+            } else if ("jcr:primaryType".equals(name)) {
                 node.setPrimaryType(entry.convertToType(String.class, node, this.helper.getDynamicClassLoader()));
-            } else if ( entry.isArray() ) {
+            } else if (entry.isArray()) {
                 node.setProperty(name, entry.convertToType(Value[].class, node, this.helper.getDynamicClassLoader()));
             } else {
                 node.setProperty(name, entry.convertToType(Value.class, node, this.helper.getDynamicClassLoader()));
             }
         } catch (final RepositoryException re) {
-            throw new IllegalArgumentException("Value '"+ value + "' for property '" + key + "' can't be put into node '" + getPath() + "'.", re);
+            throw new IllegalArgumentException("Value '" + value + "' for property '" + key + "' can't be put into node '" + getPath() + "'.", re);
         }
         this.valueCache.put(key, value);
 
@@ -85,11 +83,10 @@ public class JcrModifiableValueMap
      */
     @Override
     public void putAll(final Map<? extends String, ? extends Object> t) {
-        if ( t != null ) {
+        if (t != null) {
             final Iterator<?> i = t.entrySet().iterator();
-            while (i.hasNext() ) {
-                @SuppressWarnings("unchecked")
-                final Map.Entry<? extends String, ? extends Object> entry = (Map.Entry<? extends String, ? extends Object>) i.next();
+            while (i.hasNext()) {
+                @SuppressWarnings("unchecked") final Map.Entry<? extends String, ? extends Object> entry = (Map.Entry<? extends String, ? extends Object>) i.next();
                 put(entry.getKey(), entry.getValue());
             }
         }
@@ -106,7 +103,7 @@ public class JcrModifiableValueMap
         final Object oldValue = this.valueCache.remove(key);
         try {
             final String name = escapeKeyName(key);
-            if ( node.hasProperty(name) ) {
+            if (node.hasProperty(name)) {
                 node.getProperty(name).remove();
             }
         } catch (final RepositoryException re) {

@@ -117,16 +117,14 @@ public class JcrNodeResourceIterator implements Iterator<Resource> {
             try {
                 final Node n = nodes.nextNode();
                 final String path = getPath(n);
-                if ( path != null && this.excludedPaths.matches(path) == null ) {
+                if (path != null && this.excludedPaths.matches(path) == null) {
                     final Resource resource = new JcrNodeResource(resourceResolver,
-                        path, parentVersion, n, helper);
+                            path, parentVersion, n, helper);
                     LOGGER.debug("seek: Returning Resource {}", resource);
                     return resource;
                 }
             } catch (final Throwable t) {
-                LOGGER.error(
-                    "seek: Problem creating Resource for next node, skipping",
-                    t);
+                LOGGER.error("seek: Problem creating Resource for next node, skipping", t);
             }
         }
 

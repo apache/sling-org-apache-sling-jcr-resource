@@ -30,28 +30,28 @@ public class SlingRepositoryTestBase extends TestCase {
     protected Node testRoot;
     protected Session session;
     private int counter;
-    
+
     @Override
     protected void tearDown() throws Exception {
         super.tearDown();
-        if(session != null) {
+        if (session != null) {
             session.logout();
         }
     }
 
-    /** Return a JCR Session, initialized on demand */ 
+    /** Return a JCR Session, initialized on demand */
     protected Session getSession() throws Exception {
-        if(session == null) {
+        if (session == null) {
             session = getRepository().loginAdministrative(null);
         }
         return session;
     }
     
-    /** Return a test root node, created on demand, with a unique path */ 
+    /** Return a test root node, created on demand, with a unique path */
     protected Node getTestRootNode() throws Exception {
-        if(testRoot==null) {
+        if (testRoot == null) {
             final Node root = getSession().getRootNode();
-            final Node classRoot = root.addNode(getClass().getSimpleName()); 
+            final Node classRoot = root.addNode(getClass().getSimpleName());
             testRoot = classRoot.addNode(System.currentTimeMillis() + "_" + (++counter));
         }
         return testRoot;

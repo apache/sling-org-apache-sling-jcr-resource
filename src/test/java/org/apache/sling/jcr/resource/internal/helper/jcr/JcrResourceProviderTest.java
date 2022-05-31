@@ -74,11 +74,11 @@ public class JcrResourceProviderTest extends SlingRepositoryTestBase {
             super.tearDown();
         }
     }
-    
+
     private @NotNull JcrProviderState createProviderState() {
         return new JcrProviderState(session, new HelperData(new AtomicReference<>(), new AtomicReference<>()), false);
     }
-    
+
     private @NotNull ResolveContext mockResolveContext() {
         ResolveContext ctx = mock(ResolveContext.class);
         when(ctx.getProviderState()).thenReturn(createProviderState());
@@ -108,22 +108,22 @@ public class JcrResourceProviderTest extends SlingRepositoryTestBase {
         }
         // order successfully
         Assert.assertTrue(jcrResourceProvider.orderBefore(ctx, parent, "child2", "child1"));
-        
+
         // order already established
         Assert.assertFalse(jcrResourceProvider.orderBefore(ctx, parent, "child2", "child1"));
-        
+
         // order child2 at end
         Assert.assertTrue(jcrResourceProvider.orderBefore(ctx, parent, "child2", null));
-        
+
         // order child2 at end again
         Assert.assertFalse(jcrResourceProvider.orderBefore(ctx, parent, "child2", null));
-        
+
         // make sure nothing is persisted until save
         jcrResourceProvider.revert(ctx);
-        
+
         Assert.assertTrue(jcrResourceProvider.orderBefore(ctx, parent, "child2", null));
     }
-    
+
     public void testGetParent() throws Exception {
         Node parentNode = session.getRootNode().addNode("parent", NT_UNSTRUCTURED);
         Node child = parentNode.addNode("child", NT_UNSTRUCTURED);
@@ -136,27 +136,27 @@ public class JcrResourceProviderTest extends SlingRepositoryTestBase {
         Resource childResource = jcrResourceProvider.getResource(ctx, child.getPath(), ResourceContext.EMPTY_CONTEXT, parentResource);
         Resource grandChildResource = jcrResourceProvider.getResource(ctx, grandchild.getPath(), ResourceContext.EMPTY_CONTEXT, childResource);
         assertResources(rootResource, parentResource, childResource, grandChildResource);
-        
+
         assertParent(jcrResourceProvider.getParent(ctx, grandChildResource), child.getPath());
         assertParent(jcrResourceProvider.getParent(ctx, childResource), parentNode.getPath());
         assertParent(jcrResourceProvider.getParent(ctx, parentResource), PathUtils.ROOT_PATH);
         assertNull(jcrResourceProvider.getParent(ctx, rootResource));
     }
-    
+
     public void testGetParentDifferentResource() {
         Resource r = mock(Resource.class);
         when(r.getPath()).thenReturn("/test/path");
         Resource parent = jcrResourceProvider.getParent(mockResolveContext(), r);
         assertFalse(parent instanceof JcrNodeResource);
     }
-    
+
     private static void assertResources(Resource... resources) {
         for (Resource r : resources) {
             assertNotNull(r);
             assertTrue(r instanceof JcrNodeResource);
         }
     }
-    
+
     private static void assertParent(Resource parent, String expectedPath) {
         assertNotNull(parent);
         assertTrue(parent instanceof JcrNodeResource);

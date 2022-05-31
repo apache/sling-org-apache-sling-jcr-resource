@@ -74,8 +74,8 @@ public class BasicQueryLanguageProvider implements QueryLanguageProvider<JcrProv
 
     @Override
     public Iterator<Resource> findResources(final ResolveContext<JcrProviderState> ctx,
-            final String query,
-            final String language) {
+                                            final String query,
+                                            final String language) {
         try {
             final QueryResult res = JcrResourceUtil.query(ctx.getProviderState().getSession(), query, language);
             return new JcrNodeResourceIterator(ctx.getResourceResolver(),
@@ -92,8 +92,8 @@ public class BasicQueryLanguageProvider implements QueryLanguageProvider<JcrProv
 
     @Override
     public Iterator<ValueMap> queryResources(final ResolveContext<JcrProviderState> ctx,
-            final String query,
-            final String language) {
+                                             final String query,
+                                             final String language) {
         final String queryLanguage = ArrayUtils.contains(getSupportedLanguages(ctx), language) ? language : DEFAULT_QUERY_LANGUAGE;
 
         try {
@@ -112,11 +112,13 @@ public class BasicQueryLanguageProvider implements QueryLanguageProvider<JcrProv
                 @Override
                 public boolean hasNext() {
                     return next != null;
-                };
+                }
+
+                ;
 
                 @Override
                 public ValueMap next() {
-                    if ( next == null ) {
+                    if (next == null) {
                         throw new NoSuchElementException();
                     }
                     final ValueMap result = next;
@@ -126,11 +128,11 @@ public class BasicQueryLanguageProvider implements QueryLanguageProvider<JcrProv
 
                 private ValueMap seek() {
                     ValueMap result = null;
-                    while ( result == null && rows.hasNext() ) {
+                    while (result == null && rows.hasNext()) {
                         try {
                             final Row jcrRow = rows.nextRow();
                             final String resourcePath = jcrRow.getPath();
-                            if ( resourcePath != null && providerContext.getExcludedPaths().matches(resourcePath) == null) {
+                            if (resourcePath != null && providerContext.getExcludedPaths().matches(resourcePath) == null) {
                                 final Map<String, Object> row = new HashMap<>();
 
                                 boolean didPath = false;
@@ -141,7 +143,7 @@ public class BasicQueryLanguageProvider implements QueryLanguageProvider<JcrProv
                                     if (v != null) {
                                         String colName = colNames[i];
                                         row.put(colName,
-                                            JcrResourceUtil.toJavaObject(values[i]));
+                                                JcrResourceUtil.toJavaObject(values[i]));
                                         if (colName.equals(QUERY_COLUMN_PATH)) {
                                             didPath = true;
                                             row.put(colName, JcrResourceUtil.toJavaObject(values[i]).toString());
@@ -160,9 +162,7 @@ public class BasicQueryLanguageProvider implements QueryLanguageProvider<JcrProv
                                 result = new ValueMapDecorator(row);
                             }
                         } catch (final RepositoryException re) {
-                            logger.error(
-                                "queryResources$next: Problem accessing row values",
-                                re);
+                            logger.error("queryResources$next: Problem accessing row values", re);
                         }
                     }
                     return result;
@@ -174,8 +174,7 @@ public class BasicQueryLanguageProvider implements QueryLanguageProvider<JcrProv
                 }
             };
         } catch (final javax.jcr.query.InvalidQueryException iqe) {
-            throw new QuerySyntaxException(iqe.getMessage(), query, language,
-                iqe);
+            throw new QuerySyntaxException(iqe.getMessage(), query, language, iqe);
         } catch (final RepositoryException re) {
             throw new SlingException(re.getMessage(), re);
         }
