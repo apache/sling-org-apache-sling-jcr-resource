@@ -52,7 +52,7 @@ import org.slf4j.LoggerFactory;
 })
 class JcrNodeResource extends JcrItemResource<Node> { // this should be package private, see SLING-1414
 
-    /** marker value for the resourceSupertType before trying to evaluate */
+    /** marker value for the resourceSuperType before trying to evaluate */
     private static final String UNSET_RESOURCE_SUPER_TYPE = "<unset>";
 
     /** default log */
@@ -178,7 +178,7 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
                     data = NodeUtil.getPrimaryProperty(node);
                 } catch (ItemNotFoundException infe) {
                     // we don't actually care, but log for completeness
-                    LOGGER.debug("getInputStream: No primary items for {}", toString(), infe);
+                    LOGGER.debug("getInputStream: No primary items for {}", this, infe);
                     data = null;
                 }
 

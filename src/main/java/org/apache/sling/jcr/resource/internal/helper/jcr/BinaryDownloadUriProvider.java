@@ -104,7 +104,7 @@ public class BinaryDownloadUriProvider implements URIProvider {
         return NodeUtil.getPrimaryProperty(node);
     }
 
-    private boolean isRelevantScopeAndOperation(@NotNull Scope scope, @NotNull Operation operation) {
+    private static boolean isRelevantScopeAndOperation(@NotNull Scope scope, @NotNull Operation operation) {
         return ((Scope.PUBLIC.equals(scope) || Scope.EXTERNAL.equals(scope)) && Operation.READ.equals(operation));
     }
 

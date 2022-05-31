@@ -20,7 +20,6 @@ package org.apache.sling.jcr.resource.internal.helper.jcr;
 
 import static org.apache.sling.api.resource.ResourceResolverFactory.NEW_PASSWORD;
 
-import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -71,7 +70,7 @@ public class JcrProviderStateFactory {
      *  @throws LoginException if no calling bundle info provided
      */
     @Nullable
-    private Bundle extractCallingBundle(@NotNull Map<String, Object> authenticationInfo) throws LoginException {
+    private static Bundle extractCallingBundle(@NotNull Map<String, Object> authenticationInfo) throws LoginException {
         final Object obj = authenticationInfo.get(ResourceProvider.AUTH_SERVICE_BUNDLE);
         if (obj != null && !(obj instanceof Bundle)) {
             throw new LoginException("Invalid calling bundle object in authentication info");
@@ -285,9 +284,7 @@ public class JcrProviderStateFactory {
      *            copied as credentials attributes.
      */
     private static void copyAttributes(final SimpleCredentials target, final Map<String, Object> source) {
-        final Iterator<Map.Entry<String, Object>> i = source.entrySet().iterator();
-        while (i.hasNext()) {
-            final Map.Entry<String, Object> current = i.next();
+        for (Map.Entry<String, Object> current : source.entrySet()) {
             if (isAttributeVisible(current.getKey())) {
                 target.setAttribute(current.getKey(), current.getValue());
             }

@@ -40,6 +40,8 @@ import javax.jcr.query.QueryResult;
  *
  */
 public class JcrResourceUtil {
+    
+    private JcrResourceUtil() {}
 
     /**
      * Helper method to execute a JCR query.

@@ -70,8 +70,7 @@ public class JcrItemResourceFactory {
      */
     public JcrItemResource<?> createResource(final ResourceResolver resourceResolver, final String resourcePath,
                                              final Resource parent, final Map<String, String> parameters) throws RepositoryException {
-        final String jcrPath = resourcePath;
-        if (jcrPath == null) {
+        if (resourcePath == null) {
             log.debug("createResource: {} maps to an empty JCR path", resourcePath);
             return null;
         }
@@ -98,7 +97,7 @@ public class JcrItemResourceFactory {
             }
             item = getSubitem(parentNode, subPath);
         } else {
-            item = getItemOrNull(jcrPath);
+            item = getItemOrNull(resourcePath);
         }
 
         if (item != null && version != null) {
@@ -106,7 +105,7 @@ public class JcrItemResourceFactory {
         }
 
         if (item == null) {
-            log.debug("createResource: No JCR Item exists at path '{}'", jcrPath);
+            log.debug("createResource: No JCR Item exists at path '{}'", resourcePath);
             return null;
         } else {
             final JcrItemResource<?> resource;
@@ -153,7 +152,7 @@ public class JcrItemResourceFactory {
                 return null;
             }
         } catch (RepositoryException e) {
-            log.debug("getSubitem: Can't get subitem {} of {}: {}", relPath, node.toString(), e.toString());
+            log.debug("getSubitem: Can't get subitem {} of {}: {}", relPath, node, e.toString());
             return null;
         }
     }

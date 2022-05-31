@@ -57,11 +57,11 @@ public class JcrResourceListenerTest {
 
     private Session adminSession;
 
-    private String createdPath = "/test" + System.currentTimeMillis() + "-create";
+    private final String createdPath = "/test" + System.currentTimeMillis() + "-create";
 
-    private String pathToDelete = "/test" + System.currentTimeMillis() + "-delete";
+    private final String pathToDelete = "/test" + System.currentTimeMillis() + "-delete";
 
-    private String pathToModify = "/test" + System.currentTimeMillis() + "-modify";
+    private final String pathToModify = "/test" + System.currentTimeMillis() + "-modify";
 
     private final List<ResourceChange> events = synchronizedList(new ArrayList<>());
 

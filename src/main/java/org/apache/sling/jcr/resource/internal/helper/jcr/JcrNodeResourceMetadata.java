@@ -47,7 +47,7 @@ class JcrNodeResourceMetadata extends ResourceMetadata {
     private static final long serialVersionUID = 1L;
 
     /** default log */
-    private static final Logger LOGGER = LoggerFactory.getLogger(JcrNodeResource.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JcrNodeResourceMetadata.class);
 
     private final Node node;
     private Node contentNode;
@@ -89,7 +89,7 @@ class JcrNodeResourceMetadata extends ResourceMetadata {
         } catch (RepositoryException e) {
             // ignore
         }
-        LOGGER.info("setMetaData: Problem extracting metadata information for " + nodePath, re);
+        LOGGER.info("setMetaData: Problem extracting metadata information for {}", nodePath, re);
     }
 
     @Override
@@ -180,7 +180,7 @@ class JcrNodeResourceMetadata extends ResourceMetadata {
         return null;
     }
 
-    private Item getPrimaryItem(final Node node) throws RepositoryException {
+    private static Item getPrimaryItem(final Node node) throws RepositoryException {
         String name = node.getPrimaryNodeType().getPrimaryItemName();
         if (name == null) {
             return null;
@@ -240,14 +240,11 @@ class JcrNodeResourceMetadata extends ResourceMetadata {
         if (super.containsKey(key)) {
             return true;
         }
-        if (CREATION_TIME.equals(key) ||
+        return CREATION_TIME.equals(key) ||
                 CONTENT_TYPE.equals(key) ||
                 CHARACTER_ENCODING.equals(key) ||
                 MODIFICATION_TIME.equals(key) ||
-                CONTENT_LENGTH.equals(key)) {
-            return true;
-        }
-        return false;
+                CONTENT_LENGTH.equals(key);
     }
 
     @Override

@@ -43,7 +43,7 @@ public class BooleanConverter implements Converter {
     }
 
     private Integer getNumber() {
-        return ( value.booleanValue() ? 1 : 0);
+        return (value.booleanValue() ? 1 : 0);
     }
 
     /**

@@ -132,8 +132,7 @@ public class JcrValueMap implements ValueMap {
     public Object get(final Object aKey) {
         final String key = checkKey(aKey.toString());
         final JcrPropertyMapCacheEntry entry = this.read(key);
-        final Object value = (entry == null ? null : entry.getPropertyValueOrNull());
-        return value;
+        return (entry == null ? null : entry.getPropertyValueOrNull());
     }
 
     /**
@@ -236,7 +235,7 @@ public class JcrValueMap implements ValueMap {
             // calculate the key
             final String name = prop.getName();
             String key = null;
-            if (name.indexOf("_x") != -1) {
+            if (name.contains("_x")) {
                 // for compatibility with older versions we use the (wrong)
                 // ISO9075 path encoding
                 key = ISO9075.decode(name);
@@ -391,7 +390,7 @@ public class JcrValueMap implements ValueMap {
 
     // ---------- Implementation helper
 
-    private Class<?> normalizeClass(Class<?> type) {
+    private static Class<?> normalizeClass(Class<?> type) {
         if (Calendar.class.isAssignableFrom(type)) {
             type = Calendar.class;
         } else if (Date.class.isAssignableFrom(type)) {
@@ -404,7 +403,7 @@ public class JcrValueMap implements ValueMap {
         return type;
     }
 
-    private Map<String, Object> transformEntries(final Map<String, JcrPropertyMapCacheEntry> map) {
+    private static Map<String, Object> transformEntries(final Map<String, JcrPropertyMapCacheEntry> map) {
 
         final Map<String, Object> transformedEntries = new LinkedHashMap<>(map.size());
         for (final Map.Entry<String, JcrPropertyMapCacheEntry> entry : map.entrySet())

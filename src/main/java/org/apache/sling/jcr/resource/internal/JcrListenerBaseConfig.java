@@ -79,7 +79,8 @@ public class JcrListenerBaseConfig implements Closeable {
             final OakEventFilter filter = FilterFactory.wrap(new JackrabbitEventFilter());
             // paths
             final Set<String> paths = config.getPaths().toStringSet();
-            int globCount = 0, pathCount = 0;
+            int globCount = 0;
+            int pathCount = 0;
             for (final String p : paths) {
                 if (p.startsWith(Path.GLOB_PREFIX)) {
                     globCount++;
@@ -140,7 +141,7 @@ public class JcrListenerBaseConfig implements Closeable {
      * @param c The configuration
      * @return The event type mask
      */
-    private int getTypes(final ObserverConfiguration c) {
+    private static int getTypes(final ObserverConfiguration c) {
         int result = 0;
         for (ChangeType t : c.getChangeTypes()) {
             switch (t) {

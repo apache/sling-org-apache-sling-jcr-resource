@@ -31,8 +31,6 @@ import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.security.Privilege;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -58,12 +56,7 @@ public class JcrItemResourceFactoryTest extends SlingRepositoryTestBase {
         nonJackrabbitSession = (Session) Proxy.newProxyInstance(
                 getClass().getClassLoader(),
                 new Class<?>[]{Session.class},
-                new InvocationHandler() {
-                    @Override
-                    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                        return method.invoke(session, args);
-                    }
-                });
+                (proxy, method, args) -> method.invoke(session, args));
 
         AccessControlUtils.allow(node, EveryonePrincipal.NAME, Privilege.JCR_READ);
         session.save();

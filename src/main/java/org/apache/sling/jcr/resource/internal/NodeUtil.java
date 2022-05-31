@@ -25,6 +25,7 @@ import static javax.jcr.nodetype.NodeType.NT_FILE;
 import static javax.jcr.nodetype.NodeType.NT_FROZEN_NODE;
 import static javax.jcr.nodetype.NodeType.NT_LINKED_FILE;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -38,6 +39,8 @@ import javax.jcr.nodetype.NodeType;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class NodeUtil {
+    
+    private NodeUtil() {}
 
     /**
      * Update the mixin node types
@@ -49,9 +52,7 @@ public abstract class NodeUtil {
     public static void handleMixinTypes(final Node node, final String[] mixinTypes) throws RepositoryException {
         final Set<String> newTypes = new HashSet<>();
         if (mixinTypes != null) {
-            for (final String value : mixinTypes) {
-                newTypes.add(value);
-            }
+            Collections.addAll(newTypes, mixinTypes);
         }
         final Set<String> oldTypes = new HashSet<>();
         for (final NodeType mixinType : node.getMixinNodeTypes()) {

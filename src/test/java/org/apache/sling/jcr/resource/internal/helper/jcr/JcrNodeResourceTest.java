@@ -20,6 +20,7 @@ package org.apache.sling.jcr.resource.internal.helper.jcr;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -250,7 +251,7 @@ public class JcrNodeResourceTest extends JcrItemResourceTestBase {
     }
 
     public void testCorrectUTF8ByteLength() throws Exception {
-        byte[] utf8bytes = "Übersättigung".getBytes("UTF-8");
+        byte[] utf8bytes = "Übersättigung".getBytes(StandardCharsets.UTF_8);
         String name = "utf8file";
         Node file = rootNode.addNode(name, JcrConstants.NT_FILE);
         Node res = file.addNode(JcrConstants.JCR_CONTENT,
