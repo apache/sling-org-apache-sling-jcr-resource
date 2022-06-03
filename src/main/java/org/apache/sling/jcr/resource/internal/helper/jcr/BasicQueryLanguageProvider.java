@@ -44,6 +44,9 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.apache.sling.jcr.resource.internal.helper.jcr.ContextUtil.getHelperData;
+import static org.apache.sling.jcr.resource.internal.helper.jcr.ContextUtil.getSession;
+
 public class BasicQueryLanguageProvider implements QueryLanguageProvider<JcrProviderState> {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -65,24 +68,24 @@ public class BasicQueryLanguageProvider implements QueryLanguageProvider<JcrProv
     }
 
     @Override
-    public String[] getSupportedLanguages(final ResolveContext<JcrProviderState> ctx) {
+    public String[] getSupportedLanguages(final @NotNull ResolveContext<JcrProviderState> ctx) {
         try {
-            return ctx.getProviderState().getSession().getWorkspace().getQueryManager().getSupportedQueryLanguages();
+            return getSession(ctx).getWorkspace().getQueryManager().getSupportedQueryLanguages();
         } catch (final RepositoryException e) {
             throw new SlingException("Unable to discover supported query languages", e);
         }
     }
 
     @Override
-    public Iterator<Resource> findResources(final ResolveContext<JcrProviderState> ctx,
+    public Iterator<Resource> findResources(final @NotNull ResolveContext<JcrProviderState> ctx,
                                             final String query,
                                             final String language) {
         try {
-            final QueryResult res = JcrResourceUtil.query(ctx.getProviderState().getSession(), query, language);
+            final QueryResult res = JcrResourceUtil.query(getSession(ctx), query, language);
             return new JcrNodeResourceIterator(ctx.getResourceResolver(),
                     null, null,
                     res.getNodes(),
-                    ctx.getProviderState().getHelperData(),
+                    getHelperData(ctx),
                     this.providerContext.getExcludedPaths());
         } catch (final javax.jcr.query.InvalidQueryException iqe) {
             throw new QuerySyntaxException(iqe.getMessage(), query, language, iqe);
@@ -98,7 +101,7 @@ public class BasicQueryLanguageProvider implements QueryLanguageProvider<JcrProv
         final String queryLanguage = ArrayUtils.contains(getSupportedLanguages(ctx), language) ? language : DEFAULT_QUERY_LANGUAGE;
 
         try {
-            final QueryResult result = JcrResourceUtil.query(ctx.getProviderState().getSession(), query, queryLanguage);
+            final QueryResult result = JcrResourceUtil.query(getSession(ctx), query, queryLanguage);
             return new ValueMapIterator(result.getColumnNames(), result.getRows());
         } catch (final javax.jcr.query.InvalidQueryException iqe) {
             throw new QuerySyntaxException(iqe.getMessage(), query, language, iqe);
