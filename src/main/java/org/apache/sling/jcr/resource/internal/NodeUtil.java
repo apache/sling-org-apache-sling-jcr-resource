@@ -36,7 +36,9 @@ import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.nodetype.NodeType;
 
+import org.apache.jackrabbit.api.JackrabbitNode;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class NodeUtil {
     
@@ -89,8 +91,9 @@ public abstract class NodeUtil {
                 : node.isNodeType(NT_LINKED_FILE) ? node.getProperty(JCR_CONTENT).getNode() : node;
         Property data;
         // if the node has a jcr:data property, use that property
-        if (content.hasProperty(JCR_DATA)) {
-            data = content.getProperty(JCR_DATA);
+        final Property property = getPropertyOrNull(content,JCR_DATA);
+        if (property != null) {
+            data = property;
         } else {
             // otherwise try to follow default item trail
             Item item = content.getPrimaryItem();
@@ -100,5 +103,44 @@ public abstract class NodeUtil {
             data = (Property) item;
         }
         return data;
+    }
+
+    /**
+     * Return a named property from a node.
+     *
+     * In case a recent Oak JCR version is present, it switches to an optimized
+     * version which just does one lookup of the property. This is not possible
+     * with plain JCR.
+     *
+     * @param node the node
+     * @param propertyName the property to check for
+     * @return the property if it exists, null otherwise
+     * @throws RepositoryException in case of a problem
+     */
+    public static @Nullable Property getPropertyOrNull (@NotNull Node node, @NotNull String propertyName) throws RepositoryException {
+        if (node instanceof JackrabbitNode) {
+            JackrabbitNode jnode = (JackrabbitNode) node;
+            Property prop = jnode.getPropertyOrNull(propertyName);
+            return prop;
+        } else {
+            if (node.hasProperty(propertyName)) {
+                return node.getProperty(propertyName);
+            } else {
+                return null;
+            }
+        }
+    }
+
+    public static @Nullable Node getNodeOrNull (@NotNull Node node, @NotNull String childNode) throws RepositoryException {
+        if (node instanceof JackrabbitNode) {
+            JackrabbitNode jnode = (JackrabbitNode) node;
+            return jnode.getNodeOrNull(childNode);
+        } else {
+            if (node.hasNode(childNode)) {
+                return node.getNode(childNode);
+            } else {
+                return null;
+            }
+        }
     }
 }
