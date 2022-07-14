@@ -36,6 +36,7 @@ import org.apache.sling.api.resource.path.Path;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.spi.resource.provider.ObservationReporter;
 import org.apache.sling.spi.resource.provider.ObserverConfiguration;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +53,7 @@ public class JcrListenerBaseConfig implements Closeable {
     private final ObservationReporter reporter;
 
     @SuppressWarnings("deprecation")
-    public JcrListenerBaseConfig(final ObservationReporter reporter, final SlingRepository repository) throws RepositoryException {
+    public JcrListenerBaseConfig(final @NotNull ObservationReporter reporter, final @NotNull SlingRepository repository) throws RepositoryException {
         this.reporter = reporter;
         // The session should have read access on the whole repository
         this.session = repository.loginService("observation", repository.getDefaultWorkspace());
@@ -179,7 +180,7 @@ public class JcrListenerBaseConfig implements Closeable {
      * The observation reporter
      * @return The observation reporter.
      */
-    public ObservationReporter getReporter() {
+    public @NotNull ObservationReporter getReporter() {
         return this.reporter;
     }
 }

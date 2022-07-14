@@ -42,6 +42,7 @@ import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.internal.helper.jcr.SlingRepositoryProvider;
 import org.apache.sling.spi.resource.provider.ObservationReporter;
 import org.apache.sling.spi.resource.provider.ObserverConfiguration;
+import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -225,6 +226,7 @@ public class JcrResourceListenerTest {
             }
 
             @Override
+            @NotNull
             public Set<String> getPropertyNamesHint() {
                 return null;
             }
@@ -339,7 +341,7 @@ public class JcrResourceListenerTest {
         }
 
         @Override
-        public List<ObserverConfiguration> getObserverConfigurations() {
+        public @NotNull List<ObserverConfiguration> getObserverConfigurations() {
             ObserverConfiguration config = new ObserverConfiguration() {
 
                 @Override
@@ -376,7 +378,7 @@ public class JcrResourceListenerTest {
         }
 
         @Override
-        public void reportChanges(ObserverConfiguration config, Iterable<ResourceChange> changes, boolean distribute) {
+        public void reportChanges(@NotNull ObserverConfiguration config, @NotNull Iterable<ResourceChange> changes, boolean distribute) {
             this.reportChanges(changes, distribute);
         }
     }

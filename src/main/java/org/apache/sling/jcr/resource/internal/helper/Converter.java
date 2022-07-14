@@ -18,12 +18,12 @@
  */
 package org.apache.sling.jcr.resource.internal.helper;
 
+import org.jetbrains.annotations.NotNull;
 
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.Date;
-
 
 /**
  * A converter converts a value to a specific target type.
@@ -35,75 +35,75 @@ public interface Converter {
      * @return Long representation of the converted value
      * @throws NumberFormatException if the conversion fails
      */
-    Long toLong();
+    @NotNull Long toLong();
 
     /**
      * Convert to Byte.
      * @return Byte representation of the converted value
      * @throws NumberFormatException if the conversion fails
      */
-    Byte toByte();
+    @NotNull Byte toByte();
 
     /**
      * Convert to Short.
      * @return Short representation of the converted value
      * @throws NumberFormatException if the conversion fails
      */
-    Short toShort();
+    @NotNull Short toShort();
 
     /**
      * Convert to Integer.
      * @return Integer representation of the converted value
      * @throws NumberFormatException if the conversion fails
      */
-    Integer toInteger();
+    @NotNull Integer toInteger();
 
     /**
      * Convert to Double.
      * @return Double representation of the converted value
      * @throws NumberFormatException if the conversion fails
      */
-    Double toDouble();
+    @NotNull Double toDouble();
 
     /**
      * Convert to Float.
      * @return Float representation of the converted value
      * @throws NumberFormatException if the conversion fails
      */
-    Float toFloat();
+    @NotNull Float toFloat();
 
     /**
      * Convert to ZonedDateTime.
      * @return Calendar representation of the converted value
      * @throws IllegalArgumentException  if the value cannot be parsed into a calendar
      */
-    ZonedDateTime toZonedDateTime();
+    @NotNull ZonedDateTime toZonedDateTime();
 
     /**
      * Convert to Calendar.
      * @return Calendar representation of the converted value
      * @throws IllegalArgumentException  if the value cannot be parsed into a calendar
      */
-    Calendar toCalendar();
+    @NotNull Calendar toCalendar();
 
     /**
      * Convert to Date.
      * @return Date representation of the converted value
      * @throws IllegalArgumentException  if the value cannot be parsed into a date
      */
-    Date toDate();
+    @NotNull Date toDate();
 
     /**
      * Convert to boolean.
      * @return  Boolean representation of the converted value
      */
-    Boolean toBoolean();
+    @NotNull Boolean toBoolean();
 
     /**
      * Convert to BigDecimal.
      * @return BigDecimal representation of the converted value
      * @throws NumberFormatException if the conversion fails
      */
-    BigDecimal toBigDecimal();
+    @NotNull BigDecimal toBigDecimal();
 
 }

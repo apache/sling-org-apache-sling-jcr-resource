@@ -42,6 +42,8 @@ import javax.jcr.Value;
 import javax.jcr.ValueFormatException;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,7 +67,7 @@ public class JcrPropertyMapCacheEntry {
      * @param prop the property
      * @throws RepositoryException if the provided property cannot be converted to a Java Object
      */
-    public JcrPropertyMapCacheEntry(final Property prop) throws RepositoryException {
+    public JcrPropertyMapCacheEntry(final @NotNull Property prop) throws RepositoryException {
         this.property = prop;
         this.isArray = prop.isMultiple();
         if (property.getType() != PropertyType.BINARY) {
@@ -203,9 +205,9 @@ public class JcrPropertyMapCacheEntry {
      * @return The converted object
      */
     @SuppressWarnings("unchecked")
-    public <T> T convertToType(final Class<T> type,
-                               final Node node,
-                               final ClassLoader dynamicClassLoader) {
+    public <T> T convertToType(final @NotNull Class<T> type,
+                               final @NotNull Node node,
+                               final @Nullable ClassLoader dynamicClassLoader) {
         T result = null;
 
         try {
@@ -240,10 +242,10 @@ public class JcrPropertyMapCacheEntry {
         return result;
     }
 
-    private <T> T[] convertToArray(final Object[] sourceArray,
-                                   final Class<T> type,
-                                   final Node node,
-                                   final ClassLoader dynamicClassLoader) throws RepositoryException {
+    private <T> T[] convertToArray(final @NotNull Object[] sourceArray,
+                                   final @NotNull Class<T> type,
+                                   final @NotNull Node node,
+                                   final @Nullable ClassLoader dynamicClassLoader) throws RepositoryException {
         List<T> values = new ArrayList<>();
         for (int i = 0; i < sourceArray.length; i++) {
             T value = convertToType(i, sourceArray[i], type, node, dynamicClassLoader);
@@ -260,10 +262,10 @@ public class JcrPropertyMapCacheEntry {
 
     @SuppressWarnings("unchecked")
     private <T> T convertToType(final int index,
-                                final Object initialValue,
-                                final Class<T> type,
-                                final Node node,
-                                final ClassLoader dynamicClassLoader) throws RepositoryException {
+                                final @NotNull Object initialValue,
+                                final @NotNull Class<T> type,
+                                final @NotNull Node node,
+                                final @Nullable ClassLoader dynamicClassLoader) throws RepositoryException {
         if (type.isInstance(initialValue)) {
             return (T) initialValue;
         }
@@ -414,7 +416,7 @@ public class JcrPropertyMapCacheEntry {
 
         private final ClassLoader classloader;
 
-        public PropertyObjectInputStream(final InputStream in, final ClassLoader classLoader) throws IOException {
+        public PropertyObjectInputStream(final @NotNull InputStream in, final @Nullable ClassLoader classLoader) throws IOException {
             super(in);
             this.classloader = classLoader;
         }

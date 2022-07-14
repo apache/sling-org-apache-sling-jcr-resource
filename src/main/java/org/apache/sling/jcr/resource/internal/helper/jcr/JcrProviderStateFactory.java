@@ -79,7 +79,7 @@ public class JcrProviderStateFactory {
     }
 
     @SuppressWarnings("deprecation")
-    JcrProviderState createProviderState(final @NotNull Map<String, Object> authenticationInfo) throws LoginException {
+    @NotNull JcrProviderState createProviderState(final @NotNull Map<String, Object> authenticationInfo) throws LoginException {
         boolean isLoginAdministrative = Boolean.TRUE.equals(authenticationInfo.get(ResourceProvider.AUTH_ADMIN));
 
         // check whether a session is provided in the authenticationInfo
@@ -137,9 +137,9 @@ public class JcrProviderStateFactory {
         return createJcrProviderState(session, true, authenticationInfo, bc);
     }
 
-    private JcrProviderState createJcrProviderState(@NotNull final Session session, final boolean logoutSession,
-                                                    @NotNull final Map<String, Object> authenticationInfo, 
-                                                    @Nullable final BundleContext ctx) throws LoginException {
+    private @NotNull JcrProviderState createJcrProviderState(@NotNull final Session session, final boolean logoutSession,
+                                                             @NotNull final Map<String, Object> authenticationInfo,
+                                                             @Nullable final BundleContext ctx) throws LoginException {
         boolean explicitSessionUsed = (getSession(authenticationInfo) != null);
         final Session impersonatedSession = handleImpersonation(session, authenticationInfo, logoutSession, explicitSessionUsed);
         if (impersonatedSession != session && explicitSessionUsed) {

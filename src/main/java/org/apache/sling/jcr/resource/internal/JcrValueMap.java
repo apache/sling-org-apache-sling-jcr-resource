@@ -39,6 +39,7 @@ import org.apache.sling.api.resource.ModifiableValueMap;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.jcr.resource.internal.helper.JcrPropertyMapCacheEntry;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This implementation of the value map allows to change
@@ -66,7 +67,7 @@ public class JcrValueMap implements ValueMap {
      * @param node The underlying node.
      * @param helper Helper data object
      */
-    public JcrValueMap(final Node node, final HelperData helper) {
+    public JcrValueMap(final @NotNull Node node, final @NotNull HelperData helper) {
         this.node = node;
         this.helper = helper;
     }
@@ -231,7 +232,7 @@ public class JcrValueMap implements ValueMap {
      * @return A JcrPropertyMapCacheEntry for the given property
      * @throws IllegalArgumentException if a repository exception occurs
      */
-    private JcrPropertyMapCacheEntry cacheProperty(final Property prop) {
+    private @NotNull JcrPropertyMapCacheEntry cacheProperty(final @NotNull Property prop) {
         try {
             // calculate the key
             final String name = prop.getName();
@@ -267,7 +268,7 @@ public class JcrValueMap implements ValueMap {
      * Read a single property.
      * @throws IllegalArgumentException if a repository exception occurs
      */
-    JcrPropertyMapCacheEntry read(final String name) {
+    @Nullable JcrPropertyMapCacheEntry read(final @NotNull String name) {
         // check for empty key
         if (name.length() == 0) {
             return null;
@@ -353,7 +354,7 @@ public class JcrValueMap implements ValueMap {
      * @return escaped key name
      * @throws RepositoryException if the repository's namespace prefixes cannot be retrieved
      */
-    protected String escapeKeyName(final String key) throws RepositoryException {
+    protected @NotNull String escapeKeyName(final @NotNull String key) throws RepositoryException {
         final int indexOfPrefix = key.indexOf(':');
         // check if colon is neither the first nor the last character
         if (indexOfPrefix > 0 && key.length() > indexOfPrefix + 1) {
@@ -404,7 +405,7 @@ public class JcrValueMap implements ValueMap {
         return type;
     }
 
-    private static Map<String, Object> transformEntries(final Map<String, JcrPropertyMapCacheEntry> map) {
+    private static @NotNull Map<String, Object> transformEntries(final @NotNull Map<String, JcrPropertyMapCacheEntry> map) {
 
         final Map<String, Object> transformedEntries = new LinkedHashMap<>(map.size());
         for (final Map.Entry<String, JcrPropertyMapCacheEntry> entry : map.entrySet())

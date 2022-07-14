@@ -24,6 +24,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 import org.apache.jackrabbit.util.ISO8601;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A converter for any object based on toString()
@@ -47,54 +48,54 @@ public class StringConverter implements Converter {
     /**
      * @see org.apache.sling.jcr.resource.internal.helper.Converter#toLong()
      */
-    public Long toLong() {
+    public @NotNull Long toLong() {
         return Long.parseLong(this.toString());
     }
 
     /**
      * @see org.apache.sling.jcr.resource.internal.helper.Converter#toByte()
      */
-    public Byte toByte() {
+    public @NotNull Byte toByte() {
         return Byte.parseByte(this.toString());
     }
 
     /**
      * @see org.apache.sling.jcr.resource.internal.helper.Converter#toShort()
      */
-    public Short toShort() {
+    public @NotNull Short toShort() {
         return Short.parseShort(this.toString());
     }
 
     /**
      * @see org.apache.sling.jcr.resource.internal.helper.Converter#toInteger()
      */
-    public Integer toInteger() {
+    public @NotNull Integer toInteger() {
         return Integer.parseInt(this.toString());
     }
 
     /**
      * @see org.apache.sling.jcr.resource.internal.helper.Converter#toDouble()
      */
-    public Double toDouble() {
+    public @NotNull Double toDouble() {
         return Double.parseDouble(this.toString());
     }
 
     /**
      * @see org.apache.sling.jcr.resource.internal.helper.Converter#toFloat()
      */
-    public Float toFloat() {
+    public @NotNull Float toFloat() {
         return Float.parseFloat(this.toString());
     }
 
     @Override
-    public ZonedDateTime toZonedDateTime() {
+    public @NotNull ZonedDateTime toZonedDateTime() {
         return new CalendarConverter(toCalendar()).toZonedDateTime();
     }
 
     /**
      * @see org.apache.sling.jcr.resource.internal.helper.Converter#toCalendar()
      */
-    public Calendar toCalendar() {
+    public @NotNull Calendar toCalendar() {
         final Calendar c = ISO8601.parse(toString());
         if (c == null) {
             throw new IllegalArgumentException("Not a date string: " + toString());
@@ -105,7 +106,7 @@ public class StringConverter implements Converter {
     /**
      * @see org.apache.sling.jcr.resource.internal.helper.Converter#toDate()
      */
-    public Date toDate() {
+    public @NotNull Date toDate() {
         final Calendar c = this.toCalendar();
         return c.getTime();
     }
@@ -113,14 +114,14 @@ public class StringConverter implements Converter {
     /**
      * @see org.apache.sling.jcr.resource.internal.helper.Converter#toBoolean()
      */
-    public Boolean toBoolean() {
+    public @NotNull Boolean toBoolean() {
         return Boolean.valueOf(this.toString());
     }
 
     /**
      * @see org.apache.sling.jcr.resource.internal.helper.Converter#toBigDecimal()
      */
-    public BigDecimal toBigDecimal() {
+    public @NotNull BigDecimal toBigDecimal() {
         return new BigDecimal(this.toString());
     }
 }

@@ -24,6 +24,8 @@ import javax.jcr.Session;
 
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.internal.HelperData;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
@@ -41,15 +43,15 @@ class JcrProviderState implements Closeable {
 
     private final HelperData helperData;
 
-    JcrProviderState(final Session session, final HelperData helperData, final boolean logout) {
+    JcrProviderState(final @NotNull Session session, final @NotNull HelperData helperData, final boolean logout) {
         this(session, helperData, logout, null, null);
     }
 
-    JcrProviderState(final Session session,
-                     final HelperData helperData,
+    JcrProviderState(final @NotNull Session session,
+                     final @NotNull HelperData helperData,
                      final boolean logout,
-                     final BundleContext bundleContext,
-                     final ServiceReference<SlingRepository> repositoryRef) {
+                     final @Nullable BundleContext bundleContext,
+                     final @Nullable ServiceReference<SlingRepository> repositoryRef) {
         this.session = session;
         this.bundleContext = bundleContext;
         this.repositoryRef = repositoryRef;
@@ -58,15 +60,15 @@ class JcrProviderState implements Closeable {
         this.resourceFactory = new JcrItemResourceFactory(session, helperData);
     }
 
-    Session getSession() {
+    @NotNull Session getSession() {
         return session;
     }
 
-    JcrItemResourceFactory getResourceFactory() {
+    @NotNull JcrItemResourceFactory getResourceFactory() {
         return resourceFactory;
     }
 
-    HelperData getHelperData() {
+    @NotNull HelperData getHelperData() {
         return helperData;
     }
 
