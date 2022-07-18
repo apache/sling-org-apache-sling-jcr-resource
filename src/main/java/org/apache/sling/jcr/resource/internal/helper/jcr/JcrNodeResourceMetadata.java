@@ -39,6 +39,7 @@ import javax.jcr.RepositoryException;
 import javax.jcr.ValueFormatException;
 
 import org.apache.sling.api.resource.ResourceMetadata;
+import org.apache.sling.jcr.resource.internal.NodeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -108,8 +109,9 @@ class JcrNodeResourceMetadata extends ResourceMetadata {
             String contentType = null;
             final Node targetNode = promoteNode();
             try {
-                if (targetNode.hasProperty(JCR_MIMETYPE)) {
-                    contentType = targetNode.getProperty(JCR_MIMETYPE).getString();
+                Property property = NodeUtil.getPropertyOrNull(targetNode, JCR_MIMETYPE);
+                if (property != null) {
+                    contentType = property.getString();
                 }
             } catch (final RepositoryException re) {
                 report(re);
@@ -121,8 +123,9 @@ class JcrNodeResourceMetadata extends ResourceMetadata {
             String characterEncoding = null;
             final Node targetNode = promoteNode();
             try {
-                if (targetNode.hasProperty(JCR_ENCODING)) {
-                    characterEncoding = targetNode.getProperty(JCR_ENCODING).getString();
+                Property property = NodeUtil.getPropertyOrNull(targetNode, JCR_ENCODING);
+                if (property != null) {
+                    characterEncoding = property.getString();
                 }
             } catch (final RepositoryException re) {
                 report(re);
@@ -133,9 +136,9 @@ class JcrNodeResourceMetadata extends ResourceMetadata {
             long modificationTime = -1;
             final Node targetNode = promoteNode();
             try {
-                if (targetNode.hasProperty(JCR_LAST_MODIFIED)) {
+                Property prop = NodeUtil.getPropertyOrNull(targetNode, JCR_LAST_MODIFIED);
+                if (prop != null) {
                     // We don't check node type, so JCR_LASTMODIFIED might not be a long
-                    final Property prop = targetNode.getProperty(JCR_LAST_MODIFIED);
                     try {
                         modificationTime = prop.getLong();
                     } catch (final ValueFormatException vfe) {
@@ -153,8 +156,8 @@ class JcrNodeResourceMetadata extends ResourceMetadata {
             final Node targetNode = promoteNode();
             try {
                 // if the node has a jcr:data property, use that property
-                if (targetNode.hasProperty(JCR_DATA)) {
-                    final Property prop = targetNode.getProperty(JCR_DATA);
+                Property prop = NodeUtil.getPropertyOrNull(targetNode, JCR_DATA);
+                if (prop != null) {
                     contentLength = JcrItemResource.getContentLength(prop);
                 } else {
                     // otherwise try to follow default item trail
@@ -186,13 +189,15 @@ class JcrNodeResourceMetadata extends ResourceMetadata {
         if (name == null) {
             return null;
         }
-        if (node.hasProperty(name)) {
-            return node.getProperty(name);
-        } else if (node.hasNode(name)) {
-            return node.getNode(name);
-        } else {
-            return null;
+        Property property = NodeUtil.getPropertyOrNull(node, name);
+        if (property != null) {
+            return property;
         }
+        Node childNode = NodeUtil.getNodeOrNull(node, name);
+        if (childNode != null) {
+            return childNode;
+        }
+        return null;
     }
 
     private void populate() {

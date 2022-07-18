@@ -35,6 +35,7 @@ import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.jcr.resource.internal.HelperData;
+import org.apache.sling.jcr.resource.internal.NodeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -142,15 +143,18 @@ public class JcrItemResourceFactory {
 
     private static @Nullable Item getSubitem(@NotNull Node node, @NotNull String relPath) {
         try {
-            if (relPath.length() == 0) { // not using isEmpty() due to 1.5 compatibility
+            if (relPath.isEmpty()) {
                 return node;
-            } else if (node.hasNode(relPath)) {
-                return node.getNode(relPath);
-            } else if (node.hasProperty(relPath)) {
-                return node.getProperty(relPath);
-            } else {
-                return null;
             }
+            Node childNode = NodeUtil.getNodeOrNull(node, relPath);
+            if (childNode != null) {
+                return childNode;
+            }
+            Property property = NodeUtil.getPropertyOrNull(node, relPath);
+            if (property != null) {
+                return property;
+            }
+            return null;
         } catch (RepositoryException e) {
             log.debug("getSubitem: Can't get subitem {} of {}: {}", relPath, node, e.toString());
             return null;
@@ -162,11 +166,11 @@ public class JcrItemResourceFactory {
         final VersionHistory history = versionManager.getVersionHistory(node.getPath());
         if (history.hasVersionLabel(versionSpecifier)) {
             return history.getVersionByLabel(versionSpecifier).getFrozenNode();
-        } else if (history.hasNode(versionSpecifier)) {
-            return history.getVersion(versionSpecifier).getFrozenNode();
-        } else {
-            return null;
         }
+        if (history.hasNode(versionSpecifier)) {
+            return history.getVersion(versionSpecifier).getFrozenNode();
+        }
+        return null;
     }
 
     private static boolean isVersionable(@NotNull Item item) throws RepositoryException {

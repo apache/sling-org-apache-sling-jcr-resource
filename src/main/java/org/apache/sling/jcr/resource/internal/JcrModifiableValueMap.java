@@ -22,6 +22,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 import javax.jcr.Node;
+import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Value;
 
@@ -104,8 +105,9 @@ public class JcrModifiableValueMap extends JcrValueMap implements ModifiableValu
         final Object oldValue = this.valueCache.remove(key);
         try {
             final String name = escapeKeyName(key);
-            if (node.hasProperty(name)) {
-                node.getProperty(name).remove();
+            Property property = NodeUtil.getPropertyOrNull(node, name);
+            if (property != null) {
+                property.remove();
             }
         } catch (final RepositoryException re) {
             throw new IllegalArgumentException("Property '" + key + "' can't be removed from node '" + getPath() + "'.", re);

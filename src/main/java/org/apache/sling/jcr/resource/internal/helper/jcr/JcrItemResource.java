@@ -33,6 +33,7 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceMetadata;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.jcr.resource.api.JcrResourceConstants;
+import org.apache.sling.jcr.resource.internal.NodeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -119,15 +120,17 @@ abstract class JcrItemResource<T extends Item> // this should be package private
     protected String getResourceTypeForNode(final @NotNull Node node) throws RepositoryException {
         String result = null;
 
-        if (node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)) {
-            result = node.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getString();
+        Property property = NodeUtil.getPropertyOrNull(node, JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY);
+        if (property != null) {
+            result = property.getString();
         }
 
         if (result == null || result.length() == 0) {
             // Do not load the relatively expensive NodeType object unless necessary. See OAK-2441 for the reason why it
             // cannot only use getProperty here.
-            if (node.hasProperty(Property.JCR_PRIMARY_TYPE)) {
-                result = node.getProperty(Property.JCR_PRIMARY_TYPE).getString();
+            property = NodeUtil.getPropertyOrNull(node, Property.JCR_PRIMARY_TYPE);
+            if (property != null) {
+                result = property.getString();
             } else {
                 result = node.getPrimaryNodeType().getName();
             }

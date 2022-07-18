@@ -26,7 +26,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.PropertyIterator;
@@ -279,8 +278,9 @@ public class JcrValueMap implements ValueMap {
             // encoding
             final String path = ISO9075.encodePath(name);
             try {
-                if (node.hasProperty(path)) {
-                    return new JcrPropertyMapCacheEntry(node.getProperty(path));
+                Property property = NodeUtil.getPropertyOrNull(node, path);
+                if (property != null) {
+                    return new JcrPropertyMapCacheEntry(property);
                 }
             } catch (final RepositoryException re) {
                 throw new IllegalArgumentException(re);
@@ -304,8 +304,9 @@ public class JcrValueMap implements ValueMap {
             }
             final String newPath = sb.toString();
             try {
-                if (node.hasProperty(newPath)) {
-                    return new JcrPropertyMapCacheEntry(node.getProperty(newPath));
+                Property property = NodeUtil.getPropertyOrNull(node,newPath);
+                if (property != null) {
+                    return new JcrPropertyMapCacheEntry(property);
                 }
             } catch (final RepositoryException re) {
                 throw new IllegalArgumentException(re);
@@ -322,9 +323,9 @@ public class JcrValueMap implements ValueMap {
 
         try {
             final String key = escapeKeyName(name);
-            if (node.hasProperty(key)) {
-                final Property prop = node.getProperty(key);
-                return cacheProperty(prop);
+            Property property = NodeUtil.getPropertyOrNull(node,key);
+            if (property != null) {
+                return cacheProperty(property);
             }
         } catch (final RepositoryException re) {
             throw new IllegalArgumentException(re);
@@ -334,9 +335,9 @@ public class JcrValueMap implements ValueMap {
             // for compatibility with older versions we use the (wrong) ISO9075 path
             // encoding
             final String oldKey = ISO9075.encodePath(name);
-            if (node.hasProperty(oldKey)) {
-                final Property prop = node.getProperty(oldKey);
-                return cacheProperty(prop);
+            Property property = NodeUtil.getPropertyOrNull(node,oldKey);
+            if (property != null) {
+                return cacheProperty(property);
             }
         } catch (final RepositoryException re) {
             // we ignore this
