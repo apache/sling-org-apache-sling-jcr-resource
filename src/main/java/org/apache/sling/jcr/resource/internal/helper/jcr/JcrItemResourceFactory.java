@@ -64,7 +64,10 @@ public class JcrItemResourceFactory {
      * read-access for the session of this resolver, <code>null</code> is
      * returned.
      *
+     * @param resourceResolver The resource resolver
      * @param resourcePath The absolute path
+     * @param parent The parent resource or {@code null}
+     * @param parameters The parameters or{@code null}
      * @return The <code>Resource</code> for the item at the given path.
      * @throws RepositoryException If an error occurrs accessing checking the
      *             item in the repository.
@@ -82,29 +85,9 @@ public class JcrItemResourceFactory {
         } else {
             version = null;
         }
-
-        Node parentNode = null;
-        String parentResourcePath = null;
-        if (parent != null) {
-            parentNode = parent.adaptTo(Node.class);
-            parentResourcePath = parent.getPath();
-        }
-
-        Item item;
-        if (parentNode != null && resourcePath.startsWith(parentResourcePath)) {
-            String subPath = resourcePath.substring(parentResourcePath.length());
-            if (!subPath.isEmpty() && subPath.charAt(0) == '/') {
-                subPath = subPath.substring(1);
-            }
-            item = getSubitem(parentNode, subPath);
-        } else {
-            item = getItemOrNull(resourcePath);
-        }
-
-        if (item != null && version != null) {
-            item = getHistoricItem(item, version);
-        }
-
+        
+        Item item = getItem(resourcePath, parent, version);
+        
         if (item == null) {
             log.debug("createResource: No JCR Item exists at path '{}'", resourcePath);
             return null;
@@ -121,8 +104,33 @@ public class JcrItemResourceFactory {
             return resource;
         }
     }
+    
+    private @Nullable Item getItem(@NotNull String resourcePath, @Nullable Resource parent, @Nullable String versionSpecifier) throws RepositoryException {
+        Node parentNode = null;
+        String parentResourcePath = null;
+        if (parent != null) {
+            parentNode = parent.adaptTo(Node.class);
+            parentResourcePath = parent.getPath();
+        }
+        
+        Item item;
+        if (parentNode != null && resourcePath.startsWith(parentResourcePath)) {
+            String subPath = resourcePath.substring(parentResourcePath.length());
+            if (!subPath.isEmpty() && subPath.charAt(0) == '/') {
+                subPath = subPath.substring(1);
+            }
+            item = getSubitem(parentNode, subPath);
+        } else {
+            item = getItemOrNull(resourcePath);
+        }
 
-    private Item getHistoricItem(Item item, String versionSpecifier) throws RepositoryException {
+        if (item != null && versionSpecifier != null) {
+            item = getHistoricItem(item, versionSpecifier);
+        }
+        return item;
+    }
+    
+    private @Nullable Item getHistoricItem(Item item, String versionSpecifier) throws RepositoryException {
         Item currentItem = item;
         LinkedList<String> relPath = new LinkedList<>();
         Node version = null;

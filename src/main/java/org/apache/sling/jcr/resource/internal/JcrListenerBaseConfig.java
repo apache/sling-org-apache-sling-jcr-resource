@@ -74,49 +74,20 @@ public class JcrListenerBaseConfig implements Closeable {
      * @param config The configuration
      * @throws RepositoryException If registration fails.
      */
-    public void register(final EventListener listener, final ObserverConfiguration config) throws RepositoryException {
+    public void register(final @NotNull EventListener listener, final @NotNull ObserverConfiguration config) throws RepositoryException {
         final ObservationManager mgr = this.session.getWorkspace().getObservationManager();
         if (mgr instanceof JackrabbitObservationManager) {
             final OakEventFilter filter = FilterFactory.wrap(new JackrabbitEventFilter());
             // paths
-            final Set<String> paths = config.getPaths().toStringSet();
-            int globCount = 0;
-            int pathCount = 0;
-            for (final String p : paths) {
-                if (p.startsWith(Path.GLOB_PREFIX)) {
-                    globCount++;
-                } else {
-                    pathCount++;
-                }
-            }
-            final String[] pathArray = pathCount > 0 ? new String[pathCount] : null;
-            final String[] globArray = globCount > 0 ? new String[globCount] : null;
-            pathCount = 0;
-            globCount = 0;
-
-            // create arrays and remove global prefix
-            for (final String p : paths) {
-                if (p.startsWith(Path.GLOB_PREFIX)) {
-                    globArray[globCount] = p.substring(Path.GLOB_PREFIX.length());
-                    globCount++;
-                } else {
-                    pathArray[pathCount] = p;
-                    pathCount++;
-                }
-            }
-            if (globArray != null) {
-                filter.withIncludeGlobPaths(globArray);
-            }
-            if (pathArray != null) {
-                filter.setAdditionalPaths(pathArray);
-            }
-            filter.setIsDeep(true);
+            setFilterPaths(filter, config);
 
             // exclude paths
             final Set<String> excludePaths = config.getExcludedPaths().toStringSet();
             if (!excludePaths.isEmpty()) {
                 filter.setExcludedPaths(excludePaths.toArray(new String[0]));
             }
+
+            filter.setIsDeep(true);
 
             // external
             filter.setNoExternal(!config.includeExternal());
@@ -136,13 +107,47 @@ public class JcrListenerBaseConfig implements Closeable {
         }
 
     }
+    
+    private static void setFilterPaths(@NotNull OakEventFilter filter, @NotNull ObserverConfiguration config) {
+        final Set<String> paths = config.getPaths().toStringSet();
+        int globCount = 0;
+        int pathCount = 0;
+        for (final String p : paths) {
+            if (p.startsWith(Path.GLOB_PREFIX)) {
+                globCount++;
+            } else {
+                pathCount++;
+            }
+        }
+        final String[] pathArray = pathCount > 0 ? new String[pathCount] : null;
+        final String[] globArray = globCount > 0 ? new String[globCount] : null;
+        pathCount = 0;
+        globCount = 0;
+
+        // create arrays and remove global prefix
+        for (final String p : paths) {
+            if (p.startsWith(Path.GLOB_PREFIX) && globArray != null) {
+                globArray[globCount] = p.substring(Path.GLOB_PREFIX.length());
+                globCount++;
+            } else if (pathArray != null) {
+                pathArray[pathCount] = p;
+                pathCount++;
+            }
+        }
+        if (globArray != null) {
+            filter.withIncludeGlobPaths(globArray);
+        }
+        if (pathArray != null) {
+            filter.setAdditionalPaths(pathArray);
+        }
+    }
 
     /**
      * Get the event types based on the configuration
      * @param c The configuration
      * @return The event type mask
      */
-    private static int getTypes(final ObserverConfiguration c) {
+    private static int getTypes(final @NotNull ObserverConfiguration c) {
         int result = 0;
         for (ChangeType t : c.getChangeTypes()) {
             switch (t) {

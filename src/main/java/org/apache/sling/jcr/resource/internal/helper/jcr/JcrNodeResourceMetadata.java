@@ -41,6 +41,7 @@ import javax.jcr.ValueFormatException;
 import org.apache.sling.api.resource.ResourceMetadata;
 import org.apache.sling.jcr.resource.internal.NodeUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -106,85 +107,83 @@ class JcrNodeResourceMetadata extends ResourceMetadata {
             internalPut(CREATION_TIME, creationTime);
             return creationTime;
         } else if (CONTENT_TYPE.equals(key)) {
-            String contentType = null;
-            final Node targetNode = promoteNode();
-            try {
-                Property property = NodeUtil.getPropertyOrNull(targetNode, JCR_MIMETYPE);
-                if (property != null) {
-                    contentType = property.getString();
-                }
-            } catch (final RepositoryException re) {
-                report(re);
-            }
-
+            String contentType = getPropertyString(promoteNode(), JCR_MIMETYPE);
             internalPut(CONTENT_TYPE, contentType);
             return contentType;
         } else if (CHARACTER_ENCODING.equals(key)) {
-            String characterEncoding = null;
-            final Node targetNode = promoteNode();
-            try {
-                Property property = NodeUtil.getPropertyOrNull(targetNode, JCR_ENCODING);
-                if (property != null) {
-                    characterEncoding = property.getString();
-                }
-            } catch (final RepositoryException re) {
-                report(re);
-            }
+            String characterEncoding = getPropertyString(promoteNode(), JCR_ENCODING);
             internalPut(CHARACTER_ENCODING, characterEncoding);
             return characterEncoding;
         } else if (MODIFICATION_TIME.equals(key)) {
-            long modificationTime = -1;
-            final Node targetNode = promoteNode();
-            try {
-                Property prop = NodeUtil.getPropertyOrNull(targetNode, JCR_LAST_MODIFIED);
-                if (prop != null) {
-                    // We don't check node type, so JCR_LASTMODIFIED might not be a long
-                    try {
-                        modificationTime = prop.getLong();
-                    } catch (final ValueFormatException vfe) {
-                        LOGGER.debug("Property {} cannot be converted to a long, ignored ({})",
-                                prop.getPath(), vfe);
-                    }
-                }
-            } catch (final RepositoryException re) {
-                report(re);
-            }
+            long modificationTime = getPropertyLong(promoteNode(), JCR_LAST_MODIFIED);
             internalPut(MODIFICATION_TIME, modificationTime);
             return modificationTime;
         } else if (CONTENT_LENGTH.equals(key)) {
-            long contentLength = -1;
-            final Node targetNode = promoteNode();
-            try {
-                // if the node has a jcr:data property, use that property
-                Property prop = NodeUtil.getPropertyOrNull(targetNode, JCR_DATA);
-                if (prop != null) {
-                    contentLength = JcrItemResource.getContentLength(prop);
-                } else {
-                    // otherwise try to follow default item trail
-                    Item item = getPrimaryItem(targetNode);
-                    while (item != null && item.isNode()) {
-                        item = getPrimaryItem((Node) item);
-                    }
-                    if (item != null) {
-                        final Property data = (Property) item;
-
-                        // set the content length property as a side effect
-                        // for resources which are not nt:file based and whose
-                        // data is not in jcr:content/jcr:data this will lazily
-                        // set the correct content length
-                        contentLength = JcrItemResource.getContentLength(data);
-                    }
-                }
-            } catch (final RepositoryException re) {
-                report(re);
-            }
+            long contentLength = getContentLength(promoteNode());
             internalPut(CONTENT_LENGTH, contentLength);
             return contentLength;
         }
         return null;
     }
 
-    private static Item getPrimaryItem(final Node node) throws RepositoryException {
+    private @Nullable String getPropertyString(@NotNull Node node, @NotNull String propertyName) {
+        try {
+            Property property = NodeUtil.getPropertyOrNull(node, propertyName);
+            if (property != null) {
+                return property.getString();
+            }
+        } catch (final RepositoryException re) {
+            report(re);
+        }
+        return null;
+    }
+
+    private long getPropertyLong(@NotNull Node node, @NotNull String propertyName) {
+        try {
+            Property prop = NodeUtil.getPropertyOrNull(node, propertyName);
+            if (prop != null) {
+                // We don't check node type, so the property might not be of type PropertyType.LONG
+                try {
+                    return prop.getLong();
+                } catch (final ValueFormatException vfe) {
+                    LOGGER.debug("Property {} cannot be converted to a long, ignored ({})", prop.getPath(), vfe);
+                }
+            }
+        } catch (final RepositoryException re) {
+            report(re);
+        }
+        return -1;
+    }
+    
+    private long getContentLength(@NotNull Node node) {
+        try {
+            // if the node has a jcr:data property, use that property
+            Property prop = NodeUtil.getPropertyOrNull(node, JCR_DATA);
+            if (prop != null) {
+                return JcrItemResource.getContentLength(prop);
+            } else {
+                // otherwise try to follow default item trail
+                Item item = getPrimaryItem(node);
+                while (item != null && item.isNode()) {
+                    item = getPrimaryItem((Node) item);
+                }
+                if (item != null) {
+                    final Property data = (Property) item;
+
+                    // set the content length property as a side effect
+                    // for resources which are not nt:file based and whose
+                    // data is not in jcr:content/jcr:data this will lazily
+                    // set the correct content length
+                    return JcrItemResource.getContentLength(data);
+                }
+            }
+        } catch (final RepositoryException re) {
+            report(re);
+        }
+        return -1;
+    }
+    
+    private static @Nullable Item getPrimaryItem(final @NotNull Node node) throws RepositoryException {
         String name = node.getPrimaryNodeType().getPrimaryItemName();
         if (name == null) {
             return null;

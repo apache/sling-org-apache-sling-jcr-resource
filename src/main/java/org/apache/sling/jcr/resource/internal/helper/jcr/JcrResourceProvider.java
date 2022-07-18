@@ -415,33 +415,12 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
         // check for node type
         final Object nodeObj = (properties != null ? properties.get(JcrConstants.JCR_PRIMARYTYPE) : null);
         // check for sling:resourcetype
-        final String nodeType;
-        if (nodeObj != null) {
-            nodeType = nodeObj.toString();
-        } else {
-            final Object rtObj = (properties != null ? properties.get(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY) : null);
-            boolean isNodeType = false;
-            if (rtObj != null) {
-                final String resourceType = rtObj.toString();
-                if (resourceType.indexOf(':') != -1 && resourceType.indexOf('/') == -1) {
-                    try {
-                        getSession(ctx).getWorkspace().getNodeTypeManager().getNodeType(resourceType);
-                        isNodeType = true;
-                    } catch (final RepositoryException ignore) {
-                        // we expect this, if this isn't a valid node type, therefore ignoring
-                    }
-                }
-            }
-            if (isNodeType) {
-                nodeType = rtObj.toString();
-            } else {
-                nodeType = null;
-            }
-        }
+        final String nodeType = getType(nodeObj, properties, ctx);
+        
         if (path == null) {
             throw new PersistenceException("Unable to create node at " + path, null, path, null);
         }
-        Node node = null;
+        Node node;
         try {
             final int lastPos = path.lastIndexOf('/');
             final Node parent;
@@ -458,32 +437,61 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
             }
 
             if (properties != null) {
-                // create modifiable map
-                final JcrModifiableValueMap jcrMap = new JcrModifiableValueMap(node, getHelperData(ctx));
-                // check mixin types first
-                final Object value = properties.get(JcrConstants.JCR_MIXINTYPES);
-                if (value != null) {
-                    jcrMap.put(JcrConstants.JCR_MIXINTYPES, value);
-                }
-                for (final Map.Entry<String, Object> entry : properties.entrySet()) {
-                    if (!IGNORED_PROPERTIES.contains(entry.getKey())) {
-                        try {
-                            jcrMap.put(entry.getKey(), entry.getValue());
-                        } catch (final IllegalArgumentException iae) {
-                            try {
-                                node.remove();
-                            } catch (final RepositoryException re) {
-                                // we ignore this
-                            }
-                            throw new PersistenceException(iae.getMessage(), iae, path, entry.getKey());
-                        }
-                    }
-                }
+                populateProperties(node, properties, ctx, path);
             }
 
             return new JcrNodeResource(ctx.getResourceResolver(), path, null, node, getHelperData(ctx));
         } catch (final RepositoryException e) {
             throw new PersistenceException("Unable to create node at " + path, e, path, null);
+        }
+    }
+    
+    private static @Nullable String getType(@Nullable Object nodeObj, @Nullable Map<String, Object> properties, @NotNull ResolveContext<JcrProviderState> ctx) {
+        if (nodeObj != null) {
+            return nodeObj.toString();
+        }
+
+        final Object rtObj = (properties != null ? properties.get(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY) : null);
+        boolean isNodeType = false;
+        if (rtObj != null) {
+            final String resourceType = rtObj.toString();
+            if (resourceType.indexOf(':') != -1 && resourceType.indexOf('/') == -1) {
+                try {
+                    getSession(ctx).getWorkspace().getNodeTypeManager().getNodeType(resourceType);
+                    isNodeType = true;
+                } catch (final RepositoryException ignore) {
+                    // we expect this, if this isn't a valid node type, therefore ignoring
+                }
+            }
+        }
+        if (isNodeType) {
+            return rtObj.toString();
+        } else {
+            return null;
+        }
+    }
+
+    private static void populateProperties(@NotNull Node node, @NotNull Map<String, Object> properties, @NotNull ResolveContext<JcrProviderState> ctx, @NotNull String path) throws PersistenceException {
+        // create modifiable map
+        final JcrModifiableValueMap jcrMap = new JcrModifiableValueMap(node, getHelperData(ctx));
+        // check mixin types first
+        final Object value = properties.get(JcrConstants.JCR_MIXINTYPES);
+        if (value != null) {
+            jcrMap.put(JcrConstants.JCR_MIXINTYPES, value);
+        }
+        for (final Map.Entry<String, Object> entry : properties.entrySet()) {
+            if (!IGNORED_PROPERTIES.contains(entry.getKey())) {
+                try {
+                    jcrMap.put(entry.getKey(), entry.getValue());
+                } catch (final IllegalArgumentException iae) {
+                    try {
+                        node.remove();
+                    } catch (final RepositoryException re) {
+                        // we ignore this
+                    }
+                    throw new PersistenceException(iae.getMessage(), iae, path, entry.getKey());
+                }
+            }
         }
     }
 
@@ -496,33 +504,40 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
         }
         try {
             // check if reordering necessary
-            NodeIterator nodeIterator = node.getNodes();
-            long existingNodePosition = -1;
-            long index = 0;
-            while (nodeIterator.hasNext()) {
-                Node childNode = nodeIterator.nextNode();
-                if (childNode.getName().equals(name)) {
-                    existingNodePosition = index;
-                }
-                if (existingNodePosition >= 0) {
-                    // is existing resource already at the desired position?
-                    if (childNode.getName().equals(followingSiblingName)) {
-                        if (existingNodePosition == index - 1) {
-                            return false;
-                        }
-                    }
-                    // is the existing node already the last one in the list?
-                    else if (followingSiblingName == null && existingNodePosition == nodeIterator.getSize() - 1) {
-                        return false;
-                    }
-                }
-                index++;
+            if (requiresReorder(node, name, followingSiblingName)) {
+                node.orderBefore(name, followingSiblingName);
+                return true;
             }
-            node.orderBefore(name, followingSiblingName);
-            return true;
+            return false;
         } catch (final RepositoryException e) {
             throw new PersistenceException("Unable to reorder children below " + parent.getPath(), e, parent.getPath(), null);
         }
+    }
+    
+    private static boolean requiresReorder(@NotNull Node node, @NotNull String name, @Nullable String followingSiblingName) throws RepositoryException {
+        NodeIterator nodeIterator = node.getNodes();
+        long existingNodePosition = -1;
+        long index = 0;
+        while (nodeIterator.hasNext()) {
+            Node childNode = nodeIterator.nextNode();
+            if (childNode.getName().equals(name)) {
+                existingNodePosition = index;
+            }
+            if (existingNodePosition >= 0) {
+                // is existing resource already at the desired position?
+                if (childNode.getName().equals(followingSiblingName)) {
+                    if (existingNodePosition == index - 1) {
+                        return false;
+                    }
+                }
+                // is the existing node already the last one in the list?
+                else if (followingSiblingName == null && existingNodePosition == nodeIterator.getSize() - 1) {
+                    return false;
+                }
+            }
+            index++;
+        }
+        return true;
     }
 
     @Override
