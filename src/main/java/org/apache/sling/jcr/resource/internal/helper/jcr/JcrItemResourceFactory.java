@@ -51,7 +51,7 @@ public class JcrItemResourceFactory {
 
     private final boolean isJackrabbit;
 
-    public JcrItemResourceFactory(final Session session, final HelperData helper) {
+    public JcrItemResourceFactory(final @NotNull Session session, final @NotNull HelperData helper) {
         this.helper = helper;
         this.session = session;
         this.isJackrabbit = session instanceof JackrabbitSession;
@@ -68,8 +68,8 @@ public class JcrItemResourceFactory {
      * @throws RepositoryException If an error occurrs accessing checking the
      *             item in the repository.
      */
-    public JcrItemResource<?> createResource(final ResourceResolver resourceResolver, final String resourcePath,
-                                             final Resource parent, final Map<String, String> parameters) throws RepositoryException {
+    public @Nullable JcrItemResource<?> createResource(final @NotNull ResourceResolver resourceResolver, final @NotNull String resourcePath,
+                                                       final @Nullable Resource parent, final @Nullable Map<String, String> parameters) throws RepositoryException {
         if (resourcePath == null) {
             log.debug("createResource: {} maps to an empty JCR path", resourcePath);
             return null;
@@ -140,7 +140,7 @@ public class JcrItemResourceFactory {
         return null;
     }
 
-    private static Item getSubitem(Node node, String relPath) {
+    private static @Nullable Item getSubitem(@NotNull Node node, @NotNull String relPath) {
         try {
             if (relPath.length() == 0) { // not using isEmpty() due to 1.5 compatibility
                 return node;
@@ -157,7 +157,7 @@ public class JcrItemResourceFactory {
         }
     }
 
-    private Node getFrozenNode(Node node, String versionSpecifier) throws RepositoryException {
+    private @Nullable Node getFrozenNode(@NotNull Node node, @NotNull String versionSpecifier) throws RepositoryException {
         final VersionManager versionManager = session.getWorkspace().getVersionManager();
         final VersionHistory history = versionManager.getVersionHistory(node.getPath());
         if (history.hasVersionLabel(versionSpecifier)) {
@@ -169,11 +169,11 @@ public class JcrItemResourceFactory {
         }
     }
 
-    private static boolean isVersionable(Item item) throws RepositoryException {
+    private static boolean isVersionable(@NotNull Item item) throws RepositoryException {
         return item.isNode() && ((Node) item).isNodeType(NodeType.MIX_VERSIONABLE);
     }
 
-    Item getItemOrNull(String path) {
+    @Nullable Item getItemOrNull(@NotNull String path) {
         // Check first if the path is absolute. If it isn't, then we return null because the previous itemExists method,
         // which was replaced by this method, would have returned null as well (instead of throwing an exception).
         if (path.isEmpty() || path.charAt(0) != '/') {

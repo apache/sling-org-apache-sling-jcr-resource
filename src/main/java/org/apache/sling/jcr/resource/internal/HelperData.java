@@ -25,6 +25,8 @@ import javax.jcr.Session;
 
 import org.apache.sling.api.resource.external.URIProvider;
 import org.apache.sling.commons.classloader.DynamicClassLoaderManager;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This is a helper class used to pass several services/data to the resource
@@ -39,19 +41,20 @@ public class HelperData {
 
     private volatile String[] namespacePrefixes;
 
-    public HelperData(final AtomicReference<DynamicClassLoaderManager> dynamicClassLoaderManagerReference, AtomicReference<URIProvider[]> uriProviderReference) {
+    public HelperData(final @NotNull AtomicReference<DynamicClassLoaderManager> dynamicClassLoaderManagerReference,
+                      @NotNull AtomicReference<URIProvider[]> uriProviderReference) {
         this.dynamicClassLoaderManagerReference = dynamicClassLoaderManagerReference;
         this.uriProviderReference = uriProviderReference;
     }
 
-    public String[] getNamespacePrefixes(final Session session) throws RepositoryException {
+    public @NotNull String[] getNamespacePrefixes(final @NotNull Session session) throws RepositoryException {
         if (this.namespacePrefixes == null) {
             this.namespacePrefixes = session.getNamespacePrefixes();
         }
         return this.namespacePrefixes;
     }
 
-    public ClassLoader getDynamicClassLoader() {
+    public @Nullable ClassLoader getDynamicClassLoader() {
         final DynamicClassLoaderManager dclm = this.dynamicClassLoaderManagerReference.get();
         if (dclm == null) {
             return null;
@@ -59,7 +62,7 @@ public class HelperData {
         return dclm.getDynamicClassLoader();
     }
 
-    public URIProvider[] getURIProviders() {
+    public @NotNull URIProvider[] getURIProviders() {
         URIProvider[] ups = this.uriProviderReference.get();
         if (ups == null) {
             ups = EMPTY_URLPROVIDERS;

@@ -18,6 +18,8 @@
  */
 package org.apache.sling.jcr.resource.internal.helper;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -36,7 +38,7 @@ public class LazyInputStream extends InputStream {
     /** The inputstream created on demand, null if not used */
     private InputStream delegatee;
 
-    public LazyInputStream(Value value) {
+    public LazyInputStream(@NotNull Value value) {
         this.value = value;
     }
 
@@ -100,7 +102,7 @@ public class LazyInputStream extends InputStream {
     }
 
     /** Actually retrieves the input stream from the underlying JCR Value */
-    private InputStream getStream() throws IOException {
+    private @NotNull InputStream getStream() throws IOException {
         if (delegatee == null) {
             try {
                 delegatee = value.getBinary().getStream();

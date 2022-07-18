@@ -58,7 +58,7 @@ public class JcrExternalizableInputStream extends InputStream implements Externa
         return getInputStream().read();
     }
 
-    private InputStream getInputStream() throws IOException {
+    private @NotNull InputStream getInputStream() throws IOException {
         if (inputStream == null) {
             try {
                 // perform lazy initialisation so that a consumer of

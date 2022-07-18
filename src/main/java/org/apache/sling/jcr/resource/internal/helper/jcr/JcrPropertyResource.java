@@ -53,10 +53,10 @@ class JcrPropertyResource extends JcrItemResource<Property> { // this should be 
 
     private final String resourceType;
 
-    public JcrPropertyResource(final ResourceResolver resourceResolver,
-                               final String path,
-                               final String version,
-                               final Property property) throws RepositoryException {
+    public JcrPropertyResource(final @NotNull ResourceResolver resourceResolver,
+                               final @NotNull String path,
+                               final @Nullable String version,
+                               final @NotNull Property property) throws RepositoryException {
         super(resourceResolver, path, version, property, new ResourceMetadata());
         this.resourceType = getResourceTypeForNode(property.getParent())
                 + "/" + property.getName();
@@ -207,11 +207,11 @@ class JcrPropertyResource extends JcrItemResource<Property> { // this should be 
         return getClass().getSimpleName() + ", type=" + getResourceType() + ", path=" + getPath();
     }
 
-    private Property getProperty() {
+    private @NotNull Property getProperty() {
         return getItem();
     }
 
-    private InputStream getInputStream() {
+    private @Nullable InputStream getInputStream() {
         Property prop = getProperty();
 
         try {
@@ -225,7 +225,7 @@ class JcrPropertyResource extends JcrItemResource<Property> { // this should be 
     }
 
     @Override
-    Iterator<Resource> listJcrChildren() {
+    @Nullable Iterator<Resource> listJcrChildren() {
         return null;
     }
 

@@ -37,6 +37,7 @@ import javax.jcr.RepositoryException;
 import javax.jcr.nodetype.NodeType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class NodeUtil {
     
@@ -49,7 +50,7 @@ public abstract class NodeUtil {
      * @param mixinTypes the mixins
      * @throws RepositoryException if the repository's namespaced prefixes cannot be retrieved
      */
-    public static void handleMixinTypes(final Node node, final String[] mixinTypes) throws RepositoryException {
+    public static void handleMixinTypes(final @NotNull Node node, final @Nullable String[] mixinTypes) throws RepositoryException {
         final Set<String> newTypes = new HashSet<>();
         if (mixinTypes != null) {
             Collections.addAll(newTypes, mixinTypes);

@@ -18,6 +18,9 @@
  */
 package org.apache.sling.jcr.resource.internal.helper;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
@@ -52,7 +55,7 @@ public class JcrResourceUtil {
      * @return the query's result
      * @throws RepositoryException if the {@link QueryManager} cannot be retrieved
      */
-    public static QueryResult query(Session session, String query, String language) throws RepositoryException {
+    public static @NotNull QueryResult query(@NotNull Session session, @NotNull String query, @NotNull String language) throws RepositoryException {
         QueryManager qManager = session.getWorkspace().getQueryManager();
         Query q = qManager.createQuery(query, language);
         return q.execute();
@@ -65,7 +68,7 @@ public class JcrResourceUtil {
      * @return the Java Object
      * @throws RepositoryException if the value cannot be converted
      */
-    public static Object toJavaObject(Value value) throws RepositoryException {
+    public static @NotNull Object toJavaObject(@NotNull Value value) throws RepositoryException {
         switch (value.getType()) {
             case PropertyType.DECIMAL:
                 return value.getDecimal();
@@ -98,7 +101,7 @@ public class JcrResourceUtil {
      * @throws RepositoryException if the conversion cannot take place
      * @return the Object resulting from the conversion
      */
-    public static Object toJavaObject(Property property)
+    public static @NotNull Object toJavaObject(@NotNull Property property)
             throws RepositoryException {
         // multi-value property: return an array of values
         if (property.isMultiple()) {
@@ -144,7 +147,7 @@ public class JcrResourceUtil {
      * @return the value or null if not convertible to a valid PropertyType
      * @throws RepositoryException in case of error, accessing the Repository
      */
-    public static Value createValue(final Object value, final Session session) throws RepositoryException {
+    public static @Nullable Value createValue(final @NotNull Object value, final @NotNull Session session) throws RepositoryException {
         Value val;
         ValueFactory fac = session.getValueFactory();
         if (value instanceof ZonedDateTime) {

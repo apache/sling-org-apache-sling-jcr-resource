@@ -56,11 +56,11 @@ class JcrNodeResourceMetadata extends ResourceMetadata {
     private long creationTime = -1;
     private boolean populated = false;
 
-    public JcrNodeResourceMetadata(final Node inNode) {
+    public JcrNodeResourceMetadata(final @NotNull Node inNode) {
         this.node = inNode;
     }
 
-    private Node promoteNode() {
+    private @NotNull Node promoteNode() {
         // check stuff for nt:file nodes
         try {
             if ((!nodePromotionChecked) &&

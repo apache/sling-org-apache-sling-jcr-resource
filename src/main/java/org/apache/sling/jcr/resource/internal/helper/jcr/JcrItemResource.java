@@ -34,6 +34,7 @@ import org.apache.sling.api.resource.ResourceMetadata;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.jcr.resource.api.JcrResourceConstants;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,11 +56,11 @@ abstract class JcrItemResource<T extends Item> // this should be package private
 
     private final ResourceMetadata metadata;
 
-    protected JcrItemResource(final ResourceResolver resourceResolver,
-                              final String path,
-                              final String version,
-                              final T item,
-                              final ResourceMetadata metadata) {
+    protected JcrItemResource(final @NotNull ResourceResolver resourceResolver,
+                              final @NotNull String path,
+                              final @Nullable String version,
+                              final @NotNull T item,
+                              final @NotNull ResourceMetadata metadata) {
 
         this.resourceResolver = resourceResolver;
         this.path = path;
@@ -105,7 +106,7 @@ abstract class JcrItemResource<T extends Item> // this should be package private
      * @return a {@link javax.jcr.Node} or a {@link javax.jcr.Property}, depending
      *         on the implementation
      */
-    protected T getItem() {
+    protected @NotNull T getItem() {
         return item;
     }
 
@@ -114,8 +115,8 @@ abstract class JcrItemResource<T extends Item> // this should be package private
      * SLING_RESOURCE_TYPE_PROPERTY, or the node's primary node type, if the
      * property is not set
      */
-    protected String getResourceTypeForNode(final Node node)
-            throws RepositoryException {
+    @NotNull
+    protected String getResourceTypeForNode(final @NotNull Node node) throws RepositoryException {
         String result = null;
 
         if (node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)) {
@@ -135,7 +136,7 @@ abstract class JcrItemResource<T extends Item> // this should be package private
         return result;
     }
 
-    public static long getContentLength(final Property property) throws RepositoryException {
+    public static long getContentLength(final @NotNull Property property) throws RepositoryException {
         if (property.isMultiple()) {
             return -1;
         }
@@ -159,6 +160,6 @@ abstract class JcrItemResource<T extends Item> // this should be package private
      * Returns an iterator over the child resources or <code>null</code> if
      * there are none.
      */
-    abstract Iterator<Resource> listJcrChildren();
+    @Nullable abstract Iterator<Resource> listJcrChildren();
 
 }

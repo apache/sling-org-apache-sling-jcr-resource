@@ -42,6 +42,7 @@ import org.apache.sling.jcr.resource.internal.JcrModifiableValueMap;
 import org.apache.sling.jcr.resource.internal.JcrValueMap;
 import org.apache.sling.jcr.resource.internal.NodeUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,11 +73,11 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
      * @param node The Node underlying this resource
      * @param helper The helper providing access to dynamic class loader for loading serialized objects and uri provider reference.
      */
-    public JcrNodeResource(final ResourceResolver resourceResolver,
-                           final String path,
-                           final String version,
-                           final Node node,
-                           final HelperData helper) {
+    public JcrNodeResource(final @NotNull ResourceResolver resourceResolver,
+                           final @NotNull String path,
+                           final @Nullable String version,
+                           final @NotNull Node node,
+                           final @NotNull HelperData helper) {
         super(resourceResolver, path, version, node, new JcrNodeResourceMetadata(node));
         this.helper = helper;
         this.resourceSuperType = UNSET_RESOURCE_SUPER_TYPE;
@@ -160,7 +161,7 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
 
     // ---------- internal -----------------------------------------------------
 
-    private Node getNode() {
+    private @NotNull Node getNode() {
         return getItem();
     }
 
@@ -169,32 +170,30 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
      * {@link #getNode() node} is an <em>nt:file</em> or <em>nt:resource</em>
      * node. Otherwise returns <code>null</code>.
      */
-    private InputStream getInputStream() {
+    private @Nullable InputStream getInputStream() {
         // implement this for nt:file only
         final Node node = getNode();
-        if (node != null) {
+        try {
+            Property data;
             try {
-                Property data;
-                try {
-                    data = NodeUtil.getPrimaryProperty(node);
-                } catch (ItemNotFoundException infe) {
-                    // we don't actually care, but log for completeness
-                    LOGGER.debug("getInputStream: No primary items for {}", this, infe);
-                    data = null;
-                }
-
-                URI uri = convertToPublicURI();
-                if (uri != null) {
-                    return new JcrExternalizableInputStream(data, uri);
-                }
-                if (data != null) {
-                    return data.getBinary().getStream();
-                }
-
-            } catch (RepositoryException re) {
-                LOGGER.error("getInputStream: Cannot get InputStream for " + this,
-                        re);
+                data = NodeUtil.getPrimaryProperty(node);
+            } catch (ItemNotFoundException infe) {
+                // we don't actually care, but log for completeness
+                LOGGER.debug("getInputStream: No primary items for {}", this, infe);
+                data = null;
             }
+
+            URI uri = convertToPublicURI();
+            if (uri != null) {
+                return new JcrExternalizableInputStream(data, uri);
+            }
+            if (data != null) {
+                return data.getBinary().getStream();
+            }
+
+        } catch (RepositoryException re) {
+            LOGGER.error("getInputStream: Cannot get InputStream for " + this,
+                    re);
         }
 
         // fallback to non-streamable resource
@@ -206,7 +205,7 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
      * public URI provided.
      * @return a public URI.
      */
-    private URI convertToPublicURI() {
+    private @Nullable URI convertToPublicURI() {
         for (URIProvider up : helper.getURIProviders()) {
             try {
                 return up.toURI(this, URIProvider.Scope.EXTERNAL, URIProvider.Operation.READ);
@@ -221,7 +220,7 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
     // ---------- Descendable interface ----------------------------------------
 
     @Override
-    Iterator<Resource> listJcrChildren() {
+    @Nullable Iterator<Resource> listJcrChildren() {
         try {
             if (getNode().hasNodes()) {
                 return new JcrNodeResourceIterator(getResourceResolver(), path, version,

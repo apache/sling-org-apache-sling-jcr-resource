@@ -40,7 +40,7 @@ public class JcrModifiableValueMap extends JcrValueMap implements ModifiableValu
      * @param node The underlying node.
      * @param helper Helper data object
      */
-    public JcrModifiableValueMap(final Node node, final HelperData helper) {
+    public JcrModifiableValueMap(final @NotNull Node node, final @NotNull HelperData helper) {
         super(node, helper);
     }
 

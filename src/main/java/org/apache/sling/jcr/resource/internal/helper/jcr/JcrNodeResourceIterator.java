@@ -29,6 +29,8 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.path.PathSet;
 import org.apache.sling.jcr.resource.internal.HelperData;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -112,12 +114,12 @@ public class JcrNodeResourceIterator implements Iterator<Resource> {
         throw new UnsupportedOperationException();
     }
 
-    private Resource seek() {
+    private @Nullable Resource seek() {
         while (nodes.hasNext()) {
             try {
                 final Node n = nodes.nextNode();
                 final String path = getPath(n);
-                if (path != null && this.excludedPaths.matches(path) == null) {
+                if (this.excludedPaths.matches(path) == null) {
                     final Resource resource = new JcrNodeResource(resourceResolver,
                             path, parentVersion, n, helper);
                     LOGGER.debug("seek: Returning Resource {}", resource);
@@ -133,7 +135,7 @@ public class JcrNodeResourceIterator implements Iterator<Resource> {
         return null;
     }
 
-    private String getPath(final Node node) throws RepositoryException {
+    private @NotNull String getPath(final @NotNull Node node) throws RepositoryException {
         final String path;
         if (parentPath == null) {
             path = node.getPath();
