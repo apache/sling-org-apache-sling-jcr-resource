@@ -120,8 +120,7 @@ public abstract class NodeUtil {
     public static @Nullable Property getPropertyOrNull (@NotNull Node node, @NotNull String propertyName) throws RepositoryException {
         if (node instanceof JackrabbitNode) {
             JackrabbitNode jnode = (JackrabbitNode) node;
-            Property prop = jnode.getPropertyOrNull(propertyName);
-            return prop;
+            return jnode.getPropertyOrNull(propertyName);
         } else {
             if (node.hasProperty(propertyName)) {
                 return node.getProperty(propertyName);
