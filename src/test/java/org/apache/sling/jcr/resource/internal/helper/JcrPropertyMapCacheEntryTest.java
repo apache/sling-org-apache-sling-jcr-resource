@@ -185,11 +185,12 @@ public class JcrPropertyMapCacheEntryTest {
         Double[] result = entry.convertToType(Double[].class, node, null);
         assertNotNull(result);
         assertEquals(1, result.length);
-        assertEquals(Double.valueOf(10.7), result[0]);
+        assertEquals(Double.valueOf(4.0), result[0]);
         
         verify(prop, times(2)).isMultiple();
         verify(prop).getValue();
         verify(prop).getType();
+        verify(prop).getLength();
         verifyNoMoreInteractions(prop);
         verifyZeroInteractions(node);
     }

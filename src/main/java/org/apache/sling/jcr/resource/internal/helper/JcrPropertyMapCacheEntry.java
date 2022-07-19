@@ -223,10 +223,10 @@ public class JcrPropertyMapCacheEntry {
                 }
 
             } else {
-
+                // source is not multivalued
                 final Object sourceObject = this.getPropertyValue();
                 if (targetIsArray) {
-                    result = (T) convertToArray(new Object[]{sourceObject}, type.getComponentType(), node, dynamicClassLoader);
+                    result = (T) convertToArray(sourceObject, type.getComponentType(), node, dynamicClassLoader);
                 } else {
                     result = convertToType(-1, sourceObject, type, node, dynamicClassLoader);
                 }
@@ -242,6 +242,21 @@ public class JcrPropertyMapCacheEntry {
         return result;
     }
 
+    private @NotNull<T> T[] convertToArray(final @NotNull Object source,
+                                           final @NotNull Class<T> type,
+                                           final @NotNull Node node,
+                                           final @Nullable ClassLoader dynamicClassLoader) throws RepositoryException {
+        List<T> values = new ArrayList<>();
+        T value = convertToType(-1, source, type, node, dynamicClassLoader);
+        if (value != null) {
+            values.add(value);
+        }
+
+        @SuppressWarnings("unchecked")
+        T[] result = (T[]) Array.newInstance(type, values.size());
+        return values.toArray(result);
+    }
+    
     private @NotNull<T> T[] convertToArray(final @NotNull Object[] sourceArray,
                                            final @NotNull Class<T> type,
                                            final @NotNull Node node,
