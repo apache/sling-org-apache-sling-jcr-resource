@@ -274,45 +274,7 @@ public class JcrValueMap implements ValueMap {
         }
         // if the name is a path, we should handle this differently
         if (name.indexOf('/') != -1) {
-            // first a compatibility check with the old (wrong) ISO9075
-            // encoding
-            final String path = ISO9075.encodePath(name);
-            try {
-                Property property = NodeUtil.getPropertyOrNull(node, path);
-                if (property != null) {
-                    return new JcrPropertyMapCacheEntry(property);
-                }
-            } catch (final RepositoryException re) {
-                throw new IllegalArgumentException(re);
-            }
-            // now we do a proper segment by segment encoding
-            final StringBuilder sb = new StringBuilder();
-            int pos = 0;
-            int lastPos = -1;
-            while (pos < name.length()) {
-                if (name.charAt(pos) == '/') {
-                    if (lastPos + 1 < pos) {
-                        sb.append(Text.escapeIllegalJcrChars(name.substring(lastPos + 1, pos)));
-                    }
-                    sb.append('/');
-                    lastPos = pos;
-                }
-                pos++;
-            }
-            if (lastPos + 1 < pos) {
-                sb.append(Text.escapeIllegalJcrChars(name.substring(lastPos + 1)));
-            }
-            final String newPath = sb.toString();
-            try {
-                Property property = NodeUtil.getPropertyOrNull(node,newPath);
-                if (property != null) {
-                    return new JcrPropertyMapCacheEntry(property);
-                }
-            } catch (final RepositoryException re) {
-                throw new IllegalArgumentException(re);
-            }
-
-            return null;
+            return readPath(name);
         }
 
         // check cache
@@ -330,20 +292,47 @@ public class JcrValueMap implements ValueMap {
         } catch (final RepositoryException re) {
             throw new IllegalArgumentException(re);
         }
+        return null;
+    }
 
+    private @Nullable JcrPropertyMapCacheEntry readPath(@NotNull String name) {
+        // first a compatibility check with the old (wrong) ISO9075 encoding
+        final String path = ISO9075.encodePath(name);
         try {
-            // for compatibility with older versions we use the (wrong) ISO9075 path
-            // encoding
-            final String oldKey = ISO9075.encodePath(name);
-            Property property = NodeUtil.getPropertyOrNull(node,oldKey);
+            Property property = NodeUtil.getPropertyOrNull(node, path);
             if (property != null) {
-                return cacheProperty(property);
+                return new JcrPropertyMapCacheEntry(property);
             }
         } catch (final RepositoryException re) {
-            // we ignore this
+            throw new IllegalArgumentException(re);
+        }
+        // now we do a proper segment by segment encoding
+        final StringBuilder sb = new StringBuilder();
+        int pos = 0;
+        int lastPos = -1;
+        while (pos < name.length()) {
+            if (name.charAt(pos) == '/') {
+                if (lastPos + 1 < pos) {
+                    sb.append(Text.escapeIllegalJcrChars(name.substring(lastPos + 1, pos)));
+                }
+                sb.append('/');
+                lastPos = pos;
+            }
+            pos++;
+        }
+        if (lastPos + 1 < pos) {
+            sb.append(Text.escapeIllegalJcrChars(name.substring(lastPos + 1)));
+        }
+        final String newPath = sb.toString();
+        try {
+            Property property = NodeUtil.getPropertyOrNull(node,newPath);
+            if (property != null) {
+                return new JcrPropertyMapCacheEntry(property);
+            }
+        } catch (final RepositoryException re) {
+            throw new IllegalArgumentException(re);
         }
 
-        // property not found
         return null;
     }
 

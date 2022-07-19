@@ -82,12 +82,8 @@ public class JcrResourceUtil {
                 return value.getDouble();
             case PropertyType.LONG:
                 return value.getLong();
-            case PropertyType.NAME: // fall through
-            case PropertyType.PATH: // fall through
-            case PropertyType.REFERENCE: // fall through
-            case PropertyType.STRING: // fall through
-            case PropertyType.UNDEFINED: // not actually expected
-            default: // not actually expected
+            // all other types (NAME, PATH, REFERENCE, WEAKREFERENCE, STRING, URI, UNDEFINED) fallback to string representation
+            default:
                 return value.getString();
         }
     }
@@ -107,22 +103,7 @@ public class JcrResourceUtil {
         if (property.isMultiple()) {
             Value[] values = property.getValues();
             final Object firstValue = values.length > 0 ? toJavaObject(values[0]) : null;
-            final Object[] result;
-            if (firstValue instanceof Boolean) {
-                result = new Boolean[values.length];
-            } else if (firstValue instanceof Calendar) {
-                result = new Calendar[values.length];
-            } else if (firstValue instanceof Double) {
-                result = new Double[values.length];
-            } else if (firstValue instanceof Long) {
-                result = new Long[values.length];
-            } else if (firstValue instanceof BigDecimal) {
-                result = new BigDecimal[values.length];
-            } else if (firstValue instanceof InputStream) {
-                result = new Object[values.length];
-            } else {
-                result = new String[values.length];
-            }
+            final Object[] result = createArray(firstValue, values.length);
             for (int i = 0; i < values.length; i++) {
                 Value value = values[i];
                 if (value != null) {
@@ -134,6 +115,26 @@ public class JcrResourceUtil {
 
         // single value property
         return toJavaObject(property.getValue());
+    }
+    
+    private static @NotNull Object[] createArray(@Nullable Object firstValue, int length) {
+        Object[] result;
+        if (firstValue instanceof Boolean) {
+            result = new Boolean[length];
+        } else if (firstValue instanceof Calendar) {
+            result = new Calendar[length];
+        } else if (firstValue instanceof Double) {
+            result = new Double[length];
+        } else if (firstValue instanceof Long) {
+            result = new Long[length];
+        } else if (firstValue instanceof BigDecimal) {
+            result = new BigDecimal[length];
+        } else if (firstValue instanceof InputStream) {
+            result = new Object[length];
+        } else {
+            result = new String[length];
+        }
+        return result;
     }
 
     /**
