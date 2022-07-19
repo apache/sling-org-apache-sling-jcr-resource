@@ -299,6 +299,11 @@ public class JcrPropertyMapCacheEntry {
 
                 // any number: length of binary
             } else if (Number.class.isAssignableFrom(type)) {
+                // avoid NPE if this instance has not been created from a property (see SLING-11465)
+                if (property == null) {
+                    return null;
+                } 
+                
                 if (index == -1) {
                     value = Long.valueOf(this.property.getLength());
                 } else {

@@ -135,7 +135,7 @@ public class JcrPropertyMapCacheEntryTest {
         JcrPropertyMapCacheEntry entry = new JcrPropertyMapCacheEntry(in, node);
 
         Long result = entry.convertToType(Long.class, node, null);
-        assertEquals(Long.valueOf(2), result);
+        assertNull(result);
         verifyZeroInteractions(node);
     }
 
@@ -146,8 +146,7 @@ public class JcrPropertyMapCacheEntryTest {
 
         Integer[] result = entry.convertToType(Integer[].class, node, null);
         assertNotNull(result);
-        assertEquals(1, result.length);
-        assertEquals(Integer.valueOf(2), result[0]);
+        assertEquals(0, result.length);
         verifyZeroInteractions(node);
     }
     
