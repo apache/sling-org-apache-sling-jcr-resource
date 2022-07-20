@@ -79,18 +79,13 @@ import static org.apache.sling.jcr.resource.internal.helper.jcr.ContextUtil.getH
 import static org.apache.sling.jcr.resource.internal.helper.jcr.ContextUtil.getResourceFactory;
 import static org.apache.sling.jcr.resource.internal.helper.jcr.ContextUtil.getSession;
 
-@Component(name="org.apache.sling.jcr.resource.internal.helper.jcr.JcrResourceProviderFactory",
-           service = ResourceProvider.class,
-           property = {
-                   ResourceProvider.PROPERTY_NAME + "=JCR",
-                   ResourceProvider.PROPERTY_ROOT + "=/",
-                   ResourceProvider.PROPERTY_MODIFIABLE + ":Boolean=true",
-                   ResourceProvider.PROPERTY_ADAPTABLE + ":Boolean=true",
-                   ResourceProvider.PROPERTY_ATTRIBUTABLE + ":Boolean=true",
-                   ResourceProvider.PROPERTY_REFRESHABLE + ":Boolean=true",
-                   ResourceProvider.PROPERTY_AUTHENTICATE + "=" + ResourceProvider.AUTHENTICATE_REQUIRED,
-                   Constants.SERVICE_VENDOR + "=The Apache Software Foundation"
-           })
+@Component(name = "org.apache.sling.jcr.resource.internal.helper.jcr.JcrResourceProviderFactory", service = ResourceProvider.class, property = {
+        ResourceProvider.PROPERTY_NAME + "=JCR", ResourceProvider.PROPERTY_ROOT + "=/",
+        ResourceProvider.PROPERTY_MODIFIABLE + ":Boolean=true", ResourceProvider.PROPERTY_ADAPTABLE + ":Boolean=true",
+        ResourceProvider.PROPERTY_ATTRIBUTABLE + ":Boolean=true",
+        ResourceProvider.PROPERTY_REFRESHABLE + ":Boolean=true",
+        ResourceProvider.PROPERTY_AUTHENTICATE + "=" + ResourceProvider.AUTHENTICATE_REQUIRED,
+        Constants.SERVICE_VENDOR + "=The Apache Software Foundation" })
 public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
 
     /** Logger */
@@ -116,10 +111,12 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     private final Map<ObserverConfiguration, Closeable> listeners = new HashMap<>();
 
     /**
-     * Map of bound URIProviders sorted by service ranking in descending order (highest ranking first).
-     * Key = service reference, value = service implementation
+     * Map of bound URIProviders sorted by service ranking in descending order
+     * (highest ranking first). Key = service reference, value = service
+     * implementation
      */
-    private final SortedMap<ServiceReference<URIProvider>, URIProvider> providers = Collections.synchronizedSortedMap(new TreeMap<>(Collections.reverseOrder()));
+    private final SortedMap<ServiceReference<URIProvider>, URIProvider> providers = Collections
+            .synchronizedSortedMap(new TreeMap<>(Collections.reverseOrder()));
 
     private volatile SlingRepository repository;
 
@@ -131,8 +128,7 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
 
     @Activate
     protected void activate(final ComponentContext context) {
-        SlingRepository slingRepository = context.locateService(REPOSITORY_REFERENCE_NAME,
-                this.repositoryReference);
+        SlingRepository slingRepository = context.locateService(REPOSITORY_REFERENCE_NAME, this.repositoryReference);
         if (slingRepository == null) {
             // concurrent unregistration of SlingRepository service
             // don't care, this component is going to be deactivated
@@ -152,27 +148,18 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
         this.stateFactory = null;
     }
 
-    @Reference(name = "dynamicClassLoaderManager",
-            service = DynamicClassLoaderManager.class,
-            cardinality = ReferenceCardinality.OPTIONAL, policy = ReferencePolicy.DYNAMIC)
+    @Reference(name = "dynamicClassLoaderManager", service = DynamicClassLoaderManager.class, cardinality = ReferenceCardinality.OPTIONAL, policy = ReferencePolicy.DYNAMIC)
     @SuppressWarnings("unused")
     protected void bindDynamicClassLoaderManager(final DynamicClassLoaderManager dynamicClassLoaderManager) {
         this.classLoaderManagerReference.set(dynamicClassLoaderManager);
     }
-    
+
     @SuppressWarnings("unused")
     protected void unbindDynamicClassLoaderManager(final DynamicClassLoaderManager dynamicClassLoaderManager) {
         this.classLoaderManagerReference.compareAndSet(dynamicClassLoaderManager, null);
     }
 
-    @Reference(
-            name = "uriprovider",
-            service = URIProvider.class,
-            cardinality = ReferenceCardinality.MULTIPLE,
-            policy = ReferencePolicy.DYNAMIC,
-            bind = "bindUriProvider",
-            unbind = "unbindUriProvider"
-    )
+    @Reference(name = "uriprovider", service = URIProvider.class, cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC, bind = "bindUriProvider", unbind = "unbindUriProvider")
     @SuppressWarnings("unused")
     private void bindUriProvider(ServiceReference<URIProvider> srUriProvider, URIProvider uriProvider) {
         providers.put(srUriProvider, uriProvider);
@@ -231,7 +218,8 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
             try {
                 this.listenerConfig = new JcrListenerBaseConfig(this.getProviderContext().getObservationReporter(),
                         this.repository);
-                for (final ObserverConfiguration config : this.getProviderContext().getObservationReporter().getObserverConfigurations()) {
+                for (final ObserverConfiguration config : this.getProviderContext().getObservationReporter()
+                        .getObserverConfigurations()) {
                     logger.debug("Registering listener for {}", config.getPaths());
                     final Closeable listener = new JcrResourceListener(this.listenerConfig, config);
                     this.listeners.put(config, listener);
@@ -276,7 +264,8 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
             final Map<ObserverConfiguration, Closeable> oldMap = new HashMap<>(this.listeners);
             this.listeners.clear();
             try {
-                for (final ObserverConfiguration config : this.getProviderContext().getObservationReporter().getObserverConfigurations()) {
+                for (final ObserverConfiguration config : this.getProviderContext().getObservationReporter()
+                        .getObserverConfigurations()) {
                     // check if such a listener already exists
                     Closeable listener = oldMap.remove(config);
                     if (listener == null) {
@@ -327,10 +316,11 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
 
     @Override
     @Nullable
-    public Resource getResource(@NotNull ResolveContext<JcrProviderState> ctx, @NotNull String path, 
-                                @NotNull ResourceContext rCtx, @Nullable Resource parent) {
+    public Resource getResource(@NotNull ResolveContext<JcrProviderState> ctx, @NotNull String path,
+            @NotNull ResourceContext rCtx, @Nullable Resource parent) {
         try {
-            return getResourceFactory(ctx).createResource(ctx.getResourceResolver(), path, parent, rCtx.getResolveParameters());
+            return getResourceFactory(ctx).createResource(ctx.getResourceResolver(), path, parent,
+                    rCtx.getResolveParameters());
         } catch (RepositoryException e) {
             throw new SlingException("Can't get resource", e);
         }
@@ -348,22 +338,20 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
             // try to get the JcrItemResource for the parent path to list
             // children
             try {
-                parentItemResource = getResourceFactory(ctx).createResource(
-                        parent.getResourceResolver(), parent.getPath(), null,
-                        parent.getResourceMetadata().getParameterMap());
+                parentItemResource = getResourceFactory(ctx).createResource(parent.getResourceResolver(),
+                        parent.getPath(), null, parent.getResourceMetadata().getParameterMap());
             } catch (RepositoryException re) {
                 throw new SlingException("Can't list children", re);
             }
         }
 
         // return children if there is a parent item resource, else null
-        return (parentItemResource != null)
-                ? parentItemResource.listJcrChildren()
-                : null;
+        return (parentItemResource != null) ? parentItemResource.listJcrChildren() : null;
     }
 
     @Override
-    public @Nullable Resource getParent(final @NotNull ResolveContext<JcrProviderState> ctx, final @NotNull Resource child) {
+    public @Nullable Resource getParent(final @NotNull ResolveContext<JcrProviderState> ctx,
+            final @NotNull Resource child) {
         if (child instanceof JcrItemResource<?>) {
             String version = null;
             if (child.getResourceMetadata().getParameterMap() != null) {
@@ -375,7 +363,8 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
                     Item childItem = ((JcrItemResource) child).getItem();
                     Node parentNode = getResourceFactory(ctx).getParentOrNull(childItem, parentPath);
                     if (parentNode != null) {
-                        return new JcrNodeResource(ctx.getResourceResolver(), parentPath, null, parentNode, getHelperData(ctx));
+                        return new JcrNodeResource(ctx.getResourceResolver(), parentPath, null, parentNode,
+                                getHelperData(ctx));
                     }
                 }
             }
@@ -411,17 +400,14 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
 
     @Override
     @NotNull
-    public Resource create(final @NotNull ResolveContext<JcrProviderState> ctx, final String path, final Map<String, Object> properties) throws PersistenceException {
-        // check for node type
-        final Object nodeObj = (properties != null ? properties.get(JcrConstants.JCR_PRIMARYTYPE) : null);
-        // check for sling:resourcetype
-        final String nodeType = getType(nodeObj, properties, ctx);
-        
+    public Resource create(final @NotNull ResolveContext<JcrProviderState> ctx, @Nullable final String path,
+            @Nullable final Map<String, Object> properties) throws PersistenceException {
+
         if (path == null) {
-            throw new PersistenceException("Unable to create node at " + path, null, path, null);
+            throw new PersistenceException("Unable to create node with [path=null]");
         }
-        Node node;
         try {
+            Node node;
             final int lastPos = path.lastIndexOf('/');
             final Node parent;
             if (lastPos == 0) {
@@ -430,6 +416,8 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
                 parent = (Node) getSession(ctx).getItem(path.substring(0, lastPos));
             }
             final String name = path.substring(lastPos + 1);
+            // extract the nodetype
+            final String nodeType = getNodeType(properties, ctx);
             if (nodeType != null) {
                 node = parent.addNode(name, nodeType);
             } else {
@@ -445,33 +433,40 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
             throw new PersistenceException("Unable to create node at " + path, e, path, null);
         }
     }
-    
-    private static @Nullable String getType(@Nullable Object nodeObj, @Nullable Map<String, Object> properties, @NotNull ResolveContext<JcrProviderState> ctx) {
-        if (nodeObj != null) {
-            return nodeObj.toString();
+
+    private static @Nullable String getNodeType(@Nullable Map<String, Object> properties,
+            @NotNull ResolveContext<JcrProviderState> ctx) {
+        if (properties == null) {
+            return null;
         }
 
-        final Object rtObj = (properties != null ? properties.get(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY) : null);
-        boolean isNodeType = false;
-        if (rtObj != null) {
-            final String resourceType = rtObj.toString();
-            if (resourceType.indexOf(':') != -1 && resourceType.indexOf('/') == -1) {
+        final Object primaryTypeObj = properties.get(JcrConstants.JCR_PRIMARYTYPE);
+        if (primaryTypeObj != null) {
+            return primaryTypeObj.toString();
+        }
+
+        final Object resourceTypeObject = properties.get(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY);
+        if (resourceTypeObject != null) {
+            String resourceType = resourceTypeObject.toString();
+            if (looksLikeANodeType(resourceType)) {
                 try {
+                    // validate if it's really a nodetype
                     getSession(ctx).getWorkspace().getNodeTypeManager().getNodeType(resourceType);
-                    isNodeType = true;
+                    return resourceType;
                 } catch (final RepositoryException ignore) {
                     // we expect this, if this isn't a valid node type, therefore ignoring
                 }
             }
         }
-        if (isNodeType) {
-            return rtObj.toString();
-        } else {
-            return null;
-        }
+        return null;
     }
 
-    private static void populateProperties(@NotNull Node node, @NotNull Map<String, Object> properties, @NotNull ResolveContext<JcrProviderState> ctx, @NotNull String path) throws PersistenceException {
+    private static boolean looksLikeANodeType(final String resourceType) {
+        return resourceType.indexOf(':') != -1 && resourceType.indexOf('/') == -1;
+    }
+
+    private static void populateProperties(@NotNull Node node, @NotNull Map<String, Object> properties,
+            @NotNull ResolveContext<JcrProviderState> ctx, @NotNull String path) throws PersistenceException {
         // create modifiable map
         final JcrModifiableValueMap jcrMap = new JcrModifiableValueMap(node, getHelperData(ctx));
         // check mixin types first
@@ -496,11 +491,12 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     }
 
     @Override
-    public boolean orderBefore(@NotNull ResolveContext<JcrProviderState> ctx, @NotNull Resource parent, @NotNull String name,
-                               @Nullable String followingSiblingName) throws PersistenceException {
+    public boolean orderBefore(@NotNull ResolveContext<JcrProviderState> ctx, @NotNull Resource parent,
+            @NotNull String name, @Nullable String followingSiblingName) throws PersistenceException {
         Node node = parent.adaptTo(Node.class);
         if (node == null) {
-            throw new PersistenceException("The resource " + parent.getPath() + " cannot be adapted to Node. It is probably not provided by the JcrResourceProvider");
+            throw new PersistenceException("The resource " + parent.getPath()
+                    + " cannot be adapted to Node. It is probably not provided by the JcrResourceProvider");
         }
         try {
             // check if reordering necessary
@@ -510,11 +506,13 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
             }
             return false;
         } catch (final RepositoryException e) {
-            throw new PersistenceException("Unable to reorder children below " + parent.getPath(), e, parent.getPath(), null);
+            throw new PersistenceException("Unable to reorder children below " + parent.getPath(), e, parent.getPath(),
+                    null);
         }
     }
-    
-    private static boolean requiresReorder(@NotNull Node node, @NotNull String name, @Nullable String followingSiblingName) throws RepositoryException {
+
+    private static boolean requiresReorder(@NotNull Node node, @NotNull String name,
+            @Nullable String followingSiblingName) throws RepositoryException {
         NodeIterator nodeIterator = node.getNodes();
         long existingNodePosition = -1;
         long index = 0;
@@ -541,7 +539,8 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     }
 
     @Override
-    public void delete(final @NotNull ResolveContext<JcrProviderState> ctx, final @NotNull Resource resource) throws PersistenceException {
+    public void delete(final @NotNull ResolveContext<JcrProviderState> ctx, final @NotNull Resource resource)
+            throws PersistenceException {
         // try to adapt to Item
         Item item = resource.adaptTo(Item.class);
         try {
@@ -599,7 +598,7 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     @SuppressWarnings("unchecked")
     @Override
     public @Nullable <AdapterType> AdapterType adaptTo(final @NotNull ResolveContext<JcrProviderState> ctx,
-                                                       final @NotNull Class<AdapterType> type) {
+            final @NotNull Class<AdapterType> type) {
         Session session = getSession(ctx);
         if (type == Session.class) {
             return (AdapterType) session;
@@ -624,16 +623,14 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     }
 
     @Override
-    public boolean copy(final @NotNull ResolveContext<JcrProviderState> ctx,
-                        final @NotNull String srcAbsPath,
-                        final @NotNull String destAbsPath) {
+    public boolean copy(final @NotNull ResolveContext<JcrProviderState> ctx, final @NotNull String srcAbsPath,
+            final @NotNull String destAbsPath) {
         return false;
     }
 
     @Override
-    public boolean move(final @NotNull ResolveContext<JcrProviderState> ctx,
-                        final @NotNull String srcAbsPath,
-                        final @NotNull String destAbsPath) throws PersistenceException {
+    public boolean move(final @NotNull ResolveContext<JcrProviderState> ctx, final @NotNull String srcAbsPath,
+            final @NotNull String destAbsPath) throws PersistenceException {
         final String srcNodePath = srcAbsPath;
         final String dstNodePath = destAbsPath + '/' + ResourceUtil.getName(srcAbsPath);
         try {
@@ -656,8 +653,8 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     /**
      * Returns <code>true</code> unless the name is
      * <code>user.jcr.credentials</code> (
-     * {@link JcrResourceConstants#AUTHENTICATION_INFO_CREDENTIALS}) or contains
-     * the string <code>password</code> as in <code>user.password</code> (
+     * {@link JcrResourceConstants#AUTHENTICATION_INFO_CREDENTIALS}) or contains the
+     * string <code>password</code> as in <code>user.password</code> (
      * {@link org.apache.sling.api.resource.ResourceResolverFactory#PASSWORD})
      *
      * @param name The name to check whether it is visible or not
@@ -665,7 +662,6 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
      * @throws NullPointerException if <code>name</code> is <code>null</code>
      */
     private static boolean isAttributeVisible(final String name) {
-        return !name.equals(JcrResourceConstants.AUTHENTICATION_INFO_CREDENTIALS)
-                && !name.contains("password");
+        return !name.equals(JcrResourceConstants.AUTHENTICATION_INFO_CREDENTIALS) && !name.contains("password");
     }
 }
