@@ -408,7 +408,7 @@ public class JcrPropertyMapCacheEntry {
 
         // fallback in case of unsupported type
         return null;
-    } 
+    }
 
     /**
      * Create a converter for an object.

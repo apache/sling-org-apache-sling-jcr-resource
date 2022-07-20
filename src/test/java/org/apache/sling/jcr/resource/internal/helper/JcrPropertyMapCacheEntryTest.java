@@ -48,7 +48,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -127,22 +126,16 @@ public class JcrPropertyMapCacheEntryTest {
         verifyZeroInteractions(node);
     }
     
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void testCannotStore() throws Exception {
         Object value = new TestClass();
-        try {
-            new JcrPropertyMapCacheEntry(value, node);
-            fail("IllegalArgumentException expected");
-        } catch (IllegalArgumentException e) {
-            // success
-        }
+        new JcrPropertyMapCacheEntry(value, node);
+    }
 
-        try {
-            new JcrPropertyMapCacheEntry(new Object[] {value}, node);
-            fail("IllegalArgumentException expected");
-        } catch (IllegalArgumentException e) {
-            // success
-        }
+    @Test(expected = IllegalArgumentException.class)
+    public void testCannotStoreArray() throws Exception {
+        Object value = new TestClass();
+        new JcrPropertyMapCacheEntry(new Object[] {value}, node);
     }
     
     @Test
@@ -452,16 +445,11 @@ public class JcrPropertyMapCacheEntryTest {
         assertTrue(propValue instanceof HashMap);
     }
     
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void testCreateFromUnstorableValue() throws Exception {
-        try {
-            Object value = new TestClass();
-            new JcrPropertyMapCacheEntry(value, node);
-            fail("IllegalArgumentException expected");
-        } catch (IllegalArgumentException e) {
-            // success
-        }
+        Object value = new TestClass();
+        new JcrPropertyMapCacheEntry(value, node);
     }
     
-    private static final class TestClass {};
+    private static final class TestClass {}
 }
