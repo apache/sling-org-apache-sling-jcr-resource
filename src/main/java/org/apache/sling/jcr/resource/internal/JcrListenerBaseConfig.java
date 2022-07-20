@@ -123,10 +123,10 @@ public class JcrListenerBaseConfig implements Closeable {
                 pathList.add(p);
             }
         }
-        if (globList.size() > 0) {
+        if (!globList.isEmpty()) {
             filter.withIncludeGlobPaths(globList.toArray(new String[0]));
         }
-        if (pathList.size() > 0) {
+        if (!pathList.isEmpty()) {
             filter.setAdditionalPaths(pathList.toArray(new String[0]));
         }
     }
