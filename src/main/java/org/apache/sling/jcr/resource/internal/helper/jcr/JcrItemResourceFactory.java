@@ -74,11 +74,6 @@ public class JcrItemResourceFactory {
      */
     public @Nullable JcrItemResource<?> createResource(final @NotNull ResourceResolver resourceResolver, final @NotNull String resourcePath,
                                                        final @Nullable Resource parent, final @Nullable Map<String, String> parameters) throws RepositoryException {
-        if (resourcePath == null) {
-            log.debug("createResource: {} maps to an empty JCR path", resourcePath);
-            return null;
-        }
-
         final String version;
         if (parameters != null && parameters.containsKey("v")) {
             version = parameters.get("v");
@@ -158,11 +153,7 @@ public class JcrItemResourceFactory {
             if (childNode != null) {
                 return childNode;
             }
-            Property property = NodeUtil.getPropertyOrNull(node, relPath);
-            if (property != null) {
-                return property;
-            }
-            return null;
+            return NodeUtil.getPropertyOrNull(node, relPath);
         } catch (RepositoryException e) {
             log.debug("getSubitem: Can't get subitem {} of {}: {}", relPath, node, e.toString());
             return null;
