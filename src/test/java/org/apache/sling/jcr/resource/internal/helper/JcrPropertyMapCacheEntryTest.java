@@ -18,6 +18,7 @@
  */
 package org.apache.sling.jcr.resource.internal.helper;
 
+import com.google.common.collect.Maps;
 import org.apache.jackrabbit.value.BooleanValue;
 import org.apache.jackrabbit.value.ValueFactoryImpl;
 import org.junit.Before;
@@ -26,21 +27,27 @@ import org.junit.Test;
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.PropertyType;
+import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.Value;
 import javax.jcr.ValueFactory;
 import javax.jcr.ValueFormatException;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -119,6 +126,33 @@ public class JcrPropertyMapCacheEntryTest {
         verifyZeroInteractions(node);
     }
     
+    @Test(expected = IllegalArgumentException.class)
+    public void testCannotStore() throws Exception {
+        Object value = new TestClass();
+        new JcrPropertyMapCacheEntry(value, node);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testCannotStoreArray() throws Exception {
+        Object value = new TestClass();
+        new JcrPropertyMapCacheEntry(new Object[] {value}, node);
+    }
+    
+    @Test
+    public void testGetPropertyValueOrNull() throws Exception {
+        JcrPropertyMapCacheEntry entry = new JcrPropertyMapCacheEntry(true, node);
+        assertEquals(Boolean.TRUE, entry.getPropertyValueOrNull());
+    }
+    
+    @Test
+    public void testGetPropertyValueOrNullWithRepositoryException() throws Exception {
+        Property prop = mock(Property.class);
+        when(prop.getType()).thenReturn(PropertyType.BINARY);
+        when(prop.getValue()).thenThrow(new RepositoryException());
+        JcrPropertyMapCacheEntry entry = new JcrPropertyMapCacheEntry(prop);
+        assertNull(entry.getPropertyValueOrNull());
+    }
+    
     @Test
     public void testInputStreamToString() throws Exception {
         InputStream in = new ByteArrayInputStream("test".getBytes());
@@ -151,7 +185,7 @@ public class JcrPropertyMapCacheEntryTest {
     }
     
     @Test
-    public void testBinaryPropertyToLong() throws Exception {
+    public void testBinaryPropertyToInteger() throws Exception {
         Property prop = mock(Property.class);
         when(prop.getType()).thenReturn(PropertyType.BINARY);
         when(prop.getStream()).thenReturn(new ByteArrayInputStream("10".getBytes()));
@@ -159,8 +193,8 @@ public class JcrPropertyMapCacheEntryTest {
         when(prop.getLength()).thenReturn(2L);
         
         JcrPropertyMapCacheEntry entry = new JcrPropertyMapCacheEntry(prop);
-        Long result = entry.convertToType(Long.class, node, null);
-        assertEquals(Long.valueOf(2), result);
+        Integer result = entry.convertToType(Integer.class, node, null);
+        assertEquals(Integer.valueOf(2), result);
         
         verify(prop, times(2)).isMultiple();
         verify(prop).getValue();
@@ -193,6 +227,31 @@ public class JcrPropertyMapCacheEntryTest {
         verifyNoMoreInteractions(prop);
         verifyZeroInteractions(node);
     }
+
+    @Test
+    public void testMvBinaryPropertyToFloatArray() throws Exception {
+        Property prop = mock(Property.class);
+        when(prop.getType()).thenReturn(PropertyType.BINARY);
+        when(prop.isMultiple()).thenReturn(true);
+        when(prop.getValue()).thenThrow(new ValueFormatException("multi-valued"));
+        Value[] vs = new Value[] {vf.createValue("10.7", PropertyType.BINARY), vf.createValue("10.7", PropertyType.BINARY)};
+        when(prop.getValues()).thenReturn(vs);
+        when(prop.getLength()).thenThrow(new ValueFormatException("multi-valued"));
+        when(prop.getLengths()).thenReturn(new long[] {4L, 4L});
+
+        JcrPropertyMapCacheEntry entry = new JcrPropertyMapCacheEntry(prop);
+        Float[] result = entry.convertToType(Float[].class, node, null);
+        assertNotNull(result);
+        assertEquals(2, result.length);
+        assertEquals(Float.valueOf(4.0f), result[0]);
+
+        verify(prop, times(2)).isMultiple();
+        verify(prop).getValues();
+        verify(prop).getType();
+        verify(prop, times(2)).getLengths();
+        verifyNoMoreInteractions(prop);
+        verifyZeroInteractions(node);
+    }
     
     @Test
     public void testInputStreamToObjectInputStream() throws Exception {
@@ -203,11 +262,38 @@ public class JcrPropertyMapCacheEntryTest {
         assertNull(result); // TODO: is this the expected result?
         verifyZeroInteractions(node);
     }
+
+    @Test
+    public void testInputStreamToSerializableSameType() throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try (ObjectOutputStream oos = new ObjectOutputStream(out)) {
+            oos.writeObject(Maps.newHashMap());
+        }
+        
+        JcrPropertyMapCacheEntry entry = new JcrPropertyMapCacheEntry(new ByteArrayInputStream(out.toByteArray()), node);
+        // same type
+        Map<?,?> result = entry.convertToType(HashMap.class, node, null);
+        assertNotNull(result);
+        verifyZeroInteractions(node);
+    }
+
+    @Test
+    public void testInputStreamToSerializable() throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try (ObjectOutputStream oos = new ObjectOutputStream(out)) {
+            oos.writeObject(new LinkedHashMap<>());
+        }
+
+        JcrPropertyMapCacheEntry entry = new JcrPropertyMapCacheEntry(new ByteArrayInputStream(out.toByteArray()), node);
+        // different type that cannot be converted
+        Calendar result = entry.convertToType(Calendar.class, node, LinkedHashMap.class.getClassLoader());
+        assertNull(result);
+
+        verifyZeroInteractions(node);
+    }
     
     @Test
     public void testBinaryPropertyToObjectInputStream() throws Exception {
-        InputStream in = new ByteArrayInputStream("value".getBytes());
-
         Property prop = mock(Property.class);
         when(prop.getType()).thenReturn(PropertyType.BINARY);
         when(prop.getStream()).thenReturn(new ByteArrayInputStream("value".getBytes()));
@@ -225,11 +311,99 @@ public class JcrPropertyMapCacheEntryTest {
     }
     
     @Test
+    public void testMvPropertyToBoolean() throws Exception {
+        Property prop = mock(Property.class);
+        when(prop.getType()).thenReturn(PropertyType.STRING);
+        when(prop.isMultiple()).thenReturn(true);
+        when(prop.getValue()).thenThrow(new ValueFormatException("multi-valued"));
+        Value[] vs = new Value[] {vf.createValue("true"), vf.createValue("false")};
+        when(prop.getValues()).thenReturn(vs);
+
+        JcrPropertyMapCacheEntry entry = new JcrPropertyMapCacheEntry(prop);
+        assertTrue(entry.isArray());
+        
+        Boolean result = entry.convertToType(Boolean.class, node, null);
+        assertNotNull(result);
+        assertTrue(result);
+
+        verify(prop, times(2)).isMultiple();
+        verify(prop).getValues();
+        verify(prop).getType();
+        verifyNoMoreInteractions(prop);
+        verifyZeroInteractions(node);
+    }
+
+    @Test
+    public void testEmptyMvPropertyToString() throws Exception {
+        Property prop = mock(Property.class);
+        when(prop.getType()).thenReturn(PropertyType.STRING);
+        when(prop.isMultiple()).thenReturn(true);
+        when(prop.getValue()).thenThrow(new ValueFormatException("multi-valued"));
+        Value[] vs = new Value[0];
+        when(prop.getValues()).thenReturn(vs);
+
+        JcrPropertyMapCacheEntry entry = new JcrPropertyMapCacheEntry(prop);
+        assertTrue(entry.isArray());
+        
+        String result = entry.convertToType(String.class, node, null);
+        assertNull(result);
+
+        verify(prop, times(2)).isMultiple();
+        verify(prop).getValues();
+        verify(prop).getType();
+        verifyNoMoreInteractions(prop);
+        verifyZeroInteractions(node);
+    }
+    
+    @Test
+    public void testConversionFails() throws RepositoryException {
+        Property prop = mock(Property.class);
+        when(prop.getType()).thenReturn(PropertyType.STRING);
+        when(prop.isMultiple()).thenReturn(false);
+        when(prop.getValue()).thenReturn(vf.createValue("string"));
+
+        JcrPropertyMapCacheEntry entry = new JcrPropertyMapCacheEntry(prop);
+        assertFalse(entry.isArray());
+
+        Short result = entry.convertToType(Short.class, node, null);
+        assertNull(result);
+
+        verify(prop, times(2)).isMultiple();
+        verify(prop).getValue();
+        verify(prop).getType();
+        verifyNoMoreInteractions(prop);
+        verifyZeroInteractions(node);
+    }
+
+    @Test
+    public void testStringToValue() throws RepositoryException {
+        Property prop = mock(Property.class);
+        when(prop.getType()).thenReturn(PropertyType.STRING);
+        when(prop.isMultiple()).thenReturn(false);
+        when(prop.getValue()).thenReturn(vf.createValue("string"));
+
+        JcrPropertyMapCacheEntry entry = new JcrPropertyMapCacheEntry(prop);
+        assertFalse(entry.isArray());
+
+        Value result = entry.convertToType(Value.class, node, null);
+        assertNotNull(result);
+        assertEquals(PropertyType.STRING, result.getType());
+        assertEquals("string", result.getString());
+
+        verify(prop, times(2)).isMultiple();
+        verify(prop).getValue();
+        verify(prop).getType();
+        verify(node).getSession();
+        verifyNoMoreInteractions(prop, node);
+    }
+    
+    @Test
     public void testConvertToSameType() throws Exception {
         Calendar cal = Calendar.getInstance();
         
         JcrPropertyMapCacheEntry entry = new JcrPropertyMapCacheEntry(cal, node);
         Calendar result = entry.convertToType(Calendar.class, node, null);
+        
         assertSame(cal, result);
         verify(node).getSession();
         verifyNoMoreInteractions(node);
@@ -271,16 +445,11 @@ public class JcrPropertyMapCacheEntryTest {
         assertTrue(propValue instanceof HashMap);
     }
     
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void testCreateFromUnstorableValue() throws Exception {
-        try {
-            Object value = new TestClass();
-            new JcrPropertyMapCacheEntry(value, node);
-            fail("IllegalArgumentException expected");
-        } catch (IllegalArgumentException e) {
-            // success
-        }
+        Object value = new TestClass();
+        new JcrPropertyMapCacheEntry(value, node);
     }
     
-    private static final class TestClass {};
+    private static final class TestClass {}
 }

@@ -251,11 +251,7 @@ public class JcrValueMap implements ValueMap {
             if (entry == null) {
                 entry = new JcrPropertyMapCacheEntry(prop);
                 cache.put(key, entry);
-
-                final Object defaultValue = entry.getPropertyValue();
-                if (defaultValue != null) {
-                    valueCache.put(key, entry.getPropertyValue());
-                }
+                valueCache.put(key, entry.getPropertyValue());
             }
             return entry;
         } catch (final RepositoryException re) {

@@ -284,79 +284,84 @@ public class JcrPropertyMapCacheEntry {
         if (type.isInstance(initialValue)) {
             return (T) initialValue;
         }
+        
+        if (initialValue instanceof InputStream) {
+            return convertInputStream(index, (InputStream) initialValue, type, node, dynamicClassLoader);
+        } else {
+            return convert(initialValue, type, node);
+        }
+    }
+    
+    private @Nullable <T> T convertInputStream(int index,
+                                               final @NotNull InputStream value,
+                                               final @NotNull Class<T> type,
+                                               final @NotNull Node node,
+                                               final @Nullable ClassLoader dynamicClassLoader) throws RepositoryException {
+        // object input stream
+        if (ObjectInputStream.class.isAssignableFrom(type)) {
+            try {
+                return (T) new PropertyObjectInputStream(value, dynamicClassLoader);
+            } catch (final IOException ioe) {
+                // ignore and use fallback
+            }
 
-        Object value = initialValue;
-
-        // special case input stream first
-        if (value instanceof InputStream) {
-            // object input stream
-            if (ObjectInputStream.class.isAssignableFrom(type)) {
-                try {
-                    return (T) new PropertyObjectInputStream((InputStream) value, dynamicClassLoader);
-                } catch (final IOException ioe) {
-                    // ignore and use fallback
+        // any number: length of binary
+        } else if (Number.class.isAssignableFrom(type)) {
+            // avoid NPE if this instance has not been created from a property (see SLING-11465)
+            if (property == null) {
+                return null;
+            }
+            return convert(propertyToLength(property, index), type, node);
+            
+        // string: read binary
+        } else if (String.class == type) {
+            return (T) inputStreamToString(value);
+            
+        // any serializable
+        } else if (Serializable.class.isAssignableFrom(type)) {
+            try (ObjectInputStream ois = new PropertyObjectInputStream(value, dynamicClassLoader)) {
+                final Object obj = ois.readObject();
+                if (type.isInstance(obj)) {
+                    return (T) obj;
                 }
-
-                // any number: length of binary
-            } else if (Number.class.isAssignableFrom(type)) {
-                // avoid NPE if this instance has not been created from a property (see SLING-11465)
-                if (property == null) {
-                    return null;
-                } 
-                
-                if (index == -1) {
-                    value = Long.valueOf(this.property.getLength());
-                } else {
-                    value = Long.valueOf(this.property.getLengths()[index]);
-                }
-
-                // string: read binary
-            } else if (String.class == type) {
-                final InputStream in = (InputStream) value;
-                try {
-                    final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    final byte[] buffer = new byte[2048];
-                    int l;
-                    while ((l = in.read(buffer)) >= 0) {
-                        if (l > 0) {
-                            baos.write(buffer, 0, l);
-                        }
-                    }
-                    value = new String(baos.toByteArray(), StandardCharsets.UTF_8);
-                } catch (final IOException e) {
-                    throw new IllegalArgumentException(e);
-                } finally {
-                    try {
-                        in.close();
-                    } catch (final IOException ignore) {
-                        // ignore
-                    }
-                }
-
-                // any serializable
-            } else if (Serializable.class.isAssignableFrom(type)) {
-                ObjectInputStream ois = null;
-                try {
-                    ois = new PropertyObjectInputStream((InputStream) value, dynamicClassLoader);
-                    final Object obj = ois.readObject();
-                    if (type.isInstance(obj)) {
-                        return (T) obj;
-                    }
-                    value = obj;
-                } catch (final ClassNotFoundException | IOException cnfe) {
-                    // ignore and use fallback
-                } finally {
-                    if (ois != null) {
-                        try {
-                            ois.close();
-                        } catch (final IOException ignore) {
-                            // ignore
-                        }
-                    }
+                return convert(obj, type, node);
+            } catch (final ClassNotFoundException | IOException cnfe) {
+                // ignore and use fallback
+            }
+            // ignore
+        } 
+        
+        // fallback
+        return convert(value, type, node);
+    }
+    
+    private static @NotNull Long propertyToLength(@NotNull Property property, int index) throws RepositoryException {
+        if (index == -1) {
+            return Long.valueOf(property.getLength());
+        } else {
+            return Long.valueOf(property.getLengths()[index]);
+        }
+    }
+    
+    private static @NotNull String inputStreamToString(@NotNull InputStream value) {
+        try (InputStream in = value) {
+            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            final byte[] buffer = new byte[2048];
+            int l;
+            while ((l = in.read(buffer)) >= 0) {
+                if (l > 0) {
+                    baos.write(buffer, 0, l);
                 }
             }
+            return new String(baos.toByteArray(), StandardCharsets.UTF_8);
+        } catch (final IOException e) {
+            throw new IllegalArgumentException(e);
         }
+    }
 
+    private @Nullable <T> T convert(final @NotNull Object value,
+                                   final @NotNull Class<T> type,
+                                   final @NotNull Node node) throws RepositoryException {
         if (String.class == type) {
             return (T) getConverter(value).toString();
 
