@@ -19,6 +19,8 @@
 package org.apache.sling.jcr.resource.internal;
 
 import java.io.Closeable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import javax.jcr.RepositoryException;
@@ -108,37 +110,24 @@ public class JcrListenerBaseConfig implements Closeable {
 
     }
     
-    private static void setFilterPaths(@NotNull OakEventFilter filter, @NotNull ObserverConfiguration config) {
+    protected static void setFilterPaths(@NotNull OakEventFilter filter, @NotNull ObserverConfiguration config) {
         final Set<String> paths = config.getPaths().toStringSet();
-        int globCount = 0;
-        int pathCount = 0;
+        // avoid any resizing of these lists
+        List<String> pathList = new ArrayList<>(paths.size());
+        List<String> globList = new ArrayList<>(paths.size());
+
         for (final String p : paths) {
             if (p.startsWith(Path.GLOB_PREFIX)) {
-                globCount++;
+                globList.add(p.substring(Path.GLOB_PREFIX.length()));
             } else {
-                pathCount++;
+                pathList.add(p);
             }
         }
-        final String[] pathArray = pathCount > 0 ? new String[pathCount] : null;
-        final String[] globArray = globCount > 0 ? new String[globCount] : null;
-        pathCount = 0;
-        globCount = 0;
-
-        // create arrays and remove global prefix
-        for (final String p : paths) {
-            if (p.startsWith(Path.GLOB_PREFIX) && globArray != null) {
-                globArray[globCount] = p.substring(Path.GLOB_PREFIX.length());
-                globCount++;
-            } else if (pathArray != null) {
-                pathArray[pathCount] = p;
-                pathCount++;
-            }
+        if (!globList.isEmpty()) {
+            filter.withIncludeGlobPaths(globList.toArray(new String[0]));
         }
-        if (globArray != null) {
-            filter.withIncludeGlobPaths(globArray);
-        }
-        if (pathArray != null) {
-            filter.setAdditionalPaths(pathArray);
+        if (!pathList.isEmpty()) {
+            filter.setAdditionalPaths(pathList.toArray(new String[0]));
         }
     }
 

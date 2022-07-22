@@ -411,17 +411,14 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
 
     @Override
     @NotNull
-    public Resource create(final @NotNull ResolveContext<JcrProviderState> ctx, final String path, final Map<String, Object> properties) throws PersistenceException {
-        // check for node type
-        final Object nodeObj = (properties != null ? properties.get(JcrConstants.JCR_PRIMARYTYPE) : null);
-        // check for sling:resourcetype
-        final String nodeType = getType(nodeObj, properties, ctx);
-        
+    public Resource create(final @NotNull ResolveContext<JcrProviderState> ctx, @Nullable final String path,
+            @Nullable final Map<String, Object> properties) throws PersistenceException {
+
         if (path == null) {
-            throw new PersistenceException("Unable to create node at " + path, null, path, null);
+            throw new PersistenceException("Unable to create node with [path=null]");
         }
-        Node node;
         try {
+            Node node;
             final int lastPos = path.lastIndexOf('/');
             final Node parent;
             if (lastPos == 0) {
@@ -430,6 +427,8 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
                 parent = (Node) getSession(ctx).getItem(path.substring(0, lastPos));
             }
             final String name = path.substring(lastPos + 1);
+            // extract the nodetype
+            final String nodeType = getNodeType(properties, ctx);
             if (nodeType != null) {
                 node = parent.addNode(name, nodeType);
             } else {
@@ -446,29 +445,35 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
         }
     }
     
-    private static @Nullable String getType(@Nullable Object nodeObj, @Nullable Map<String, Object> properties, @NotNull ResolveContext<JcrProviderState> ctx) {
-        if (nodeObj != null) {
-            return nodeObj.toString();
+    protected static @Nullable String getNodeType(@Nullable Map<String, Object> properties,
+            @NotNull ResolveContext<JcrProviderState> ctx) {
+        if (properties == null) {
+            return null;
         }
 
-        final Object rtObj = (properties != null ? properties.get(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY) : null);
-        boolean isNodeType = false;
-        if (rtObj != null) {
-            final String resourceType = rtObj.toString();
-            if (resourceType.indexOf(':') != -1 && resourceType.indexOf('/') == -1) {
+        final Object primaryTypeObj = properties.get(JcrConstants.JCR_PRIMARYTYPE);
+        if (primaryTypeObj != null) {
+            return primaryTypeObj.toString();
+        }
+
+        final Object resourceTypeObject = properties.get(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY);
+        if (resourceTypeObject != null) {
+            String resourceType = resourceTypeObject.toString();
+            if (looksLikeANodeType(resourceType)) {
                 try {
+                    // validate if it's really a nodetype
                     getSession(ctx).getWorkspace().getNodeTypeManager().getNodeType(resourceType);
-                    isNodeType = true;
+                    return resourceType;
                 } catch (final RepositoryException ignore) {
                     // we expect this, if this isn't a valid node type, therefore ignoring
                 }
             }
         }
-        if (isNodeType) {
-            return rtObj.toString();
-        } else {
-            return null;
-        }
+        return null;
+    }
+    
+    private static boolean looksLikeANodeType(final String resourceType) {
+        return resourceType.indexOf(':') != -1 && resourceType.indexOf('/') == -1;
     }
 
     private static void populateProperties(@NotNull Node node, @NotNull Map<String, Object> properties, @NotNull ResolveContext<JcrProviderState> ctx, @NotNull String path) throws PersistenceException {
