@@ -110,7 +110,7 @@ public class JcrListenerBaseConfig implements Closeable {
 
     }
     
-    private static void setFilterPaths(@NotNull OakEventFilter filter, @NotNull ObserverConfiguration config) {
+    protected static void setFilterPaths(@NotNull OakEventFilter filter, @NotNull ObserverConfiguration config) {
         final Set<String> paths = config.getPaths().toStringSet();
         // avoid any resizing of these lists
         List<String> pathList = new ArrayList<>(paths.size());

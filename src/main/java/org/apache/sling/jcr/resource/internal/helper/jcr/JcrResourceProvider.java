@@ -445,7 +445,7 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
         }
     }
     
-    private static @Nullable String getNodeType(@Nullable Map<String, Object> properties,
+    protected static @Nullable String getNodeType(@Nullable Map<String, Object> properties,
             @NotNull ResolveContext<JcrProviderState> ctx) {
         if (properties == null) {
             return null;
