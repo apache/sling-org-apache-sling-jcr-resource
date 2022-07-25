@@ -551,12 +551,7 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
         Item item = resource.adaptTo(Item.class);
         try {
             if (item == null) {
-                final String jcrPath = resource.getPath();
-                if (jcrPath == null) {
-                    logger.debug("delete: {} maps to an empty JCR path", resource.getPath());
-                    throw new PersistenceException("Unable to delete resource", null, resource.getPath(), null);
-                }
-                item = getSession(ctx).getItem(jcrPath);
+                item = getSession(ctx).getItem(resource.getPath());
             }
             item.remove();
         } catch (final RepositoryException e) {

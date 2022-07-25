@@ -90,10 +90,6 @@ public class JcrValueMap implements ValueMap {
     @SuppressWarnings("unchecked")
     public <T> T get(final @NotNull String aKey, final @NotNull Class<T> type) {
         final String key = checkKey(aKey);
-        if (type == null) {
-            return (T) get(key);
-        }
-
         final JcrPropertyMapCacheEntry entry = this.read(key);
         if (entry == null) {
             return null;
@@ -108,9 +104,6 @@ public class JcrValueMap implements ValueMap {
     @SuppressWarnings("unchecked")
     public <T> @NotNull T get(final @NotNull String aKey, final @NotNull T defaultValue) {
         final String key = checkKey(aKey);
-        if (defaultValue == null) {
-            return (T) get(key);
-        }
 
         // special handling in case the default value implements one
         // of the interface types supported by the convertToType method
