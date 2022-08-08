@@ -44,10 +44,13 @@ import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
+import org.apache.sling.adapter.annotations.Adaptable;
+import org.apache.sling.adapter.annotations.Adapter;
 import org.apache.sling.api.SlingException;
 import org.apache.sling.api.resource.LoginException;
 import org.apache.sling.api.resource.PersistenceException;
 import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ResourceResolverFactory;
 import org.apache.sling.api.resource.ResourceUtil;
 import org.apache.sling.api.resource.external.URIProvider;
@@ -79,6 +82,7 @@ import static org.apache.sling.jcr.resource.internal.helper.jcr.ContextUtil.getH
 import static org.apache.sling.jcr.resource.internal.helper.jcr.ContextUtil.getResourceFactory;
 import static org.apache.sling.jcr.resource.internal.helper.jcr.ContextUtil.getSession;
 
+@Adaptable(adaptableClass = ResourceProvider.class, adapters = { @Adapter(value=Session.class, condition="If the JcrResourceProvider is loaded"), @Adapter(value=Principal.class, condition="If the underlying java.jcr.Session implements JackrabbitSession") })
 @Component(name="org.apache.sling.jcr.resource.internal.helper.jcr.JcrResourceProviderFactory",
            service = ResourceProvider.class,
            property = {
@@ -93,6 +97,11 @@ import static org.apache.sling.jcr.resource.internal.helper.jcr.ContextUtil.getS
            })
 public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
 
+    // due to https://issues.apache.org/jira/browse/SLING-11517 a dedicated class is necessary
+    @Adaptable(adaptableClass = ResourceResolver.class, adapters = { @Adapter(value=Session.class, condition="If the JcrResourceProvider is loaded"), @Adapter(value=Principal.class, condition="If the underlying java.jcr.Session implements JackrabbitSession") })
+    private static final class EmptyAdaptableAnnotationCarryingClass {
+        // just to carry the annotation
+    }
     /** Logger */
     private final Logger logger = LoggerFactory.getLogger(JcrResourceProvider.class);
 
