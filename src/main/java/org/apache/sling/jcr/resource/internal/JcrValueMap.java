@@ -95,8 +95,8 @@ public class JcrValueMap implements ValueMap {
      * 
      */
     @Override
-    @SuppressWarnings("unchecked")
-    public <T> T get(final @NotNull String aKey, final Class<T> type) {
+    @SuppressWarnings({"unchecked","java:S2583"})
+    public <T> T get(final @NotNull String aKey, @NotNull final Class<T> type) {
         final String key = checkKey(aKey);
         if (type == null) {
             return (T) get(key);
@@ -120,8 +120,8 @@ public class JcrValueMap implements ValueMap {
      * 
      */
     @Override
-    @SuppressWarnings("unchecked")
-    public <T> @NotNull T get(final @NotNull String aKey, final T defaultValue) {
+    @SuppressWarnings({"unchecked","java:S2583"})
+    public <T> @NotNull T get(final @NotNull String aKey, @NotNull final T defaultValue) {
         final String key = checkKey(aKey);
         if (defaultValue == null) {
             return (T) get(key);
