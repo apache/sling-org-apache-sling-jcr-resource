@@ -86,10 +86,10 @@ public class JcrValueMap implements ValueMap {
     /**
      * @see org.apache.sling.api.resource.ValueMap#get(java.lang.String, java.lang.Class)
      * 
-     * Note: The {type} parameter is marked as @NonNull in the API documentation, but
+     * Note: The {code type} parameter is marked as @NonNull in the API documentation, but
      * https://issues.apache.org/jira/browse/SLING-11567 it got obvious that this assumption
      * does not hold true (this change actually broke b/w compatibility).
-     * That means we still have to handle the case that {type} is null.
+     * That means we still have to handle the case that {code type} is null.
      * 
      * This is also recommended by the API documentation of this method.
      * 
@@ -111,10 +111,10 @@ public class JcrValueMap implements ValueMap {
     /**
      * @see org.apache.sling.api.resource.ValueMap#get(java.lang.String, java.lang.Object)
      * 
-     * Note: The {defaultValue} parameter is marked as @NonNull in the API documentation, but
+     * Note: The {code defaultValue} parameter is marked as @NonNull in the API documentation, but
      * https://issues.apache.org/jira/browse/SLING-11567 it got obvious that this assumption
      * does not hold true (this change actually broke b/w compatibility).
-     * That means we still have to handle the case that {defaultValue} is null.
+     * That means we still have to handle the case that {code defaultValue} is null.
      * 
      * This is also recommended by the API documentation of this method.
      * 
