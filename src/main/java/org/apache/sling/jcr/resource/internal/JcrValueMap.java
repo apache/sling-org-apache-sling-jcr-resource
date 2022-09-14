@@ -85,11 +85,22 @@ public class JcrValueMap implements ValueMap {
 
     /**
      * @see org.apache.sling.api.resource.ValueMap#get(java.lang.String, java.lang.Class)
+     * 
+     * Note: The {@code type} parameter is marked as @NonNull in the API documentation, but
+     * https://issues.apache.org/jira/browse/SLING-11567 it got obvious that this assumption
+     * does not hold true (this change actually broke b/w compatibility).
+     * That means we still have to handle the case that {@code type} is null.
+     * 
+     * This is also recommended by the API documentation of this method.
+     * 
      */
     @Override
-    @SuppressWarnings("unchecked")
-    public <T> T get(final @NotNull String aKey, final @NotNull Class<T> type) {
+    @SuppressWarnings({"unchecked","java:S2583"})
+    public <T> T get(final @NotNull String aKey, @NotNull final Class<T> type) {
         final String key = checkKey(aKey);
+        if (type == null) {
+            return (T) get(key);
+        }
         final JcrPropertyMapCacheEntry entry = this.read(key);
         if (entry == null) {
             return null;
@@ -99,11 +110,22 @@ public class JcrValueMap implements ValueMap {
 
     /**
      * @see org.apache.sling.api.resource.ValueMap#get(java.lang.String, java.lang.Object)
+     * 
+     * Note: The {@code defaultValue} parameter is marked as @NonNull in the API documentation, but
+     * https://issues.apache.org/jira/browse/SLING-11567 it got obvious that this assumption
+     * does not hold true (this change actually broke b/w compatibility).
+     * That means we still have to handle the case that {@code defaultValue} is null.
+     * 
+     * This is also recommended by the API documentation of this method.
+     * 
      */
     @Override
-    @SuppressWarnings("unchecked")
-    public <T> @NotNull T get(final @NotNull String aKey, final @NotNull T defaultValue) {
+    @SuppressWarnings({"unchecked","java:S2583"})
+    public <T> @NotNull T get(final @NotNull String aKey, @NotNull final T defaultValue) {
         final String key = checkKey(aKey);
+        if (defaultValue == null) {
+            return (T) get(key);
+        }
 
         // special handling in case the default value implements one
         // of the interface types supported by the convertToType method
