@@ -25,6 +25,7 @@ import java.util.Map;
 import javax.jcr.Item;
 import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
+import javax.jcr.NodeIterator;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 
@@ -217,15 +218,13 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
         return null;
     }
 
-
-    // ---------- Descendable interface ----------------------------------------
-
     @Override
     @Nullable Iterator<Resource> listJcrChildren() {
         try {
-            if (getNode().hasNodes()) {
+        	NodeIterator iter = getNode().getNodes();
+            if (iter.hasNext()) {
                 return new JcrNodeResourceIterator(getResourceResolver(), path, version,
-                        getNode().getNodes(), this.helper, null);
+                        iter, this.helper, null);
             }
         } catch (final RepositoryException re) {
             LOGGER.error("listChildren: Cannot get children of " + this, re);
