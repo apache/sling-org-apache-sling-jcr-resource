@@ -28,19 +28,31 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *  PoJo to hold access metrics for a ResourceResolver; it is designed
- *  for analysis of access patterns in lab situations; therefor its main
- *  goal is to have very low overhead in case it is not used.
+ *  Helper class to report on repository access.
  *  
- *  this class is not threadsafe!
+ *  The focus is to have a less overhead as possible if it is not used; in case it is enabled and access
+ *  is logged, the performance overhead does not matter.
  *  
- *  This class implements autocloseable, so the statistics are written when the RR
- *  is closed (see ResourceResolver.getPropertyMap)
+ *  In the current implementation it has 2 features:
+ *  * Write a stacktrace on every recorded operation; this comes with a massive overhead and it is definitely
+ *    not recommended to turn this on on production, since it can easily create 100s of megabytes of log and will slow
+ *    down processing massively. To use this turn on TRACE logging on 'org.apache.sling.jcr.resource.AccessLogger.operation'
+ *  * When a resource resolver is closed, dump a single log statement about the number of recorded operations. The overhead is
+ *    very small and it can be turned on for a longer period of time also in production. To use it enable DEBUG logging on
+ *    'org.apache.sling.jcr.resource.AccessLogger.statistics'.
  *  
  *
  */
-public class AccessMetrics implements Closeable {
+public class AccessLogger implements Closeable {
     
+    
+    Map<String,AtomicLong> metrics = new HashMap<>();
+    
+    private static final String SELF_NAME= AccessLogger.class.getName();
+    private static final Logger STATISTICS_LOG = LoggerFactory.getLogger("org.apache.sling.jcr.resource.AccessLogger.statistics");
+    private static final Logger OPERATION_LOG  = LoggerFactory.getLogger("org.apache.sling.jcr.resource.AccessLogger.operation");
+    
+    private final ResourceResolver resolver;
     
     // public
     
@@ -60,9 +72,9 @@ public class AccessMetrics implements Closeable {
     public static void incrementUsage(ResourceResolver resolver, String operation, String path, long count) {
 
         if (STATISTICS_LOG.isDebugEnabled()) {
-            AccessMetrics am = (AccessMetrics) resolver.getPropertyMap().get(SELF_NAME);
+            AccessLogger am = (AccessLogger) resolver.getPropertyMap().get(SELF_NAME);
             if (am == null) {
-                am = new AccessMetrics(resolver);
+                am = new AccessLogger(resolver);
             }
             am.incrementUsage(operation,count);
         }
@@ -71,23 +83,14 @@ public class AccessMetrics implements Closeable {
                 String msg = String.format("invoked %s on [%s]", operation, path);
                 throw new Exception(msg);
             } catch (Exception e) {
-                OPERATION_LOG.trace ("AccessMetric logging", e);
+                OPERATION_LOG.trace ("AccessLogger recording", e);
             }
         }
     }
     
     // private
     
-    Map<String,AtomicLong> metrics = new HashMap<>();
-    
-    private static final String SELF_NAME= AccessMetrics.class.getName();
-    private static final Logger STATISTICS_LOG = LoggerFactory.getLogger("org.apache.sling.jcr.resource.accessMetrics.statistics");
-    private static final Logger OPERATION_LOG  = LoggerFactory.getLogger("org.apache.sling.jcr.resource.accessMetrics.operation");
-    
-    private final ResourceResolver resolver;
-    
-    
-    private AccessMetrics (ResourceResolver resolver) {
+    private AccessLogger (ResourceResolver resolver) {
         this.resolver = resolver;
         resolver.getPropertyMap().put(SELF_NAME,this);
     }
@@ -108,13 +111,13 @@ public class AccessMetrics implements Closeable {
             .map(key -> key + "=" + metrics.get(key).get())
             .collect(Collectors.joining(","));
         
-        return "AccessMetrics (" + values + ")";
+        return "AccessLogger (" + values + ")";
     }
 
 
     @Override
     public void close() {
-        STATISTICS_LOG.debug("AccessMetric dump for ResourceResolver (userid={},tostring={}): {}", resolver.getUserID(), resolver, this);
+        STATISTICS_LOG.debug("AccessLogger dump for ResourceResolver (userid={},tostring={}): {}", resolver.getUserID(), resolver, this);
     }
     
     

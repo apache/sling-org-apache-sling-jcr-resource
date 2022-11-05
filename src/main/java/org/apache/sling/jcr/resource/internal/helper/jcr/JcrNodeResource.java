@@ -42,7 +42,7 @@ import org.apache.sling.jcr.resource.internal.HelperData;
 import org.apache.sling.jcr.resource.internal.JcrModifiableValueMap;
 import org.apache.sling.jcr.resource.internal.JcrValueMap;
 import org.apache.sling.jcr.resource.internal.NodeUtil;
-import org.apache.sling.jcr.resource.internal.helper.AccessMetrics;
+import org.apache.sling.jcr.resource.internal.helper.AccessLogger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -83,7 +83,7 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
         super(resourceResolver, path, version, node, new JcrNodeResourceMetadata(node));
         this.helper = helper;
         this.resourceSuperType = UNSET_RESOURCE_SUPER_TYPE;
-        AccessMetrics.incrementUsage(resourceResolver, "newJcrNodeResource", path);
+        AccessLogger.incrementUsage(resourceResolver, "newJcrNodeResource", path);
     }
 
     /**
@@ -132,7 +132,7 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
         } else if (type == InputStream.class) {
             return (Type) getInputStream(); // unchecked cast
         } else if (type == Map.class || type == ValueMap.class) {
-            AccessMetrics.incrementUsage(this.getResourceResolver(), "adaptToValueMap", path);
+            AccessLogger.incrementUsage(this.getResourceResolver(), "adaptToValueMap", path);
             return (Type) new JcrValueMap(getNode(), this.helper);
         } else if (type == ModifiableValueMap.class) {
             // check write
