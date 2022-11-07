@@ -27,7 +27,7 @@
     </parent>
 
     <artifactId>org.apache.sling.jcr.resource</artifactId>
-    <version>3.2.4</version>
+    <version>3.2.5-SNAPSHOT</version>
 
     <name>Apache Sling JCR Resource</name>
     <description>
@@ -38,7 +38,7 @@
         <connection>scm:git:https://gitbox.apache.org/repos/asf/sling-org-apache-sling-jcr-resource.git</connection>
         <developerConnection>scm:git:https://gitbox.apache.org/repos/asf/sling-org-apache-sling-jcr-resource.git</developerConnection>
         <url>https://gitbox.apache.org/repos/asf?p=sling-org-apache-sling-jcr-resource.git</url>
-      <tag>org.apache.sling.jcr.resource-3.2.4</tag>
+      <tag>HEAD</tag>
   </scm>
 
     <properties>
