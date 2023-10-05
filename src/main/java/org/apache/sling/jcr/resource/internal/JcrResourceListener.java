@@ -38,8 +38,11 @@ import javax.jcr.observation.EventListener;
 import org.apache.jackrabbit.api.observation.JackrabbitEvent;
 import org.apache.sling.api.resource.observation.ResourceChange;
 import org.apache.sling.api.resource.observation.ResourceChange.ChangeType;
+import org.apache.sling.jcr.resource.api.JcrResourceChange;
 import org.apache.sling.spi.resource.provider.ObservationReporter;
 import org.apache.sling.spi.resource.provider.ObserverConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The <code>JcrResourceListener</code> listens for JCR observation
@@ -51,6 +54,8 @@ public class JcrResourceListener implements EventListener, Closeable {
     private volatile ObserverConfiguration config;
 
     private final JcrListenerBaseConfig baseConfig;
+
+    private static final Logger logger = LoggerFactory.getLogger(JcrResourceListener.class);
 
     public JcrResourceListener(final JcrListenerBaseConfig listenerConfig,
                                final ObserverConfiguration config) throws RepositoryException {
@@ -164,7 +169,13 @@ public class JcrResourceListener implements EventListener, Closeable {
         } else {
             userId = null;
         }
-        return new JcrResourceChange(changeType, path, isExternal, userId);
+        String userData = null;
+        try {
+            userData = event.getUserData();
+        } catch (RepositoryException e) {
+            logger.debug("Could not access user data from event " + event, e);
+        }
+        return new JcrResourceChange(changeType, path, isExternal, userId, userData);
     }
 
     private static boolean isExternal(final Event event) {
