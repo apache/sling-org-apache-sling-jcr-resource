@@ -18,15 +18,19 @@
  */
 package org.apache.sling.jcr.resource.internal.helper.jcr;
 
+import static javax.jcr.nodetype.NodeType.NT_UNSTRUCTURED;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.jcr.Node;
-import javax.jcr.Repository;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.oak.commons.PathUtils;
 import org.apache.sling.api.resource.PersistenceException;
@@ -41,14 +45,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.osgi.framework.ServiceReference;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.osgi.service.component.ComponentContext;
-
-import static javax.jcr.nodetype.NodeType.NT_UNSTRUCTURED;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class JcrResourceProviderTest extends SlingRepositoryTestBase {
@@ -62,9 +60,7 @@ public class JcrResourceProviderTest extends SlingRepositoryTestBase {
         super.setUp();
         // create the session
         session = getSession();
-        Repository repo = getRepository();
         ComponentContext ctx = mock(ComponentContext.class);
-        when(ctx.locateService(Mockito.anyString(), Mockito.any(ServiceReference.class))).thenReturn(repo);
         jcrResourceProvider = new JcrResourceProvider();
         jcrResourceProvider.activate(ctx);
     }

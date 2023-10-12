@@ -47,10 +47,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
 public class BinaryDownloadUriProviderTest {
@@ -87,7 +87,7 @@ public class BinaryDownloadUriProviderTest {
         };
         Mockito.when(property.getBinary()).thenReturn(binaryDownload);
         URI myUri = new URI("https://example.com/mybinary");
-        Mockito.when(binaryDownload.getURI(Matchers.any(BinaryDownloadOptions.class))).thenReturn(myUri);
+        Mockito.when(binaryDownload.getURI(ArgumentMatchers.any(BinaryDownloadOptions.class))).thenReturn(myUri);
 
         assertEquals(myUri, uriProvider.toURI(fileResource, Scope.EXTERNAL, Operation.READ));
         ArgumentCaptor<BinaryDownloadOptions> argumentCaptor = ArgumentCaptor.forClass(BinaryDownloadOptions.class);

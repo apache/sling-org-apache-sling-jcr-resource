@@ -32,7 +32,6 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 public class ContextUtilTest {
@@ -114,7 +113,7 @@ public class ContextUtilTest {
         
         verify(ctx, times(3)).getProviderState();
         verifyNoMoreInteractions(ctx);
-        verifyZeroInteractions(state);
+        verifyNoMoreInteractions(state);
     }
 
 }

@@ -27,7 +27,6 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeThat;
 import static org.junit.Assume.assumeTrue;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -54,7 +53,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -211,7 +210,7 @@ public class JcrResourceProviderSessionHandlingTest {
                 Bundle mockBundle = mock(Bundle.class);
                 BundleContext mockBundleContext = mock(BundleContext.class);
                 when(mockBundle.getBundleContext()).thenReturn(mockBundleContext);
-                when(mockBundleContext.getService(Matchers.any())).thenReturn(repo);
+                when(mockBundleContext.getService(ArgumentMatchers.any())).thenReturn(repo);
                 authInfo.put(ResourceResolverFactory.SUBSERVICE, "dummy-service");
                 authInfo.put(ResourceProvider.AUTH_SERVICE_BUNDLE, mockBundle);
                 break;
@@ -226,7 +225,7 @@ public class JcrResourceProviderSessionHandlingTest {
         }
 
         ComponentContext ctx = mock(ComponentContext.class);
-        when(ctx.locateService(anyString(), Mockito.any())).thenReturn(repo);
+        when(ctx.locateService(ArgumentMatchers.anyString(), Mockito.any())).thenReturn(repo);
 
         jcrResourceProvider = new JcrResourceProvider();
         jcrResourceProvider.activate(ctx);
