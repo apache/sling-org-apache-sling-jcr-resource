@@ -52,7 +52,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -74,56 +73,56 @@ public class JcrPropertyMapCacheEntryTest {
     public void testByteArray() throws Exception {
         new JcrPropertyMapCacheEntry(new Byte[0], node);
         new JcrPropertyMapCacheEntry(new byte[0], node);
-        verifyZeroInteractions(node);
+        verifyNoMoreInteractions(node);
     }
 
     @Test
     public void testShortArray() throws Exception {
         new JcrPropertyMapCacheEntry(new Short[0], node);
         new JcrPropertyMapCacheEntry(new short[0], node);
-        verifyZeroInteractions(node);
+        verifyNoMoreInteractions(node);
     }
 
     @Test
     public void testIntArray() throws Exception {
         new JcrPropertyMapCacheEntry(new Integer[0], node);
         new JcrPropertyMapCacheEntry(new int[0], node);
-        verifyZeroInteractions(node);
+        verifyNoMoreInteractions(node);
     }
 
     @Test
     public void testLongArray() throws Exception {
         new JcrPropertyMapCacheEntry(new Long[0], node);
         new JcrPropertyMapCacheEntry(new long[0], node);
-        verifyZeroInteractions(node);
+        verifyNoMoreInteractions(node);
     }
 
     @Test
     public void testFloatArray() throws Exception {
         new JcrPropertyMapCacheEntry(new Float[0], node);
         new JcrPropertyMapCacheEntry(new float[0], node);
-        verifyZeroInteractions(node);
+        verifyNoMoreInteractions(node);
     }
 
     @Test
     public void testDoubleArray() throws Exception {
         new JcrPropertyMapCacheEntry(new Double[0], node);
         new JcrPropertyMapCacheEntry(new double[0], node);
-        verifyZeroInteractions(node);
+        verifyNoMoreInteractions(node);
     }
 
     @Test
     public void testBooleanArray() throws Exception {
         new JcrPropertyMapCacheEntry(new Boolean[0], node);
         new JcrPropertyMapCacheEntry(new boolean[0], node);
-        verifyZeroInteractions(node);
+        verifyNoMoreInteractions(node);
     }
 
     @Test
     public void testCharArray() throws Exception {
         new JcrPropertyMapCacheEntry(new Character[0], node);
         new JcrPropertyMapCacheEntry(new char[0], node);
-        verifyZeroInteractions(node);
+        verifyNoMoreInteractions(node);
     }
     
     @Test(expected = IllegalArgumentException.class)
@@ -160,7 +159,7 @@ public class JcrPropertyMapCacheEntryTest {
         
         String result = entry.convertToType(String.class, node, null);
         assertEquals("test", result);
-        verifyZeroInteractions(node);
+        verifyNoMoreInteractions(node);
     }
 
     @Test
@@ -170,7 +169,7 @@ public class JcrPropertyMapCacheEntryTest {
 
         Long result = entry.convertToType(Long.class, node, null);
         assertNull(result);
-        verifyZeroInteractions(node);
+        verifyNoMoreInteractions(node);
     }
 
     @Test
@@ -181,7 +180,7 @@ public class JcrPropertyMapCacheEntryTest {
         Integer[] result = entry.convertToType(Integer[].class, node, null);
         assertNotNull(result);
         assertEquals(0, result.length);
-        verifyZeroInteractions(node);
+        verifyNoMoreInteractions(node);
     }
     
     @Test
@@ -201,8 +200,7 @@ public class JcrPropertyMapCacheEntryTest {
         verify(prop).getType();
         verify(prop).getLength();
         verifyNoMoreInteractions(prop);
-        
-        verifyZeroInteractions(node);
+        verifyNoMoreInteractions(node);
     }
 
     @Test
@@ -225,7 +223,7 @@ public class JcrPropertyMapCacheEntryTest {
         verify(prop).getType();
         verify(prop).getLength();
         verifyNoMoreInteractions(prop);
-        verifyZeroInteractions(node);
+        verifyNoMoreInteractions(node);
     }
 
     @Test
@@ -250,7 +248,7 @@ public class JcrPropertyMapCacheEntryTest {
         verify(prop).getType();
         verify(prop, times(2)).getLengths();
         verifyNoMoreInteractions(prop);
-        verifyZeroInteractions(node);
+        verifyNoMoreInteractions(node);
     }
     
     @Test
@@ -260,7 +258,7 @@ public class JcrPropertyMapCacheEntryTest {
         JcrPropertyMapCacheEntry entry = new JcrPropertyMapCacheEntry(in, node);
         ObjectInputStream result = entry.convertToType(ObjectInputStream.class, node, null);
         assertNull(result); // TODO: is this the expected result?
-        verifyZeroInteractions(node);
+        verifyNoMoreInteractions(node);
     }
 
     @Test
@@ -274,7 +272,7 @@ public class JcrPropertyMapCacheEntryTest {
         // same type
         Map<?,?> result = entry.convertToType(HashMap.class, node, null);
         assertNotNull(result);
-        verifyZeroInteractions(node);
+        verifyNoMoreInteractions(node);
     }
 
     @Test
@@ -289,7 +287,7 @@ public class JcrPropertyMapCacheEntryTest {
         Calendar result = entry.convertToType(Calendar.class, node, LinkedHashMap.class.getClassLoader());
         assertNull(result);
 
-        verifyZeroInteractions(node);
+        verifyNoMoreInteractions(node);
     }
     
     @Test
@@ -307,7 +305,7 @@ public class JcrPropertyMapCacheEntryTest {
         verify(prop).getValue();
         verify(prop).getType();
         verifyNoMoreInteractions(prop);
-        verifyZeroInteractions(node);
+        verifyNoMoreInteractions(node);
     }
     
     @Test
@@ -330,7 +328,7 @@ public class JcrPropertyMapCacheEntryTest {
         verify(prop).getValues();
         verify(prop).getType();
         verifyNoMoreInteractions(prop);
-        verifyZeroInteractions(node);
+        verifyNoMoreInteractions(node);
     }
 
     @Test
@@ -352,7 +350,7 @@ public class JcrPropertyMapCacheEntryTest {
         verify(prop).getValues();
         verify(prop).getType();
         verifyNoMoreInteractions(prop);
-        verifyZeroInteractions(node);
+        verifyNoMoreInteractions(node);
     }
     
     @Test
@@ -372,7 +370,7 @@ public class JcrPropertyMapCacheEntryTest {
         verify(prop).getValue();
         verify(prop).getType();
         verifyNoMoreInteractions(prop);
-        verifyZeroInteractions(node);
+        verifyNoMoreInteractions(node);
     }
 
     @Test
@@ -430,7 +428,7 @@ public class JcrPropertyMapCacheEntryTest {
         Property result = entry.convertToType(Property.class, node, null);
         assertSame(prop, result);
         
-        verifyZeroInteractions(node);
+        verifyNoMoreInteractions(node);
         verify(prop).getType();
         verify(prop).getValue();
         verify(prop, times(2)).isMultiple();
