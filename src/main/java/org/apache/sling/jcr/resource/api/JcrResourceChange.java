@@ -16,27 +16,37 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.sling.jcr.resource.internal;
+package org.apache.sling.jcr.resource.api;
 
 import org.apache.sling.api.resource.observation.ResourceChange;
 
 /**
- * Extension of {@code ResourceChange} to support user id (if available)
+ * Extension of {@code ResourceChange} to support user id and user data (if available)
  */
-public class JcrResourceChange extends ResourceChange {
+public final class JcrResourceChange extends ResourceChange {
 
     private final String userId;
+    private final String userData;
 
     public JcrResourceChange(final ResourceChange.ChangeType changeType,
                              final String path,
                              final boolean isExternal,
-                             final String userId) {
+                             final String userId, String userData) {
         super(changeType, path, isExternal);
         this.userId = userId;
+        this.userData = userData;
     }
 
     @Override
     public String getUserId() {
         return userId;
+    }
+
+    /**
+     * Get the user data associated with the underlying JCR observation event ({@link javax.jcr.observation.Event#getUserData()})
+     * @return the JCR observation event's user data (may be {@code null})
+     */
+    public String getUserData() {
+        return userData;
     }
 }

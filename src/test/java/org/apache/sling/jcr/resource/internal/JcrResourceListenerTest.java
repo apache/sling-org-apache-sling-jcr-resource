@@ -39,6 +39,7 @@ import org.apache.sling.api.resource.observation.ResourceChange;
 import org.apache.sling.api.resource.observation.ResourceChange.ChangeType;
 import org.apache.sling.api.resource.path.PathSet;
 import org.apache.sling.jcr.api.SlingRepository;
+import org.apache.sling.jcr.resource.api.JcrResourceChange;
 import org.apache.sling.jcr.resource.internal.helper.jcr.SlingRepositoryProvider;
 import org.apache.sling.spi.resource.provider.ObservationReporter;
 import org.apache.sling.spi.resource.provider.ObserverConfiguration;
@@ -165,6 +166,7 @@ public class JcrResourceListenerTest {
 
     @Test
     public void testSimpleOperations() throws Exception {
+        this.adminSession.getWorkspace().getObservationManager().setUserData("testUserData");
         generateEvents(adminSession);
         assertEquals("Received: " + events, 5, events.size());
         final Set<String> addPaths = new HashSet<>();
@@ -182,6 +184,8 @@ public class JcrResourceListenerTest {
                 fail("Unexpected event: " + event);
             }
             assertNotNull(event.getUserId());
+            assertTrue(event instanceof JcrResourceChange);
+            assertEquals("testUserData", JcrResourceChange.class.cast(event).getUserData());
         }
 
         assertEquals(3, addPaths.size());
