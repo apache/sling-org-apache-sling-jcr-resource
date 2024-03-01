@@ -18,6 +18,7 @@ package org.apache.sling.jcr.resource.internal;
 
 import static java.util.Collections.synchronizedList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -29,12 +30,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.jcr.AccessDeniedException;
 import javax.jcr.Credentials;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;
+import javax.jcr.lock.LockException;
+import javax.jcr.nodetype.ConstraintViolationException;
+import javax.jcr.version.VersionException;
 
+import org.apache.jackrabbit.commons.JcrUtils;
 import org.apache.sling.api.resource.observation.ResourceChange;
 import org.apache.sling.api.resource.observation.ResourceChange.ChangeType;
 import org.apache.sling.api.resource.path.PathSet;
@@ -61,6 +67,8 @@ public class JcrResourceListenerTest {
 
     private final String createdPath = "/test" + System.currentTimeMillis() + "-create";
 
+    private final String movedPath = "/test" + System.currentTimeMillis() + "-moved";
+
     private final String pathToDelete = "/test" + System.currentTimeMillis() + "-delete";
 
     private final String pathToModify = "/test" + System.currentTimeMillis() + "-modify";
@@ -74,7 +82,13 @@ public class JcrResourceListenerTest {
     public void setUp() throws Exception {
         repository = SlingRepositoryProvider.getRepository();
         this.adminSession = repository.loginAdministrative(null);
-        ObservationReporter observationReporter = getObservationReporter();
+        registerListener("/");
+    }
+
+    private void registerListener(String paths) throws RepositoryException {
+        unregisterListener();
+        events.clear();
+        ObservationReporter observationReporter = getObservationReporter(paths);
         this.config = new JcrListenerBaseConfig(observationReporter,
                 new SlingRepository() {
 
@@ -140,7 +154,6 @@ public class JcrResourceListenerTest {
 
                     @Override
                     public String getDefaultWorkspace() {
-                        // TODO Auto-generated method stub
                         return repository.getDefaultWorkspace();
                     }
                 });
@@ -149,11 +162,22 @@ public class JcrResourceListenerTest {
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() throws AccessDeniedException, VersionException, LockException, ConstraintViolationException, RepositoryException {
+        unregisterListener();
+        if (adminSession.itemExists("/apps")) {
+            adminSession.removeItem("/apps");
+        }
+        if (adminSession.itemExists("/apps2")) {
+            adminSession.removeItem("/apps2");
+        }
         if (adminSession != null) {
+            adminSession.save();
             adminSession.logout();
             adminSession = null;
         }
+    }
+
+    private void unregisterListener() {
         if (listener != null) {
             listener.close();
             listener = null;
@@ -198,6 +222,115 @@ public class JcrResourceListenerTest {
 
         assertEquals(1, removePaths.size());
         assertTrue("Removed set should contain " + pathToDelete, removePaths.contains(pathToDelete));
+    }
+
+    @Test
+    public void testMoveOperationsInsideObservedPathOnLeafNode() throws RepositoryException, InterruptedException {
+        createNode(adminSession, createdPath);
+        adminSession.move(createdPath, movedPath);
+        adminSession.save();
+        Thread.sleep(3500);
+
+        assertTrue("Events must contain \"added\" for path \"" + movedPath + "\"",
+                events.stream().anyMatch(e -> e.getPath().equals(movedPath) && e.getType() == ChangeType.ADDED));
+        assertTrue("Events must contain \"removed\" for path \"" + createdPath + "\"",
+                events.stream().anyMatch(e -> e.getPath().equals(createdPath) && e.getType() == ChangeType.REMOVED));
+    }
+
+    @Test
+    public void testMoveOperationsInsideObservedPath() throws RepositoryException, InterruptedException {
+        createNode(adminSession, "/apps/test" + createdPath);
+        // clear events for node creation
+        Thread.sleep(2000);
+        registerListener("/");
+        adminSession.move("/apps", "/apps2");
+        adminSession.save();
+        Thread.sleep(3500);
+
+        // 1 added + 1 removed event for roots
+        assertEquals("Events must only contain 2 events but has " + events.toString(), 2, events.size());
+        assertTrue("Events must contain \"added\" for path \"/apps2\"",
+                events.stream().anyMatch(e -> e.getPath().equals("/apps2") && e.getType() == ChangeType.ADDED));
+        assertTrue("Events must contain \"removed\" for path \"/apps\"",
+                events.stream().anyMatch(e -> e.getPath().equals("/apps") && e.getType() == ChangeType.REMOVED));
+    }
+
+    @Test
+    public void testMoveOperationsIntoObservedPath() throws RepositoryException, InterruptedException {
+        registerListener("/apps");
+        createNode(adminSession, "/apps2/test" + createdPath);
+        adminSession.move("/apps2", "/apps");
+        adminSession.save();
+        Thread.sleep(3500);
+        String expectedAddedPath = "/apps/test" + createdPath;
+        assertTrue("Events must contain \"added\" for path \"" + expectedAddedPath + "\"",
+                events.stream().anyMatch(e -> e.getPath().equals(expectedAddedPath) && e.getType() == ChangeType.ADDED));
+        assertFalse("Events must not contain any \"removed\" events",
+                events.stream().anyMatch(e -> e.getType() == ChangeType.REMOVED));
+    }
+
+    @Test
+    public void testMoveOperationsOutOfObservedPath() throws RepositoryException, InterruptedException {
+        createNode(adminSession, "/apps/test" + createdPath);
+        Thread.sleep(2000);
+        registerListener("/apps");
+        adminSession.move("/apps", "/apps2");
+        adminSession.save();
+        Thread.sleep(3500);
+        String expectedPath = "/apps";
+        // 1 removed events for the moved root only
+        assertEquals("Events must only contain 1 events but has " + events.toString(), 1, events.size());
+        assertTrue("Events must contain \"removed\" for path \"" + expectedPath + "\"",
+                events.stream().anyMatch(e -> e.getPath().equals(expectedPath) && e.getType() == ChangeType.REMOVED));
+    }
+
+    @Test
+    public void testMoveOperationsIntoObservedPathWithGlobs() throws RepositoryException, InterruptedException {
+        registerListener("glob:/*/test/**");
+        createNode(adminSession, "/apps/test2" + createdPath);
+        adminSession.move("/apps/test2", "/apps/test"); // move happens above observed path
+        adminSession.save();
+        Thread.sleep(3500);
+
+        // only an added event for the root is received
+        assertEquals("Events must only contain 1 event but has " + events.toString(), 1, events.size());
+        assertTrue("Events must contain \"added\" for root path \"/apps/test\"",
+                events.stream().anyMatch(e -> e.getPath().equals("/apps/test") && e.getType() == ChangeType.ADDED));
+    }
+
+    @Test
+    public void testMoveOperationsOutOfObservedPathWithGlobs() throws RepositoryException, InterruptedException {
+        createNode(adminSession, "/apps/test" + createdPath);
+        Thread.sleep(2000);
+        registerListener("glob:/*/test/**");
+        adminSession.save();
+        adminSession.move("/apps/test", "/apps/test2"); // move happens above observed path
+        adminSession.save();
+        Thread.sleep(3500);
+
+        // 2 removed events for the whole subgraph below the observed path is received
+        assertEquals("Events must only contain 2 events but has " + events.toString(), 2, events.size());
+        assertTrue("Events must contain \"added\" for root path \"/apps/test\"",
+                events.stream().anyMatch(e -> e.getPath().equals("/apps/test" + createdPath) && e.getType() == ChangeType.REMOVED));
+    }
+
+    @Test
+    public void testOrderBeforeOperations() throws RepositoryException, InterruptedException {
+        Node node = createNode(adminSession, createdPath);
+        node.addNode("child1");
+        node.addNode("child2");
+
+        adminSession.save();
+        Thread.sleep(2000);
+        events.clear();
+        // reorder child1 to appear after child2
+        node.orderBefore("child1", null);
+
+        adminSession.save();
+        Thread.sleep(2000);
+
+        // TODO: send events here
+        assertEquals("Received: " + events, 0, events.size());
     }
 
     @Test
@@ -304,7 +437,7 @@ public class JcrResourceListenerTest {
     }
 
     private static Node createNode(final Session session, final String path) throws RepositoryException {
-        final Node n = session.getRootNode().addNode(path.substring(1), "nt:unstructured");
+        Node n = JcrUtils.getOrCreateByPath(path, "nt:unstructured", session);
         session.save();
         return n;
     }
@@ -332,11 +465,19 @@ public class JcrResourceListenerTest {
     }
 
     protected ObservationReporter getObservationReporter() {
-        return new SimpleObservationReporter();
+        return new SimpleObservationReporter("/");
+    }
+
+    protected ObservationReporter getObservationReporter(String... paths) {
+        return new SimpleObservationReporter(paths);
     }
 
     private class SimpleObservationReporter implements ObservationReporter {
 
+        private final String[] paths;
+        public SimpleObservationReporter(String... paths) {
+            this.paths = paths;
+        }
         @Override
         public void reportChanges(Iterable<ResourceChange> changes, boolean distribute) {
             for (ResourceChange c : changes) {
@@ -355,7 +496,7 @@ public class JcrResourceListenerTest {
 
                 @Override
                 public PathSet getPaths() {
-                    return PathSet.fromStrings("/");
+                    return PathSet.fromStrings(paths);
                 }
 
                 @Override
