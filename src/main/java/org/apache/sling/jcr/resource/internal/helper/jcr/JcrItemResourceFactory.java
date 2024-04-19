@@ -43,6 +43,8 @@ import org.slf4j.LoggerFactory;
 
 public class JcrItemResourceFactory {
 
+    static final String SEARCH_BY_ID_PREFIX = "/jcr:id/";
+
     /** Default logger */
     private static final Logger log = LoggerFactory.getLogger(JcrItemResourceFactory.class);
 
@@ -69,7 +71,7 @@ public class JcrItemResourceFactory {
      * @param parent The parent resource or {@code null}
      * @param parameters The parameters or{@code null}
      * @return The <code>Resource</code> for the item at the given path.
-     * @throws RepositoryException If an error occurrs accessing checking the
+     * @throws RepositoryException If an error occurs accessing checking the
      *             item in the repository.
      */
     public @Nullable JcrItemResource<?> createResource(final @NotNull ResourceResolver resourceResolver, final @NotNull String resourcePath,
@@ -82,15 +84,20 @@ public class JcrItemResourceFactory {
         }
         
         Item item = getItem(resourcePath, parent, version);
-        
+
         if (item == null) {
             log.debug("createResource: No JCR Item exists at path '{}'", resourcePath);
             return null;
         } else {
             final JcrItemResource<?> resource;
             if (item.isNode()) {
-                log.debug("createResource: Found JCR Node Resource at path '{}'", resourcePath);
-                resource = new JcrNodeResource(resourceResolver, resourcePath, version, (Node) item, helper);
+                if (resourcePath.startsWith(SEARCH_BY_ID_PREFIX)) {
+                    log.debug("createResource: Found JCR Node Resource by ID at path '{}'", resourcePath);
+                    resource = new JcrNodeResource(resourceResolver, item.getPath(), version, (Node) item, helper);
+                } else {
+                    log.debug("createResource: Found JCR Node Resource at path '{}'", resourcePath);
+                    resource = new JcrNodeResource(resourceResolver, resourcePath, version, (Node) item, helper);
+                }
             } else {
                 log.debug("createResource: Found JCR Property Resource at path '{}'", resourcePath);
                 resource = new JcrPropertyResource(resourceResolver, resourcePath, version, (Property) item);
@@ -185,8 +192,11 @@ public class JcrItemResourceFactory {
 
         Item item = null;
         try {
-            // Use fast getItemOrNull if session is a JackrabbitSession
-            if (this.isJackrabbit) {
+            // check if the lookup is by ID
+            if (path.startsWith(SEARCH_BY_ID_PREFIX)) {
+                item = session.getNodeByIdentifier(path.substring(SEARCH_BY_ID_PREFIX.length()));
+            } else if (this.isJackrabbit) {
+                // Use fast getItemOrNull if session is a JackrabbitSession
                 item = ((JackrabbitSession) session).getItemOrNull(path);
             }
             // Fallback to slower itemExists & getItem pattern
