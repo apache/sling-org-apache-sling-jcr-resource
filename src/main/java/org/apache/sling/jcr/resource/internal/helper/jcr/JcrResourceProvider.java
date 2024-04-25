@@ -32,8 +32,6 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.NotNull;
 import javax.jcr.Item;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
@@ -66,6 +64,8 @@ import org.apache.sling.spi.resource.provider.QueryLanguageProvider;
 import org.apache.sling.spi.resource.provider.ResolveContext;
 import org.apache.sling.spi.resource.provider.ResourceContext;
 import org.apache.sling.spi.resource.provider.ResourceProvider;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
@@ -75,6 +75,9 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.osgi.service.metatype.annotations.AttributeDefinition;
+import org.osgi.service.metatype.annotations.Designate;
+import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,6 +98,9 @@ import static org.apache.sling.jcr.resource.internal.helper.jcr.ContextUtil.getS
                    ResourceProvider.PROPERTY_AUTHENTICATE + "=" + ResourceProvider.AUTHENTICATE_REQUIRED,
                    Constants.SERVICE_VENDOR + "=The Apache Software Foundation"
            })
+@Designate(
+        ocd = JcrResourceProvider.Configuration.class
+)
 public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
 
     // due to https://issues.apache.org/jira/browse/SLING-11517 a dedicated class is necessary
@@ -138,8 +144,26 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
 
     private final AtomicReference<URIProvider[]> uriProviderReference = new AtomicReference<>();
 
+    private static boolean idAddressing;
+
+    @ObjectClassDefinition(
+            name = "Apache Sling JCR Resource Provider",
+            description = "The JCR Resource Provider provides access to the JCR repository."
+
+    )
+    @interface Configuration {
+
+        @AttributeDefinition(
+                name = "Resource Addressing by ID",
+                description = "If enabled, the resource provider will enable addressing resources by their JCR UUID " +
+                        "by using the special path prefix '/jcr:id/'."
+        )
+        boolean resource_addressingById() default false;
+
+    }
+
     @Activate
-    protected void activate(final ComponentContext context) {
+    protected void activate(final ComponentContext context, final Configuration configuration) {
         SlingRepository slingRepository = context.locateService(REPOSITORY_REFERENCE_NAME,
                 this.repositoryReference);
         if (slingRepository == null) {
@@ -154,6 +178,8 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
 
         this.stateFactory = new JcrProviderStateFactory(repositoryReference, slingRepository,
                 classLoaderManagerReference, uriProviderReference);
+
+        idAddressing = configuration.resource_addressingById();
     }
 
     @Deactivate
@@ -215,6 +241,14 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
     public void update(final long changeSet) {
         super.update(changeSet);
         this.updateListeners();
+    }
+
+    /**
+     * Check if ID addressing is enabled.
+     * @return {@code true} if ID addressing is enabled, {@code false} otherwise.
+     */
+    public static boolean isIdAddressingEnabled() {
+        return idAddressing;
     }
 
     @SuppressWarnings("unused")

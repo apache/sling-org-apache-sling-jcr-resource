@@ -32,6 +32,7 @@ import org.apache.jackrabbit.commons.JcrUtils;
 import org.apache.jackrabbit.oak.commons.PathUtils;
 import org.apache.sling.api.resource.PersistenceException;
 import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.jcr.resource.api.JcrResourceConstants;
 import org.apache.sling.jcr.resource.internal.HelperData;
 import org.apache.sling.spi.resource.provider.ResolveContext;
@@ -42,6 +43,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.osgi.service.component.ComponentContext;
 
@@ -54,6 +57,7 @@ public class JcrResourceProviderTest extends SlingRepositoryTestBase {
 
     JcrResourceProvider jcrResourceProvider;
     Session session;
+    ComponentContext ctx;
 
     @Override
     @Before
@@ -61,9 +65,11 @@ public class JcrResourceProviderTest extends SlingRepositoryTestBase {
         super.setUp();
         // create the session
         session = getSession();
-        ComponentContext ctx = mock(ComponentContext.class);
+        ctx = mock(ComponentContext.class);
+        when(ctx.locateService(ArgumentMatchers.anyString(), Mockito.any())).thenReturn(SlingRepositoryProvider.getRepository());
+        JcrResourceProvider.Configuration configuration = mock(JcrResourceProvider.Configuration.class);
         jcrResourceProvider = new JcrResourceProvider();
-        jcrResourceProvider.activate(ctx);
+        jcrResourceProvider.activate(ctx, configuration);
     }
 
     @Override
@@ -87,6 +93,7 @@ public class JcrResourceProviderTest extends SlingRepositoryTestBase {
     private @NotNull ResolveContext mockResolveContext() {
         ResolveContext ctx = mock(ResolveContext.class);
         when(ctx.getProviderState()).thenReturn(createProviderState());
+        when(ctx.getResourceResolver()).thenReturn(mock(ResourceResolver.class));
         return ctx;
     }
 
@@ -216,7 +223,11 @@ public class JcrResourceProviderTest extends SlingRepositoryTestBase {
     }
 
     @Test
-    public void getResourceByIdentifier() throws RepositoryException {
+    public void getResourceByIdentifierConfigurationEnabled() throws RepositoryException {
+        JcrResourceProvider.Configuration configuration = mock(JcrResourceProvider.Configuration.class);
+        when(configuration.resource_addressingById()).thenReturn(true);
+        jcrResourceProvider.activate(ctx, configuration);
+
         Node referenceable = JcrUtils.getOrCreateByPath("/root/referenceable", JcrConstants.NT_UNSTRUCTURED, session);
         referenceable.addMixin(JcrConstants.MIX_REFERENCEABLE);
         Node nonReferenceable = JcrUtils.getOrCreateByPath("/root/non-referenceable", JcrConstants.NT_UNSTRUCTURED,
@@ -232,6 +243,23 @@ public class JcrResourceProviderTest extends SlingRepositoryTestBase {
                 JcrItemResourceFactory.SEARCH_BY_ID_PREFIX + nonReferenceable.getIdentifier(), ResourceContext.EMPTY_CONTEXT, null);
         assertNotNull(nonReferenceableResource);
         assertEquals(nonReferenceableResource.getPath(), nonReferenceable.getPath());
+    }
+
+    @Test
+    public void getResourceByIdentifierConfigurationNotEnabled() throws RepositoryException {
+        Node referenceable = JcrUtils.getOrCreateByPath("/root/referenceable", JcrConstants.NT_UNSTRUCTURED, session);
+        referenceable.addMixin(JcrConstants.MIX_REFERENCEABLE);
+        Node nonReferenceable = JcrUtils.getOrCreateByPath("/root/non-referenceable", JcrConstants.NT_UNSTRUCTURED,
+                session);
+        session.save();
+
+        Resource referenceableResource = jcrResourceProvider.getResource(mockResolveContext(),
+                JcrItemResourceFactory.SEARCH_BY_ID_PREFIX + referenceable.getIdentifier(), ResourceContext.EMPTY_CONTEXT, null);
+        assertNull(referenceableResource);
+
+        Resource nonReferenceableResource = jcrResourceProvider.getResource(mockResolveContext(),
+                JcrItemResourceFactory.SEARCH_BY_ID_PREFIX + nonReferenceable.getIdentifier(), ResourceContext.EMPTY_CONTEXT, null);
+        assertNull(nonReferenceableResource);
     }
     
 

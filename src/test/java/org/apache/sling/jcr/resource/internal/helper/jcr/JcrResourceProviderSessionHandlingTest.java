@@ -18,18 +18,6 @@
  */
 package org.apache.sling.jcr.resource.internal.helper.jcr;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.sameInstance;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeThat;
-import static org.junit.Assume.assumeTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -58,6 +46,18 @@ import org.mockito.Mockito;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
+
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.sameInstance;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeThat;
+import static org.junit.Assume.assumeTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @RunWith(Parameterized.class)
 public class JcrResourceProviderSessionHandlingTest {
@@ -227,8 +227,10 @@ public class JcrResourceProviderSessionHandlingTest {
         ComponentContext ctx = mock(ComponentContext.class);
         when(ctx.locateService(ArgumentMatchers.anyString(), Mockito.any())).thenReturn(repo);
 
+        JcrResourceProvider.Configuration configuration = mock(JcrResourceProvider.Configuration.class);
+
         jcrResourceProvider = new JcrResourceProvider();
-        jcrResourceProvider.activate(ctx);
+        jcrResourceProvider.activate(ctx, configuration);
 
         jcrProviderState = jcrResourceProvider.authenticate(authInfo);
     }

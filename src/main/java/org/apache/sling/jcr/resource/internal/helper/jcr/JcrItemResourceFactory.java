@@ -91,7 +91,7 @@ public class JcrItemResourceFactory {
         } else {
             final JcrItemResource<?> resource;
             if (item.isNode()) {
-                if (resourcePath.startsWith(SEARCH_BY_ID_PREFIX)) {
+                if (JcrResourceProvider.isIdAddressingEnabled() && resourcePath.startsWith(SEARCH_BY_ID_PREFIX)) {
                     log.debug("createResource: Found JCR Node Resource by ID at path '{}'", resourcePath);
                     resource = new JcrNodeResource(resourceResolver, item.getPath(), version, (Node) item, helper);
                 } else {
@@ -193,7 +193,7 @@ public class JcrItemResourceFactory {
         Item item = null;
         try {
             // check if the lookup is by ID
-            if (path.startsWith(SEARCH_BY_ID_PREFIX)) {
+            if (JcrResourceProvider.isIdAddressingEnabled() && path.startsWith(SEARCH_BY_ID_PREFIX)) {
                 item = session.getNodeByIdentifier(path.substring(SEARCH_BY_ID_PREFIX.length()));
             } else if (this.isJackrabbit) {
                 // Use fast getItemOrNull if session is a JackrabbitSession

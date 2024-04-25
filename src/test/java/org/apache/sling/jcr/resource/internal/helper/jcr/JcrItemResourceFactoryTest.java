@@ -34,6 +34,9 @@ import org.apache.jackrabbit.commons.jackrabbit.authorization.AccessControlUtils
 import org.apache.jackrabbit.oak.commons.PathUtils;
 import org.apache.jackrabbit.oak.spi.security.principal.EveryonePrincipal;
 import org.apache.sling.jcr.resource.internal.HelperData;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mockito;
+import org.osgi.service.component.ComponentContext;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -144,7 +147,15 @@ public class JcrItemResourceFactoryTest extends SlingRepositoryTestBase {
         compareGetParentOrNull(s, EXISTING_NODE_PATH, true);
     }
 
-    public void testGetNodeByIdentifier() throws RepositoryException {
+    public void testGetNodeByIdentifierConfigEnabled() throws Exception {
+        ComponentContext ctx = mock(ComponentContext.class);
+        when(ctx.locateService(ArgumentMatchers.anyString(), Mockito.any())).thenReturn(SlingRepositoryProvider.getRepository());
+
+        JcrResourceProvider.Configuration configuration = mock(JcrResourceProvider.Configuration.class);
+        when(configuration.resource_addressingById()).thenReturn(true);
+        JcrResourceProvider jcrResourceProvider = new JcrResourceProvider();
+        jcrResourceProvider.activate(ctx, configuration);
+
         HelperData helper = new HelperData(new AtomicReference<>(), new AtomicReference<>());
         String identifier = referenceableNode.getIdentifier();
         String uuid = referenceableNode.getProperty(JcrConstants.JCR_UUID).getString();
@@ -160,6 +171,16 @@ public class JcrItemResourceFactoryTest extends SlingRepositoryTestBase {
         assertNotNull(nodeItem);
         assertTrue(nodeItem.isNode());
         assertEquals(EXISTING_NODE_PATH, nodeItem.getPath());
+    }
+
+    public void testGetNodeByIdentifierConfigNotEnabled() throws Exception {
+        HelperData helper = new HelperData(new AtomicReference<>(), new AtomicReference<>());
+        String identifier = referenceableNode.getIdentifier();
+        String uuid = referenceableNode.getProperty(JcrConstants.JCR_UUID).getString();
+        assertEquals(identifier, uuid);
+        Item referenceableItem =
+                new JcrItemResourceFactory(session, helper).getItemOrNull(JcrItemResourceFactory.SEARCH_BY_ID_PREFIX + referenceableNode.getIdentifier());
+        assertNull(referenceableItem);
     }
 
     private void compareGetParentOrNull(Session s, String path, boolean nullExpected) throws RepositoryException {
