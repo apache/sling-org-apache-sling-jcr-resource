@@ -18,8 +18,6 @@
  */
 package org.apache.sling.jcr.resource.internal.helper.jcr;
 
-import static org.apache.sling.api.resource.ResourceResolverFactory.NEW_PASSWORD;
-
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -44,6 +42,8 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static org.apache.sling.api.resource.ResourceResolverFactory.NEW_PASSWORD;
 
 public class JcrProviderStateFactory {
 
@@ -111,7 +111,20 @@ public class JcrProviderStateFactory {
                     } else {
                         final Object subService = authenticationInfo.get(ResourceResolverFactory.SUBSERVICE);
                         final String subServiceName = subService instanceof String ? (String) subService : null;
-                        session = repo.loginService(subServiceName, null);
+                        // let's shortcut the impersonation for service users, if impersonation was requested
+                        String sudoUser = getSudoUser(authenticationInfo);
+                        if (sudoUser != null) {
+                            SimpleCredentials creds = new SimpleCredentials(sudoUser, new char[0]);
+                            creds.setAttribute(ResourceResolver.USER_IMPERSONATOR, subServiceName == null ?
+                                    bundle.getSymbolicName() : subServiceName);
+                            session = repo.impersonateFromService(subServiceName, creds, null);
+                            // if the impersonation worked we should have a session now; let's remove the sudo user
+                            // from the authentication info to skip the impersonation logic below
+                            authenticationInfo.remove(ResourceResolverFactory.USER_IMPERSONATION);
+                        } else {
+                            session = repo.loginService(subServiceName, null);
+
+                        }
                     }
                 } catch (Throwable t) {
                     // unget the repository if the service cannot

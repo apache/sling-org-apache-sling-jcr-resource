@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.jcr.Credentials;
+import javax.jcr.LoginException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;
@@ -188,6 +189,10 @@ public class JcrResourceProviderSessionHandlingTest {
             return wrapped.loginAdministrative(workspace);
         }
 
+        @Override
+        public Session impersonateFromService(String s, Credentials credentials, String s1) throws LoginException, RepositoryException {
+            return loginAdministrative(s1).impersonate(credentials);
+        }
     }
 
     @Before
@@ -292,8 +297,11 @@ public class JcrResourceProviderSessionHandlingTest {
         ResolveContext<JcrProviderState> mockContext = mock(ResolveContext.class);
         when(mockContext.getProviderState()).thenReturn(jcrProviderState);
         Object reportedImpersonator = jcrResourceProvider.getAttribute(mockContext, ResourceResolver.USER_IMPERSONATOR);
-
-        assertEquals(AUTH_USER, reportedImpersonator);
+        if (loginStyle == LoginStyle.SERVICE) {
+            assertEquals("dummy-service", reportedImpersonator);
+        } else {
+            assertEquals(AUTH_USER, reportedImpersonator);
+        }
     }
 
     @Test

@@ -16,13 +16,6 @@
  */
 package org.apache.sling.jcr.resource.internal;
 
-import static java.util.Collections.synchronizedList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -32,6 +25,7 @@ import java.util.Set;
 
 import javax.jcr.AccessDeniedException;
 import javax.jcr.Credentials;
+import javax.jcr.LoginException;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
@@ -53,6 +47,13 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import static java.util.Collections.synchronizedList;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Test of JcrResourceListener.
@@ -155,6 +156,11 @@ public class JcrResourceListenerTest {
                     @Override
                     public String getDefaultWorkspace() {
                         return repository.getDefaultWorkspace();
+                    }
+
+                    @Override
+                    public Session impersonateFromService(String s, Credentials credentials, String s1) throws LoginException, RepositoryException {
+                        return loginAdministrative(s1).impersonate(credentials);
                     }
                 });
         this.listener = new JcrResourceListener(this.config,
