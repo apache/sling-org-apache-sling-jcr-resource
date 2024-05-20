@@ -111,10 +111,15 @@ public class JcrProviderStateFactory {
                     } else {
                         final Object subService = authenticationInfo.get(ResourceResolverFactory.SUBSERVICE);
                         final String subServiceName = subService instanceof String ? (String) subService : null;
-                        // let's shortcut the impersonation for service users, if impersonation was requested
+                        // let's shortcut the impersonation for services, if impersonation was requested
                         String sudoUser = getSudoUser(authenticationInfo);
                         if (sudoUser != null) {
                             SimpleCredentials creds = new SimpleCredentials(sudoUser, new char[0]);
+
+                            // while this attribute is not used by the JCR API, it is expected that the
+                            // ResourceResolver provides it when a session was impersonated; in the actual
+                            // implementation it will be retrieved from the session when calling {@link
+                            // ResourceResolver#getAttribute(String)} with {@link ResourceResolver#USER_IMPERSONATOR}
                             creds.setAttribute(ResourceResolver.USER_IMPERSONATOR, subServiceName == null ?
                                     bundle.getSymbolicName() : subServiceName);
                             session = repo.impersonateFromService(subServiceName, creds, null);
