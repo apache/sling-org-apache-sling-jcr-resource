@@ -106,7 +106,7 @@ public class JcrPropertyMapCacheEntry {
         }
         final Value val = createValue(value, node);
         if (val == null) {
-            throw new IllegalArgumentException("Value can't be stored in the repository: " + value);
+            throw new IllegalArgumentException("Value can't be stored in the repository as it is having an unsupported type " + value.getClass());
         }
     }
 
@@ -132,7 +132,7 @@ public class JcrPropertyMapCacheEntry {
                 final ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
                 value = session.getValueFactory().createValue(session.getValueFactory().createBinary(bais));
             } catch (IOException ioe) {
-                // we ignore this here and return null
+                throw new RepositoryException("Cannot serialize object", ioe);
             }
         }
         return value;

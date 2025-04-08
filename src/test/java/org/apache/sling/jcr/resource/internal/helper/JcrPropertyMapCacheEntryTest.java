@@ -18,30 +18,6 @@
  */
 package org.apache.sling.jcr.resource.internal.helper;
 
-import com.google.common.collect.Maps;
-import org.apache.jackrabbit.value.BooleanValue;
-import org.apache.jackrabbit.value.ValueFactoryImpl;
-import org.junit.Before;
-import org.junit.Test;
-
-import javax.jcr.Node;
-import javax.jcr.Property;
-import javax.jcr.PropertyType;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.Value;
-import javax.jcr.ValueFactory;
-import javax.jcr.ValueFormatException;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -53,6 +29,34 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Optional;
+
+import javax.jcr.Node;
+import javax.jcr.Property;
+import javax.jcr.PropertyType;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.Value;
+import javax.jcr.ValueFactory;
+import javax.jcr.ValueFormatException;
+
+import org.apache.jackrabbit.value.BooleanValue;
+import org.apache.jackrabbit.value.ValueFactoryImpl;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.google.common.collect.Maps;
 
 /**
  * Testcase for {@link JcrPropertyMapCacheEntry}
@@ -444,10 +448,25 @@ public class JcrPropertyMapCacheEntryTest {
     }
     
     @Test(expected = IllegalArgumentException.class)
-    public void testCreateFromUnstorableValue() throws Exception {
+    public void testCreateFromNonSerializableComplexValue() throws Exception {
         Object value = new TestClass();
         new JcrPropertyMapCacheEntry(value, node);
     }
     
     private static final class TestClass {}
+    
+    @Test(expected = RepositoryException.class)
+    public void testCreateFromSerializeComplexValueWithUnserializableField() throws Exception {
+        // this class cannot be serialized and throws an exception at runtime (as Optional is not serializable)
+        Object value = new TestClass2();
+        new JcrPropertyMapCacheEntry(value, node);
+    }
+    
+    private static final class TestClass2 implements Serializable {
+        Optional<String> value;
+        
+        public TestClass2() {
+            this.value = Optional.empty();
+        }
+    }
 }

@@ -73,7 +73,7 @@ public class JcrModifiableValueMap extends JcrValueMap implements ModifiableValu
                 node.setProperty(name, entry.convertToType(Value.class, node, this.helper.getDynamicClassLoader()));
             }
         } catch (final RepositoryException re) {
-            throw new IllegalArgumentException("Value '" + value + "' for property '" + key + "' can't be put into node '" + getPath() + "'.", re);
+            throw new IllegalArgumentException("Value of class '" + value.getClass() + "' for property '" + key + "' can't be put into node '" + getPath() + "'.", re);
         }
         this.valueCache.put(key, value);
 
