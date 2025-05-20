@@ -22,6 +22,7 @@ import static org.apache.sling.jcr.resource.internal.AssertCalendar.assertEquals
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.NotSerializableException;
 import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
@@ -34,6 +35,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicReference;
@@ -46,6 +48,7 @@ import javax.jcr.ValueFactory;
 import javax.jcr.nodetype.NodeType;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.jackrabbit.util.Text;
 import org.apache.sling.api.resource.ModifiableValueMap;
 import org.apache.sling.api.resource.ValueMap;
@@ -231,9 +234,26 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
         }
         try {
             pvm.put("something", pvm);
-            fail("Put with non serializable");
+            fail("Put with non serializable class");
         } catch (IllegalArgumentException iae) {
         }
+        // put something which is not serializable at run time
+        try {
+            pvm.put("something", new TestClass("somevalue"));
+            fail("Put with class not serializable at run time");
+        } catch (IllegalArgumentException iae) {
+            assertEquals(NotSerializableException.class, ExceptionUtils.getRootCause(iae).getClass());
+        }
+    }
+
+    public static final class TestClass implements Serializable {
+        private static final long serialVersionUID = 1L;
+        private Optional<String> name; // this is not serializable
+
+        public TestClass(final String name) {
+            this.name = Optional.of(name);
+        }
+
     }
 
     private Set<String> getMixinNodeTypes(final Node node) throws RepositoryException {
