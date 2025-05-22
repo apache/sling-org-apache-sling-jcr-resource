@@ -32,6 +32,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -66,7 +67,7 @@ public class JcrPropertyMapCacheEntryTest {
     private final ValueFactory vf = ValueFactoryImpl.getInstance();
     private final Session session = mock(Session.class);
     private final Node node = mock(Node.class);
-    
+
     @Before
     public void before() throws Exception {
         when(session.getValueFactory()).thenReturn(vf);
@@ -128,7 +129,7 @@ public class JcrPropertyMapCacheEntryTest {
         new JcrPropertyMapCacheEntry(new char[0], node);
         verifyNoMoreInteractions(node);
     }
-    
+
     @Test(expected = IllegalArgumentException.class)
     public void testCannotStore() throws Exception {
         Object value = new TestClass();
@@ -140,13 +141,13 @@ public class JcrPropertyMapCacheEntryTest {
         Object value = new TestClass();
         new JcrPropertyMapCacheEntry(new Object[] {value}, node);
     }
-    
+
     @Test
     public void testGetPropertyValueOrNull() throws Exception {
         JcrPropertyMapCacheEntry entry = new JcrPropertyMapCacheEntry(true, node);
         assertEquals(Boolean.TRUE, entry.getPropertyValueOrNull());
     }
-    
+
     @Test
     public void testGetPropertyValueOrNullWithRepositoryException() throws Exception {
         Property prop = mock(Property.class);
@@ -155,12 +156,12 @@ public class JcrPropertyMapCacheEntryTest {
         JcrPropertyMapCacheEntry entry = new JcrPropertyMapCacheEntry(prop);
         assertNull(entry.getPropertyValueOrNull());
     }
-    
+
     @Test
     public void testInputStreamToString() throws Exception {
         InputStream in = new ByteArrayInputStream("test".getBytes());
         JcrPropertyMapCacheEntry entry = new JcrPropertyMapCacheEntry(in, node);
-        
+
         String result = entry.convertToType(String.class, node, null);
         assertEquals("test", result);
         verifyNoMoreInteractions(node);
@@ -186,7 +187,7 @@ public class JcrPropertyMapCacheEntryTest {
         assertEquals(0, result.length);
         verifyNoMoreInteractions(node);
     }
-    
+
     @Test
     public void testBinaryPropertyToInteger() throws Exception {
         Property prop = mock(Property.class);
@@ -194,11 +195,11 @@ public class JcrPropertyMapCacheEntryTest {
         when(prop.getStream()).thenReturn(new ByteArrayInputStream("10".getBytes()));
         when(prop.getValue()).thenReturn(vf.createValue(new ByteArrayInputStream("10".getBytes())));
         when(prop.getLength()).thenReturn(2L);
-        
+
         JcrPropertyMapCacheEntry entry = new JcrPropertyMapCacheEntry(prop);
         Integer result = entry.convertToType(Integer.class, node, null);
         assertEquals(Integer.valueOf(2), result);
-        
+
         verify(prop, times(2)).isMultiple();
         verify(prop).getValue();
         verify(prop).getType();
@@ -221,7 +222,7 @@ public class JcrPropertyMapCacheEntryTest {
         assertNotNull(result);
         assertEquals(1, result.length);
         assertEquals(Double.valueOf(4.0), result[0]);
-        
+
         verify(prop, times(2)).isMultiple();
         verify(prop).getValue();
         verify(prop).getType();
@@ -254,7 +255,7 @@ public class JcrPropertyMapCacheEntryTest {
         verifyNoMoreInteractions(prop);
         verifyNoMoreInteractions(node);
     }
-    
+
     @Test
     public void testInputStreamToObjectInputStream() throws Exception {
         InputStream in = new ByteArrayInputStream("value".getBytes());
@@ -271,7 +272,7 @@ public class JcrPropertyMapCacheEntryTest {
         try (ObjectOutputStream oos = new ObjectOutputStream(out)) {
             oos.writeObject(Maps.newHashMap());
         }
-        
+
         JcrPropertyMapCacheEntry entry = new JcrPropertyMapCacheEntry(new ByteArrayInputStream(out.toByteArray()), node);
         // same type
         Map<?,?> result = entry.convertToType(HashMap.class, node, null);
@@ -293,7 +294,7 @@ public class JcrPropertyMapCacheEntryTest {
 
         verifyNoMoreInteractions(node);
     }
-    
+
     @Test
     public void testBinaryPropertyToObjectInputStream() throws Exception {
         Property prop = mock(Property.class);
@@ -311,7 +312,7 @@ public class JcrPropertyMapCacheEntryTest {
         verifyNoMoreInteractions(prop);
         verifyNoMoreInteractions(node);
     }
-    
+
     @Test
     public void testMvPropertyToBoolean() throws Exception {
         Property prop = mock(Property.class);
@@ -323,7 +324,7 @@ public class JcrPropertyMapCacheEntryTest {
 
         JcrPropertyMapCacheEntry entry = new JcrPropertyMapCacheEntry(prop);
         assertTrue(entry.isArray());
-        
+
         Boolean result = entry.convertToType(Boolean.class, node, null);
         assertNotNull(result);
         assertTrue(result);
@@ -346,7 +347,7 @@ public class JcrPropertyMapCacheEntryTest {
 
         JcrPropertyMapCacheEntry entry = new JcrPropertyMapCacheEntry(prop);
         assertTrue(entry.isArray());
-        
+
         String result = entry.convertToType(String.class, node, null);
         assertNull(result);
 
@@ -356,7 +357,7 @@ public class JcrPropertyMapCacheEntryTest {
         verifyNoMoreInteractions(prop);
         verifyNoMoreInteractions(node);
     }
-    
+
     @Test
     public void testConversionFails() throws RepositoryException {
         Property prop = mock(Property.class);
@@ -398,14 +399,14 @@ public class JcrPropertyMapCacheEntryTest {
         verify(node).getSession();
         verifyNoMoreInteractions(prop, node);
     }
-    
+
     @Test
     public void testConvertToSameType() throws Exception {
         Calendar cal = Calendar.getInstance();
-        
+
         JcrPropertyMapCacheEntry entry = new JcrPropertyMapCacheEntry(cal, node);
         Calendar result = entry.convertToType(Calendar.class, node, null);
-        
+
         assertSame(cal, result);
         verify(node).getSession();
         verifyNoMoreInteractions(node);
@@ -416,7 +417,7 @@ public class JcrPropertyMapCacheEntryTest {
         JcrPropertyMapCacheEntry entry = new JcrPropertyMapCacheEntry("value", node);
         Property result = entry.convertToType(Property.class, node, null);
         assertNull(result); // TODO is this expected?
-        
+
         verify(node).getSession();
         verify(session).getValueFactory();
         verifyNoMoreInteractions(node, session);
@@ -427,11 +428,11 @@ public class JcrPropertyMapCacheEntryTest {
         Property prop = mock(Property.class);
         when(prop.getType()).thenReturn(PropertyType.BOOLEAN);
         when(prop.getValue()).thenReturn(BooleanValue.valueOf("true"));
-        
+
         JcrPropertyMapCacheEntry entry = new JcrPropertyMapCacheEntry(prop);
         Property result = entry.convertToType(Property.class, node, null);
         assertSame(prop, result);
-        
+
         verifyNoMoreInteractions(node);
         verify(prop).getType();
         verify(prop).getValue();
@@ -446,25 +447,25 @@ public class JcrPropertyMapCacheEntryTest {
         Object propValue = entry.getPropertyValue();
         assertTrue(propValue instanceof HashMap);
     }
-    
+
     @Test(expected = IllegalArgumentException.class)
     public void testCreateFromNonSerializableComplexValue() throws Exception {
         Object value = new TestClass();
         new JcrPropertyMapCacheEntry(value, node);
     }
-    
+
     private static final class TestClass {}
-    
-    @Test(expected = RepositoryException.class)
+
+    @Test(expected = IOException.class)
     public void testCreateFromSerializeComplexValueWithUnserializableField() throws Exception {
         // this class cannot be serialized and throws an exception at runtime (as Optional is not serializable)
         Object value = new TestClass2();
         new JcrPropertyMapCacheEntry(value, node);
     }
-    
+
     private static final class TestClass2 implements Serializable {
         Optional<String> value;
-        
+
         public TestClass2() {
             this.value = Optional.empty();
         }

@@ -18,6 +18,7 @@
  */
 package org.apache.sling.jcr.resource.internal;
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -72,7 +73,7 @@ public class JcrModifiableValueMap extends JcrValueMap implements ModifiableValu
             } else {
                 node.setProperty(name, entry.convertToType(Value.class, node, this.helper.getDynamicClassLoader()));
             }
-        } catch (final RepositoryException re) {
+        } catch (final IOException | RepositoryException re) {
             throw new IllegalArgumentException("Value of class '" + value.getClass() + "' for property '" + key + "' can't be put into node '" + getPath() + "'.", re);
         }
         this.valueCache.put(key, value);

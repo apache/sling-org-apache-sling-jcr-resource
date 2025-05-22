@@ -83,7 +83,7 @@ public class JcrPropertyMapCacheEntry {
      * @param node the node
      * @throws RepositoryException if the provided value cannot be stored
      */
-    public JcrPropertyMapCacheEntry(final @NotNull Object value, final @NotNull Node node) throws RepositoryException {
+    public JcrPropertyMapCacheEntry(final @NotNull Object value, final @NotNull Node node) throws IOException, RepositoryException {
         this.property = null;
         this.propertyValue = value;
         this.isArray = value.getClass().isArray();
@@ -98,7 +98,7 @@ public class JcrPropertyMapCacheEntry {
         }
     }
 
-    private static void failIfCannotStore(final @NotNull Object value, final @NotNull Node node) throws RepositoryException {
+    private static void failIfCannotStore(final @NotNull Object value, final @NotNull Node node) throws IOException, RepositoryException {
         if (value instanceof InputStream) {
             // InputStream is storable and calling createValue for nothing
             // eats its contents
@@ -120,20 +120,16 @@ public class JcrPropertyMapCacheEntry {
      * @param  node the node
      * @return the converted value
      */
-    private static @Nullable Value createValue(final @NotNull Object obj, final @NotNull Node node) throws RepositoryException {
+    private static @Nullable Value createValue(final @NotNull Object obj, final @NotNull Node node) throws IOException, RepositoryException {
         final Session session = node.getSession();
         Value value = JcrResourceUtil.createValue(obj, session);
         if (value == null && obj instanceof Serializable) {
-            try {
-                final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                final ObjectOutputStream oos = new ObjectOutputStream(baos);
-                oos.writeObject(obj);
-                oos.close();
-                final ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-                value = session.getValueFactory().createValue(session.getValueFactory().createBinary(bais));
-            } catch (IOException ioe) {
-                throw new RepositoryException("Cannot serialize object", ioe);
-            }
+            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            final ObjectOutputStream oos = new ObjectOutputStream(baos);
+            oos.writeObject(obj);
+            oos.close();
+            final ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+            value = session.getValueFactory().createValue(session.getValueFactory().createBinary(bais));
         }
         return value;
     }
@@ -207,7 +203,7 @@ public class JcrPropertyMapCacheEntry {
     @SuppressWarnings("unchecked")
     public @Nullable<T> T convertToType(final @NotNull Class<T> type,
                                         final @NotNull Node node,
-                                        final @Nullable ClassLoader dynamicClassLoader) {
+                                        final @Nullable ClassLoader dynamicClassLoader){
         T result = null;
 
         try {
@@ -234,7 +230,7 @@ public class JcrPropertyMapCacheEntry {
 
         } catch (final IllegalArgumentException | ValueFormatException vfe) {
             LOGGER.info("convertToType: Cannot convert value of {} to {}.", this.getPropertyValueOrNull(), type, vfe);
-        } catch (RepositoryException re) {
+        } catch (IOException | RepositoryException re) {
             LOGGER.info("convertToType: Cannot get value of {}", this.getPropertyValueOrNull(), re);
         }
 
@@ -245,7 +241,8 @@ public class JcrPropertyMapCacheEntry {
     private @NotNull<T> T[] convertToArray(final @NotNull Object source,
                                            final @NotNull Class<T> type,
                                            final @NotNull Node node,
-                                           final @Nullable ClassLoader dynamicClassLoader) throws RepositoryException {
+                                           final @Nullable ClassLoader dynamicClassLoader)
+    throws IOException, RepositoryException {
         List<T> values = new ArrayList<>();
         T value = convertToType(-1, source, type, node, dynamicClassLoader);
         if (value != null) {
@@ -256,11 +253,12 @@ public class JcrPropertyMapCacheEntry {
         T[] result = (T[]) Array.newInstance(type, values.size());
         return values.toArray(result);
     }
-    
+
     private @NotNull<T> T[] convertToArray(final @NotNull Object[] sourceArray,
                                            final @NotNull Class<T> type,
                                            final @NotNull Node node,
-                                           final @Nullable ClassLoader dynamicClassLoader) throws RepositoryException {
+                                           final @Nullable ClassLoader dynamicClassLoader)
+    throws IOException, RepositoryException {
         List<T> values = new ArrayList<>();
         for (int i = 0; i < sourceArray.length; i++) {
             T value = convertToType(i, sourceArray[i], type, node, dynamicClassLoader);
@@ -280,23 +278,25 @@ public class JcrPropertyMapCacheEntry {
                                          final @NotNull Object initialValue,
                                          final @NotNull Class<T> type,
                                          final @NotNull Node node,
-                                         final @Nullable ClassLoader dynamicClassLoader) throws RepositoryException {
+                                         final @Nullable ClassLoader dynamicClassLoader)
+    throws IOException, RepositoryException {
         if (type.isInstance(initialValue)) {
             return (T) initialValue;
         }
-        
+
         if (initialValue instanceof InputStream) {
             return convertInputStream(index, (InputStream) initialValue, type, node, dynamicClassLoader);
         } else {
             return convert(initialValue, type, node);
         }
     }
-    
+
     private @Nullable <T> T convertInputStream(int index,
                                                final @NotNull InputStream value,
                                                final @NotNull Class<T> type,
                                                final @NotNull Node node,
-                                               final @Nullable ClassLoader dynamicClassLoader) throws RepositoryException {
+                                               final @Nullable ClassLoader dynamicClassLoader)
+    throws IOException, RepositoryException {
         // object input stream
         if (ObjectInputStream.class.isAssignableFrom(type)) {
             try {
@@ -312,11 +312,11 @@ public class JcrPropertyMapCacheEntry {
                 return null;
             }
             return convert(propertyToLength(property, index), type, node);
-            
+
         // string: read binary
         } else if (String.class == type) {
             return (T) inputStreamToString(value);
-            
+
         // any serializable
         } else if (Serializable.class.isAssignableFrom(type)) {
             try (ObjectInputStream ois = new PropertyObjectInputStream(value, dynamicClassLoader)) {
@@ -329,12 +329,12 @@ public class JcrPropertyMapCacheEntry {
                 // ignore and use fallback
             }
             // ignore
-        } 
-        
+        }
+
         // fallback
         return convert(value, type, node);
     }
-    
+
     private static @NotNull Long propertyToLength(@NotNull Property property, int index) throws RepositoryException {
         if (index == -1) {
             return Long.valueOf(property.getLength());
@@ -342,7 +342,7 @@ public class JcrPropertyMapCacheEntry {
             return Long.valueOf(property.getLengths()[index]);
         }
     }
-    
+
     private static @NotNull String inputStreamToString(@NotNull InputStream value) {
         try (InputStream in = value) {
             final ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -361,7 +361,8 @@ public class JcrPropertyMapCacheEntry {
 
     private @Nullable <T> T convert(final @NotNull Object value,
                                    final @NotNull Class<T> type,
-                                   final @NotNull Node node) throws RepositoryException {
+                                   final @NotNull Node node)
+    throws IOException, RepositoryException {
         if (String.class == type) {
             return (T) getConverter(value).toString();
 
