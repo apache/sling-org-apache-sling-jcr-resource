@@ -65,6 +65,7 @@ public class JcrPropertyResourceTest {
             final Property property = this.context.mock(Property.class, stringValue);
             this.context.checking(new Expectations() {{
                 ignoring(resolver);
+                allowing(property).getNode();
                 allowing(property).getParent();
                 allowing(property).getName();
                 allowing(property).isMultiple();
@@ -77,7 +78,7 @@ public class JcrPropertyResourceTest {
                 allowing(property).getString();
                 will(returnValue(stringValue));
             }});
-            final JcrPropertyResource propResource = new JcrPropertyResource(resolver, "/path/to/string-property", null, property);
+            final JcrPropertyResource propResource = new JcrPropertyResource(resolver, "/path/to/string-property", null, property, JcrItemResourceTestBase.getHelperData());
             assertEquals("Byte length of " + stringValue, stringByteLength, propResource.getResourceMetadata().getContentLength());
         }
     }
