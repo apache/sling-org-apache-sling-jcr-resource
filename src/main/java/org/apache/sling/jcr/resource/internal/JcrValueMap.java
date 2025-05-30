@@ -36,6 +36,7 @@ import org.apache.jackrabbit.util.ISO9075;
 import org.apache.jackrabbit.util.Text;
 import org.apache.sling.api.resource.ModifiableValueMap;
 import org.apache.sling.api.resource.ValueMap;
+import org.apache.sling.jcr.resource.api.JcrResourceConstants;
 import org.apache.sling.jcr.resource.internal.helper.JcrPropertyMapCacheEntry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -297,6 +298,11 @@ public class JcrValueMap implements ValueMap {
         try {
             final String key = escapeKeyName(name);
             Property property = NodeUtil.getPropertyOrNull(node,key);
+            if (property == null && name.equals(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)) {
+                // special handling for the resource type property which according to the API must always be exposed via property sling:resourceType
+                // use value of jcr:primaryType if sling:resourceType is not set
+                property = NodeUtil.getPropertyOrNull(node, Property.JCR_PRIMARY_TYPE);
+            }
             if (property != null) {
                 return cacheProperty(property);
             }

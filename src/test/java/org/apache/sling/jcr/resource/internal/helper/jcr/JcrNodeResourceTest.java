@@ -25,7 +25,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -37,13 +36,8 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceMetadata;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.jcr.resource.api.JcrResourceConstants;
-import org.apache.sling.jcr.resource.internal.HelperData;
 
 public class JcrNodeResourceTest extends JcrItemResourceTestBase {
-
-    private HelperData getHelperData() {
-        return new HelperData(new AtomicReference<>(), new AtomicReference<>());
-    }
 
     public void testLinkedFile() throws Exception {
         String fileName = "file";
@@ -140,6 +134,7 @@ public class JcrNodeResourceTest extends JcrItemResourceTestBase {
 
         JcrNodeResource jnr = new JcrNodeResource(null, node.getPath(), null, node, getHelperData());
         assertEquals(JcrConstants.NT_UNSTRUCTURED, jnr.getResourceType());
+        assertEquals(JcrConstants.NT_UNSTRUCTURED, jnr.getValueMap().get(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY, String.class));
 
         String typeName = "some/resource/type";
         node.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY, typeName);

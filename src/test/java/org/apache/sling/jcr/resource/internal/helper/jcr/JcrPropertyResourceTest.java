@@ -77,7 +77,7 @@ public class JcrPropertyResourceTest {
                 allowing(property).getString();
                 will(returnValue(stringValue));
             }});
-            final JcrPropertyResource propResource = new JcrPropertyResource(resolver, "/path/to/string-property", null, property);
+            final JcrPropertyResource propResource = new JcrPropertyResource(resolver, "/path/to/string-property", null, property, JcrItemResourceTestBase.getHelperData());
             assertEquals("Byte length of " + stringValue, stringByteLength, propResource.getResourceMetadata().getContentLength());
         }
     }
