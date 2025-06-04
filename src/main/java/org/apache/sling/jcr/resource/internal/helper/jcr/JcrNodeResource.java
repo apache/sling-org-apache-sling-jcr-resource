@@ -93,8 +93,9 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
     public @NotNull String getResourceType() {
         if (this.resourceType == null) {
             try {
-                this.resourceType = getResourceTypeForNode(getNode());
-            } catch (final RepositoryException e) {
+                this.resourceType = new JcrValueMap(getNode(), this.helper)
+                        .get(ResourceResolver.PROPERTY_RESOURCE_TYPE, String.class);
+            } catch (final IllegalArgumentException e) {
                 LOGGER.error("Unable to get resource type for node " + getNode(), e);
                 this.resourceType = "<unknown resource type>";
             }

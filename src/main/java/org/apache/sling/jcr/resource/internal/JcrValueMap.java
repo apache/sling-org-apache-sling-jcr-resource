@@ -26,15 +26,18 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Value;
 
+import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.util.ISO9075;
 import org.apache.jackrabbit.util.Text;
 import org.apache.sling.api.resource.ModifiableValueMap;
+import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.jcr.resource.internal.helper.JcrPropertyMapCacheEntry;
 import org.jetbrains.annotations.NotNull;
@@ -297,6 +300,11 @@ public class JcrValueMap implements ValueMap {
         try {
             final String key = escapeKeyName(name);
             Property property = NodeUtil.getPropertyOrNull(node,key);
+            if (property == null && name.equals(ResourceResolver.PROPERTY_RESOURCE_TYPE)) {
+                // special handling for the resource type property which according to the API must always be exposed via property sling:resourceType
+                // use value of jcr:primaryType if sling:resourceType is not set
+                property = NodeUtil.getPropertyOrNull(node, JcrConstants.JCR_PRIMARYTYPE);
+            }
             if (property != null) {
                 return cacheProperty(property);
             }
