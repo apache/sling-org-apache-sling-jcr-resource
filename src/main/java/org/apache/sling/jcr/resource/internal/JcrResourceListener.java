@@ -163,17 +163,17 @@ public class JcrResourceListener implements EventListener, Closeable {
                                                        final String path,
                                                        final ChangeType changeType) {
         final boolean isExternal = isExternal(event);
-        final String userId;
-        if (!isExternal) {
-            userId = event.getUserID();
-        } else {
-            userId = null;
-        }
+        String userId = null;
         String userData = null;
-        try {
-            userData = event.getUserData();
-        } catch (RepositoryException e) {
-            logger.debug("Could not access user data from event " + event, e);
+        if (!isExternal) {
+            // In Jackrabbit Oak userId and userData are not available if the event 
+            // is external
+            userId = event.getUserID();
+            try {
+                userData = event.getUserData();
+            } catch (RepositoryException e) {
+                logger.debug("Could not access user data from event " + event, e);
+            }
         }
         return new JcrResourceChange(changeType, path, isExternal, userId, userData);
     }
