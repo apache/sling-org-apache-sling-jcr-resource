@@ -172,7 +172,7 @@ public class JcrResourceListener implements EventListener, Closeable {
             try {
                 userData = event.getUserData();
             } catch (RepositoryException e) {
-                logger.debug("Could not access user data from event " + event, e);
+                logger.debug("Could not access user data from event {} ", event, e);
             }
         }
         return new JcrResourceChange(changeType, path, isExternal, userId, userData);
