@@ -18,6 +18,7 @@
  */
 package org.apache.sling.jcr.resource.internal;
 
+import java.io.IOException;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
@@ -277,6 +278,35 @@ public class JcrValueMap implements ValueMap {
         }
     }
 
+    private @NotNull JcrPropertyMapCacheEntry cacheProperty(final @NotNull String key, final @NotNull Object value, final @NotNull Node node) {
+        try {
+            JcrPropertyMapCacheEntry entry = cache.get(key);
+            if (entry == null) {
+                entry = new JcrPropertyMapCacheEntry(value, node);
+                cache.put(key, entry);
+                valueCache.put(key, entry.getPropertyValue());
+            }
+            return entry;
+        } catch (final RepositoryException|IOException re) {
+            throw new IllegalArgumentException(re);
+        }
+    }
+
+    /**
+     * Reads the primary type of the current node via {@link Node#getPrimaryNodeType()} and caches it.
+     * That way regular permission evaluation is bypassed (see <a href="https://issues.apache.org/jira/browse/OAK-2441">OAK-2441</a>).
+     * Should only be used as fallback if regular access via {@link Node#getProperty(String)} fails as 
+     * calculating the NodeType is expensive.
+     * @return the cache entry for the primary type
+     */
+    private JcrPropertyMapCacheEntry readPrimaryType() {
+        try {
+            String primaryType = node.getPrimaryNodeType().getName();
+            return cacheProperty(JcrConstants.JCR_PRIMARYTYPE, primaryType, node);
+        } catch (final RepositoryException re) {
+            throw new IllegalArgumentException(re);
+        }
+    }
     /**
      * Read a single property.
      * @throws IllegalArgumentException if a repository exception occurs
@@ -300,10 +330,17 @@ public class JcrValueMap implements ValueMap {
         try {
             final String key = escapeKeyName(name);
             Property property = NodeUtil.getPropertyOrNull(node,key);
-            if (property == null && name.equals(ResourceResolver.PROPERTY_RESOURCE_TYPE)) {
-                // special handling for the resource type property which according to the API must always be exposed via property sling:resourceType
-                // use value of jcr:primaryType if sling:resourceType is not set
-                property = NodeUtil.getPropertyOrNull(node, JcrConstants.JCR_PRIMARYTYPE);
+            if (property == null) { 
+                if (name.equals(ResourceResolver.PROPERTY_RESOURCE_TYPE)) {
+                    // special handling for the resource type property which according to the API must always be exposed via property sling:resourceType
+                    // use value of jcr:primaryType if sling:resourceType is not set
+                    JcrPropertyMapCacheEntry entry = read(JcrConstants.JCR_PRIMARYTYPE);
+                    if (entry != null) {
+                        return cacheProperty(name, entry.getPropertyValue(), node);
+                    }
+                } else if (name.equals(JcrConstants.JCR_PRIMARYTYPE)) {
+                    return readPrimaryType();
+                }
             }
             if (property != null) {
                 return cacheProperty(property);
@@ -391,6 +428,16 @@ public class JcrValueMap implements ValueMap {
                 while (pi.hasNext()) {
                     final Property prop = pi.nextProperty();
                     this.cacheProperty(prop);
+                }
+                // make sure primary type is in cache
+                if (!this.cache.containsKey(JcrConstants.JCR_PRIMARYTYPE)) {
+                    readPrimaryType();
+                }
+                // make sure sling:resourceType is in cache
+                if (!this.cache.containsKey(ResourceResolver.PROPERTY_RESOURCE_TYPE)) {
+                    // special handling for the resource type property which according to the API must always be exposed via property sling:resourceType
+                    // use value of jcr:primaryType if sling:resourceType is not set
+                    this.cacheProperty(ResourceResolver.PROPERTY_RESOURCE_TYPE, valueCache.get(JcrConstants.JCR_PRIMARYTYPE), node);
                 }
                 fullyRead = true;
             } catch (final RepositoryException re) {

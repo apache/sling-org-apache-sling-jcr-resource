@@ -18,9 +18,16 @@
  */
 package org.apache.sling.jcr.resource.internal;
 
+import static org.mockito.Mockito.times;
+import static org.hamcrest.MatcherAssert.assertThat;
+
+import java.util.AbstractMap.SimpleEntry;
+
 import javax.jcr.Node;
+import javax.jcr.RepositoryException;
 
 import org.apache.sling.jcr.resource.internal.helper.jcr.SlingRepositoryTestBase;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -58,6 +65,24 @@ public class JcrValueMapTest extends SlingRepositoryTestBase {
         assertEquals("test", vm.get("string",null)); 
     }
     
-   
+    /**
+     * Make sure cache is fully populated even
+     * @throws RepositoryException 
+     */
+    @Test
+    public void testGetEntrySet() throws RepositoryException {
+        Node node = Mockito.spy(rootNode);
+        JcrValueMap vm = new JcrValueMap(node, helperData);
+        assertThat( vm.entrySet(), Matchers.hasSize(3) );
+        assertThat( vm.keySet(), Matchers.hasSize(3) );
+        assertThat( vm.values(), Matchers.hasSize(3) );
+        assertThat( vm.entrySet(), Matchers.containsInAnyOrder(
+                new SimpleEntry<String, Object>("jcr:primaryType", "nt:unstructured"),
+                new SimpleEntry<String, Object>("sling:resourceType", "nt:unstructured"),
+                new SimpleEntry<String, Object>("string", "test")
+                ));
+        // cache should only be populated once
+        Mockito.verify(node, times(1)).getProperties();
+    }
 
 }

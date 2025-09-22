@@ -34,6 +34,7 @@ import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.resource.ModifiableValueMap;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceMetadata;
+import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.jcr.resource.api.JcrResourceConstants;
 
@@ -220,6 +221,7 @@ public class JcrNodeResourceTest extends JcrItemResourceTestBase {
         existingKeys.add(JcrConstants.JCR_ENCODING);
         existingKeys.add(JcrConstants.JCR_DATA);
         existingKeys.add(JcrConstants.JCR_PRIMARYTYPE);
+        existingKeys.add(ResourceResolver.PROPERTY_RESOURCE_TYPE);
         final Set<Object> crossCheck = new HashSet<>(props.keySet());
         crossCheck.removeAll(existingKeys);
         assertTrue(crossCheck.isEmpty());
