@@ -18,30 +18,6 @@
  */
 package org.apache.sling.jcr.resource.internal.helper;
 
-import com.google.common.collect.Maps;
-import org.apache.jackrabbit.value.BooleanValue;
-import org.apache.jackrabbit.value.ValueFactoryImpl;
-import org.junit.Before;
-import org.junit.Test;
-
-import javax.jcr.Node;
-import javax.jcr.Property;
-import javax.jcr.PropertyType;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.Value;
-import javax.jcr.ValueFactory;
-import javax.jcr.ValueFormatException;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -53,6 +29,33 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.jcr.Node;
+import javax.jcr.Property;
+import javax.jcr.PropertyType;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.Value;
+import javax.jcr.ValueFactory;
+import javax.jcr.ValueFormatException;
+
+import org.apache.jackrabbit.value.BooleanValue;
+import org.apache.jackrabbit.value.ValueFactoryImpl;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.google.common.collect.Maps;
 
 /**
  * Testcase for {@link JcrPropertyMapCacheEntry}
@@ -123,6 +126,14 @@ public class JcrPropertyMapCacheEntryTest {
         new JcrPropertyMapCacheEntry(new Character[0], node);
         new JcrPropertyMapCacheEntry(new char[0], node);
         verifyNoMoreInteractions(node);
+    }
+
+    @Test
+    public void testCollections() throws Exception {
+        JcrPropertyMapCacheEntry entry = new JcrPropertyMapCacheEntry(List.of("a", "b"), node);
+        assertTrue(entry.isArray());
+        new JcrPropertyMapCacheEntry(List.of(1, 2), node);
+        assertTrue(entry.isArray());
     }
     
     @Test(expected = IllegalArgumentException.class)

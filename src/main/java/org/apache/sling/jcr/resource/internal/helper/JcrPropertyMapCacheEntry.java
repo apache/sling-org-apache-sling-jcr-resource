@@ -30,6 +30,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -61,12 +62,10 @@ public class JcrPropertyMapCacheEntry {
     /** The value of the object. */
     private final Object propertyValue;
 
-    /**
-     * Create a new cache entry from a property.
+    /** Create a new cache entry from a property.
      *
      * @param prop the property
-     * @throws RepositoryException if the provided property cannot be converted to a Java Object
-     */
+     * @throws RepositoryException if the provided property cannot be converted to a Java Object */
     public JcrPropertyMapCacheEntry(final @NotNull Property prop) throws RepositoryException {
         this.property = prop;
         this.isArray = prop.isMultiple();
@@ -77,19 +76,22 @@ public class JcrPropertyMapCacheEntry {
         }
     }
 
-    /**
-     * Create a new cache entry from a value.
+    /** Create a new cache entry from a value.
+     * 
      * @param value the value
      * @param node the node
-     * @throws RepositoryException if the provided value cannot be stored
-     */
-    public JcrPropertyMapCacheEntry(final @NotNull Object value, final @NotNull Node node) throws RepositoryException {
+     * @throws RepositoryException if the provided value cannot be stored */
+    public JcrPropertyMapCacheEntry(@NotNull Object value, final @NotNull Node node) throws RepositoryException {
         this.property = null;
-        this.propertyValue = value;
-        this.isArray = value.getClass().isArray();
+        if (value instanceof Collection) {
+            propertyValue = ((Collection<?>) value).toArray();
+        } else {
+            propertyValue = value;
+        }
+        this.isArray = propertyValue.getClass().isArray();
         // check if values can be stored in JCR
         if (isArray) {
-            final Object[] values = convertToObjectArray(value);
+            final Object[] values = convertToObjectArray(propertyValue);
             for (Object o : values) {
                 failIfCannotStore(o, node);
             }
@@ -110,16 +112,12 @@ public class JcrPropertyMapCacheEntry {
         }
     }
 
-    /**
-     * Create a value for the object.
-     * If the value type is supported directly through a jcr property type,
-     * the corresponding value is created. If the value is serializable,
-     * it is serialized through an object stream. Otherwise null is returned.
+    /** Create a value for the object. If the value type is supported directly through a jcr property type, the corresponding value is
+     * created. If the value is serializable, it is serialized through an object stream. Otherwise null is returned.
      *
      * @param obj the object
-     * @param  node the node
-     * @return the converted value
-     */
+     * @param node the node
+     * @return the converted value */
     private static @Nullable Value createValue(final @NotNull Object obj, final @NotNull Node node) throws RepositoryException {
         final Session session = node.getSession();
         Value value = JcrResourceUtil.createValue(obj, session);
@@ -138,11 +136,10 @@ public class JcrPropertyMapCacheEntry {
         return value;
     }
 
-    /**
-     * Convert the object to an array
+    /** Convert the object to an array
+     * 
      * @param value The array
-     * @return an object array
-     */
+     * @return an object array */
     private static @NotNull Object[] convertToObjectArray(final @NotNull Object value) {
         final Object[] values;
         if (value instanceof long[]) {
@@ -167,27 +164,24 @@ public class JcrPropertyMapCacheEntry {
         return values;
     }
 
-    /**
-     * Whether this value is an array or not
-     * @return {@code true} if an array.
-     */
+    /** Whether this value is an array or not
+     * 
+     * @return {@code true} if an array. */
     public boolean isArray() {
         return this.isArray;
     }
 
-    /**
-     * Get the current property value.
+    /** Get the current property value.
+     * 
      * @return The current value
-     * @throws RepositoryException If something goes wrong
-     */
+     * @throws RepositoryException If something goes wrong */
     public @NotNull Object getPropertyValue() throws RepositoryException {
         return this.propertyValue != null ? this.propertyValue : JcrResourceUtil.toJavaObject(property);
     }
 
-    /**
-     * Get the current property value.
-     * @return The current value or {@code null} if not possible.
-     */
+    /** Get the current property value.
+     * 
+     * @return The current value or {@code null} if not possible. */
     public @Nullable Object getPropertyValueOrNull() {
         try {
             return getPropertyValue();
@@ -196,18 +190,17 @@ public class JcrPropertyMapCacheEntry {
         }
     }
 
-    /**
-     * Convert the default value to the given type
+    /** Convert the default value to the given type
+     * 
      * @param type The type class
      * @param node The node
      * @param dynamicClassLoader The classloader
      * @param <T> The type
-     * @return The converted object
-     */
+     * @return The converted object */
     @SuppressWarnings("unchecked")
-    public @Nullable<T> T convertToType(final @NotNull Class<T> type,
-                                        final @NotNull Node node,
-                                        final @Nullable ClassLoader dynamicClassLoader) {
+    public @Nullable <T> T convertToType(final @NotNull Class<T> type,
+            final @NotNull Node node,
+            final @Nullable ClassLoader dynamicClassLoader) {
         T result = null;
 
         try {
@@ -218,6 +211,8 @@ public class JcrPropertyMapCacheEntry {
                 final Object[] sourceArray = convertToObjectArray(this.getPropertyValue());
                 if (targetIsArray) {
                     result = (T) convertToArray(sourceArray, type.getComponentType(), node, dynamicClassLoader);
+                } else if (sourceArray.length > 0) {
+                    result = convertToType(-1, sourceArray[0], type, node, dynamicClassLoader);
                 } else if (sourceArray.length > 0) {
                     result = convertToType(-1, sourceArray[0], type, node, dynamicClassLoader);
                 }
@@ -242,10 +237,10 @@ public class JcrPropertyMapCacheEntry {
         return result;
     }
 
-    private @NotNull<T> T[] convertToArray(final @NotNull Object source,
-                                           final @NotNull Class<T> type,
-                                           final @NotNull Node node,
-                                           final @Nullable ClassLoader dynamicClassLoader) throws RepositoryException {
+    private @NotNull <T> T[] convertToArray(final @NotNull Object source,
+            final @NotNull Class<T> type,
+            final @NotNull Node node,
+            final @Nullable ClassLoader dynamicClassLoader) throws RepositoryException {
         List<T> values = new ArrayList<>();
         T value = convertToType(-1, source, type, node, dynamicClassLoader);
         if (value != null) {
@@ -256,11 +251,11 @@ public class JcrPropertyMapCacheEntry {
         T[] result = (T[]) Array.newInstance(type, values.size());
         return values.toArray(result);
     }
-    
-    private @NotNull<T> T[] convertToArray(final @NotNull Object[] sourceArray,
-                                           final @NotNull Class<T> type,
-                                           final @NotNull Node node,
-                                           final @Nullable ClassLoader dynamicClassLoader) throws RepositoryException {
+
+    private @NotNull <T> T[] convertToArray(final @NotNull Object[] sourceArray,
+            final @NotNull Class<T> type,
+            final @NotNull Node node,
+            final @Nullable ClassLoader dynamicClassLoader) throws RepositoryException {
         List<T> values = new ArrayList<>();
         for (int i = 0; i < sourceArray.length; i++) {
             T value = convertToType(i, sourceArray[i], type, node, dynamicClassLoader);
@@ -275,28 +270,57 @@ public class JcrPropertyMapCacheEntry {
         return values.toArray(result);
     }
 
+    private @NotNull <T> T[] convertToCollection(final @NotNull Object[] sourceArray,
+            final @NotNull Class<? extends Collection> type,
+            final @NotNull Node node,
+            final @Nullable ClassLoader dynamicClassLoader) throws RepositoryException {
+        @SuppressWarnings("unchecked")
+        if (type.isAssignableFrom(List.class)) {
+            List<T> values = new ArrayList<>();
+            for (int i = 0; i < sourceArray.length; i++) {
+                T value = convertToType(i, sourceArray[i], type.getComponentType(), node, dynamicClassLoader);
+                if (value != null) {
+                    values.add(value);
+                }
+            }
+            return values.toArray((T[]) Array.newInstance(type.getComponentType(), values.size()));
+        } else if (type.isAssignableFrom(Set.class)) {
+            Set<T> values = new HashSet<>();
+            for (int i = 0; i < sourceArray.length; i++) {
+                T value = convertToType(i, sourceArray[i], type.getComponentType(), node, dynamicClassLoader);
+                if (value != null) {
+                    values.add(value);
+                }
+            }
+            return values.toArray((T[]) Array.newInstance(type.getComponentType(), values.size()));
+        }
+        
+        T[] result = (T[]) Array.newInstance(sourceCollection.getClass().getTypeParameters()[0].getClass(), sourceCollection.size());
+        return sourceCollection.toArray(result);
+    }
+
     @SuppressWarnings("unchecked")
-    private @Nullable<T> T convertToType(final int index,
-                                         final @NotNull Object initialValue,
-                                         final @NotNull Class<T> type,
-                                         final @NotNull Node node,
-                                         final @Nullable ClassLoader dynamicClassLoader) throws RepositoryException {
+    private @Nullable <T> T convertToType(final int index,
+            final @NotNull Object initialValue,
+            final @NotNull Class<T> type,
+            final @NotNull Node node,
+            final @Nullable ClassLoader dynamicClassLoader) throws RepositoryException {
         if (type.isInstance(initialValue)) {
             return (T) initialValue;
         }
-        
+
         if (initialValue instanceof InputStream) {
             return convertInputStream(index, (InputStream) initialValue, type, node, dynamicClassLoader);
         } else {
             return convert(initialValue, type, node);
         }
     }
-    
+
     private @Nullable <T> T convertInputStream(int index,
-                                               final @NotNull InputStream value,
-                                               final @NotNull Class<T> type,
-                                               final @NotNull Node node,
-                                               final @Nullable ClassLoader dynamicClassLoader) throws RepositoryException {
+            final @NotNull InputStream value,
+            final @NotNull Class<T> type,
+            final @NotNull Node node,
+            final @Nullable ClassLoader dynamicClassLoader) throws RepositoryException {
         // object input stream
         if (ObjectInputStream.class.isAssignableFrom(type)) {
             try {
@@ -305,19 +329,19 @@ public class JcrPropertyMapCacheEntry {
                 // ignore and use fallback
             }
 
-        // any number: length of binary
+            // any number: length of binary
         } else if (Number.class.isAssignableFrom(type)) {
             // avoid NPE if this instance has not been created from a property (see SLING-11465)
             if (property == null) {
                 return null;
             }
             return convert(propertyToLength(property, index), type, node);
-            
-        // string: read binary
+
+            // string: read binary
         } else if (String.class == type) {
             return (T) inputStreamToString(value);
-            
-        // any serializable
+
+            // any serializable
         } else if (Serializable.class.isAssignableFrom(type)) {
             try (ObjectInputStream ois = new PropertyObjectInputStream(value, dynamicClassLoader)) {
                 final Object obj = ois.readObject();
@@ -329,12 +353,12 @@ public class JcrPropertyMapCacheEntry {
                 // ignore and use fallback
             }
             // ignore
-        } 
-        
+        }
+
         // fallback
         return convert(value, type, node);
     }
-    
+
     private static @NotNull Long propertyToLength(@NotNull Property property, int index) throws RepositoryException {
         if (index == -1) {
             return Long.valueOf(property.getLength());
@@ -342,7 +366,7 @@ public class JcrPropertyMapCacheEntry {
             return Long.valueOf(property.getLengths()[index]);
         }
     }
-    
+
     private static @NotNull String inputStreamToString(@NotNull InputStream value) {
         try (InputStream in = value) {
             final ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -360,8 +384,8 @@ public class JcrPropertyMapCacheEntry {
     }
 
     private @Nullable <T> T convert(final @NotNull Object value,
-                                   final @NotNull Class<T> type,
-                                   final @NotNull Node node) throws RepositoryException {
+            final @NotNull Class<T> type,
+            final @NotNull Node node) throws RepositoryException {
         if (String.class == type) {
             return (T) getConverter(value).toString();
 
@@ -410,12 +434,10 @@ public class JcrPropertyMapCacheEntry {
         return null;
     }
 
-    /**
-     * Create a converter for an object.
+    /** Create a converter for an object.
      *
      * @param value The object to convert
-     * @return A converter for {@code value}
-     */
+     * @return A converter for {@code value} */
     private static @NotNull Converter getConverter(final @NotNull Object value) {
         if (value instanceof Number) {
             // byte, short, int, long, double, float, BigDecimal
@@ -433,10 +455,7 @@ public class JcrPropertyMapCacheEntry {
         return new StringConverter(value);
     }
 
-    /**
-     * This is an extended version of the object input stream which uses the
-     * thread context class loader.
-     */
+    /** This is an extended version of the object input stream which uses the thread context class loader. */
     private static class PropertyObjectInputStream extends ObjectInputStream {
 
         private final ClassLoader classloader;
@@ -446,9 +465,7 @@ public class JcrPropertyMapCacheEntry {
             this.classloader = classLoader;
         }
 
-        /**
-         * @see java.io.ObjectInputStream#resolveClass(java.io.ObjectStreamClass)
-         */
+        /** @see java.io.ObjectInputStream#resolveClass(java.io.ObjectStreamClass) */
         @Override
         protected Class<?> resolveClass(final ObjectStreamClass classDesc)
                 throws IOException, ClassNotFoundException {

@@ -19,6 +19,7 @@
 package org.apache.sling.jcr.resource.internal;
 
 import static org.apache.sling.jcr.resource.internal.AssertCalendar.assertEqualsCalendar;
+import static org.junit.Assert.assertArrayEquals;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -172,6 +173,31 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
 
         final ValueMap pvm2 = new JcrValueMap(this.rootNode, getHelperData());
         assertContains(pvm2, currentlyStored);
+    }
+
+    public void testMultivaluePut()
+            throws Exception {
+        getSession().refresh(false);
+        final ModifiableValueMap pvm = new JcrModifiableValueMap(this.rootNode, getHelperData());
+        assertContains(pvm, initialSet());
+        assertNull(pvm.get("something"));
+
+        // now put a multi-value property
+        final String[] values = {"a", "b", "c"};
+        pvm.put("something", values);
+        pvm.put("something2", List.of("a", "b", "c"));
+
+        final Map<String, Object> currentlyStored = this.initialSet();
+        currentlyStored.put("something", values);
+        currentlyStored.put("something2", values); // Set is converted to array, original type is lost
+        assertContains(pvm, currentlyStored);
+
+        getSession().save();
+        assertContains(pvm, currentlyStored);
+
+        final ValueMap pvm2 = new JcrValueMap(this.rootNode, getHelperData());
+        assertContains(pvm2, currentlyStored);
+        assertEquals(Set.of("a", "b", "c"), pvm2.get("something2", Set.class));
     }
 
     public void testRemove()
@@ -344,7 +370,11 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
     private void assertContains(ValueMap map, Map<String, Object> values) {
         for (Map.Entry<String, Object> entry : values.entrySet()) {
             final Object stored = map.get(entry.getKey());
-            assertEquals(values.get(entry.getKey()), stored);
+            if (stored.getClass().isArray()) {
+                assertArrayEquals((Object[])values.get(entry.getKey()), (Object[])stored);
+            } else {
+                assertEquals(values.get(entry.getKey()), stored);
+            }
         }
     }
 
