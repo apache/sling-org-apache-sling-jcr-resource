@@ -100,7 +100,7 @@ public class JcrItemResourceFactory {
                 }
             } else {
                 log.debug("createResource: Found JCR Property Resource at path '{}'", resourcePath);
-                resource = new JcrPropertyResource(resourceResolver, resourcePath, version, (Property) item, helper);
+                resource = new JcrPropertyResource(resourceResolver, resourcePath, version, (Property) item);
             }
             resource.getResourceMetadata().setParameterMap(parameters);
             return resource;

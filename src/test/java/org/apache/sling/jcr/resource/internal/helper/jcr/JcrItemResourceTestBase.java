@@ -20,16 +20,12 @@ package org.apache.sling.jcr.resource.internal.helper.jcr;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.jcr.NamespaceRegistry;
 import javax.jcr.Node;
 
 import org.apache.sling.api.SlingConstants;
-import org.apache.sling.api.resource.external.URIProvider;
-import org.apache.sling.commons.classloader.DynamicClassLoaderManager;
 import org.apache.sling.jcr.resource.api.JcrResourceConstants;
-import org.apache.sling.jcr.resource.internal.HelperData;
 
 public abstract class JcrItemResourceTestBase extends SlingRepositoryTestBase {
 
@@ -93,9 +89,5 @@ public abstract class JcrItemResourceTestBase extends SlingRepositoryTestBase {
                 }
             }
         }
-    }
-
-    public static HelperData getHelperData() {
-        return new HelperData(new AtomicReference<>(), new AtomicReference<>());
     }
 }
