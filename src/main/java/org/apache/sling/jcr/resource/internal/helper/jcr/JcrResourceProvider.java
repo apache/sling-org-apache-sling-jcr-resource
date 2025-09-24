@@ -499,7 +499,7 @@ public class JcrResourceProvider extends ResourceProvider<JcrProviderState> {
             return primaryTypeObj.toString();
         }
 
-        final Object resourceTypeObject = properties.get(ResourceResolver.PROPERTY_RESOURCE_TYPE);
+        final Object resourceTypeObject = properties.get(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY);
         if (resourceTypeObject != null) {
             String resourceType = resourceTypeObject.toString();
             if (looksLikeANodeType(resourceType)) {

@@ -19,7 +19,6 @@
 package org.apache.sling.jcr.resource.api;
 
 import org.apache.sling.api.SlingConstants;
-import org.apache.sling.api.resource.ResourceResolver;
 
 /**
  * The <code>JcrResourceConstants</code> interface provides constant values.
@@ -42,10 +41,8 @@ public class JcrResourceConstants {
      * this bundle uses this property to defined the resource type of a loaded
      * resource. If this property does not exist the primary node type is used
      * as the resource type.
-     * @deprecated Use {@link ResourceResolver#PROPERTY_RESOURCE_TYPE} instead.
      */
-    @Deprecated
-    public static final String SLING_RESOURCE_TYPE_PROPERTY = ResourceResolver.PROPERTY_RESOURCE_TYPE;
+    public static final String SLING_RESOURCE_TYPE_PROPERTY = "sling:resourceType";
 
     /**
      * The name of the JCR Property that defines the resource super type (value

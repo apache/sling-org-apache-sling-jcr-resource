@@ -111,6 +111,34 @@ abstract class JcrItemResource<T extends Item> // this should be package private
         return item;
     }
 
+    /**
+     * Compute the resource type of the given node, using either the
+     * SLING_RESOURCE_TYPE_PROPERTY, or the node's primary node type, if the
+     * property is not set
+     */
+    @NotNull
+    protected String getResourceTypeForNode(final @NotNull Node node) throws RepositoryException {
+        String result = null;
+
+        Property property = NodeUtil.getPropertyOrNull(node, JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY);
+        if (property != null) {
+            result = property.getString();
+        }
+
+        if (result == null || result.length() == 0) {
+            // Do not load the relatively expensive NodeType object unless necessary. See OAK-2441 for the reason why it
+            // cannot only use getProperty here.
+            property = NodeUtil.getPropertyOrNull(node, Property.JCR_PRIMARY_TYPE);
+            if (property != null) {
+                result = property.getString();
+            } else {
+                result = node.getPrimaryNodeType().getName();
+            }
+        }
+
+        return result;
+    }
+
     public static long getContentLength(final @NotNull Property property) throws RepositoryException {
         if (property.isMultiple()) {
             return -1;

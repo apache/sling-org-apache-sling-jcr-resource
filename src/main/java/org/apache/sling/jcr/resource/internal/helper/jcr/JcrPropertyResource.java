@@ -36,9 +36,6 @@ import org.apache.sling.adapter.annotations.Adapter;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceMetadata;
 import org.apache.sling.api.resource.ResourceResolver;
-import org.apache.sling.jcr.resource.api.JcrResourceConstants;
-import org.apache.sling.jcr.resource.internal.HelperData;
-import org.apache.sling.jcr.resource.internal.JcrValueMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -59,11 +56,9 @@ class JcrPropertyResource extends JcrItemResource<Property> { // this should be 
     public JcrPropertyResource(final @NotNull ResourceResolver resourceResolver,
                                final @NotNull String path,
                                final @Nullable String version,
-                               final @NotNull Property property,
-                               final @NotNull HelperData helper) throws RepositoryException {
+                               final @NotNull Property property) throws RepositoryException {
         super(resourceResolver, path, version, property, new ResourceMetadata());
-        this.resourceType = new JcrValueMap(property.getNode(), helper)
-                .get(ResourceResolver.PROPERTY_RESOURCE_TYPE, String.class)
+        this.resourceType = getResourceTypeForNode(property.getParent())
                 + "/" + property.getName();
         if (PropertyType.BINARY != getProperty().getType()) {
             this.getResourceMetadata().setContentType("text/plain");
