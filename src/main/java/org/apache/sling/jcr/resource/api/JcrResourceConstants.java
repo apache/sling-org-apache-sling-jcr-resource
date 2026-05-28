@@ -33,8 +33,7 @@ public class JcrResourceConstants {
      * session used by the JCR Resource bundle through the
      * <code>Sling-Namespaces</code> bundle manifest header.
      */
-    public static final String SLING_NAMESPACE_URI = SlingConstants.NAMESPACE_URI_ROOT
-        + "jcr/sling/1.0";
+    public static final String SLING_NAMESPACE_URI = SlingConstants.NAMESPACE_URI_ROOT + "jcr/sling/1.0";
 
     /**
      * The name of the JCR Property that defines the resource type of this node

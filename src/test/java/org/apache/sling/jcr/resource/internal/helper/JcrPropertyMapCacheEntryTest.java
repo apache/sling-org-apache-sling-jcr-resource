@@ -18,17 +18,14 @@
  */
 package org.apache.sling.jcr.resource.internal.helper;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import javax.jcr.Node;
+import javax.jcr.Property;
+import javax.jcr.PropertyType;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.Value;
+import javax.jcr.ValueFactory;
+import javax.jcr.ValueFormatException;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -43,21 +40,23 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.jcr.Node;
-import javax.jcr.Property;
-import javax.jcr.PropertyType;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.Value;
-import javax.jcr.ValueFactory;
-import javax.jcr.ValueFormatException;
-
+import com.google.common.collect.Maps;
 import org.apache.jackrabbit.value.BooleanValue;
 import org.apache.jackrabbit.value.ValueFactoryImpl;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.common.collect.Maps;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 /**
  * Testcase for {@link JcrPropertyMapCacheEntry}
@@ -237,7 +236,8 @@ public class JcrPropertyMapCacheEntryTest {
         when(prop.getType()).thenReturn(PropertyType.BINARY);
         when(prop.isMultiple()).thenReturn(true);
         when(prop.getValue()).thenThrow(new ValueFormatException("multi-valued"));
-        Value[] vs = new Value[] {vf.createValue("10.7", PropertyType.BINARY), vf.createValue("10.7", PropertyType.BINARY)};
+        Value[] vs =
+                new Value[] {vf.createValue("10.7", PropertyType.BINARY), vf.createValue("10.7", PropertyType.BINARY)};
         when(prop.getValues()).thenReturn(vs);
         when(prop.getLength()).thenThrow(new ValueFormatException("multi-valued"));
         when(prop.getLengths()).thenReturn(new long[] {4L, 4L});
@@ -273,9 +273,10 @@ public class JcrPropertyMapCacheEntryTest {
             oos.writeObject(Maps.newHashMap());
         }
 
-        JcrPropertyMapCacheEntry entry = new JcrPropertyMapCacheEntry(new ByteArrayInputStream(out.toByteArray()), node);
+        JcrPropertyMapCacheEntry entry =
+                new JcrPropertyMapCacheEntry(new ByteArrayInputStream(out.toByteArray()), node);
         // same type
-        Map<?,?> result = entry.convertToType(HashMap.class, node, null);
+        Map<?, ?> result = entry.convertToType(HashMap.class, node, null);
         assertNotNull(result);
         verifyNoMoreInteractions(node);
     }
@@ -287,7 +288,8 @@ public class JcrPropertyMapCacheEntryTest {
             oos.writeObject(new LinkedHashMap<>());
         }
 
-        JcrPropertyMapCacheEntry entry = new JcrPropertyMapCacheEntry(new ByteArrayInputStream(out.toByteArray()), node);
+        JcrPropertyMapCacheEntry entry =
+                new JcrPropertyMapCacheEntry(new ByteArrayInputStream(out.toByteArray()), node);
         // different type that cannot be converted
         Calendar result = entry.convertToType(Calendar.class, node, LinkedHashMap.class.getClassLoader());
         assertNull(result);

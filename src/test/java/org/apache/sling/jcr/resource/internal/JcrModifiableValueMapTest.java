@@ -18,7 +18,12 @@
  */
 package org.apache.sling.jcr.resource.internal;
 
-import static org.apache.sling.jcr.resource.internal.AssertCalendar.assertEqualsCalendar;
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.Value;
+import javax.jcr.ValueFactory;
+import javax.jcr.nodetype.NodeType;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -40,19 +45,14 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.Value;
-import javax.jcr.ValueFactory;
-import javax.jcr.nodetype.NodeType;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.jackrabbit.util.Text;
 import org.apache.sling.api.resource.ModifiableValueMap;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.jcr.resource.internal.helper.jcr.SlingRepositoryTestBase;
+
+import static org.apache.sling.jcr.resource.internal.AssertCalendar.assertEqualsCalendar;
 
 public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
 
@@ -65,8 +65,7 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
     protected void setUp() throws Exception {
         super.setUp();
         String rootPath = "/test_" + System.currentTimeMillis();
-        rootNode = getSession().getRootNode().addNode(rootPath.substring(1),
-                "nt:unstructured");
+        rootNode = getSession().getRootNode().addNode(rootPath.substring(1), "nt:unstructured");
 
         final Map<String, Object> values = this.initialSet();
         for (Map.Entry<String, Object> entry : values.entrySet()) {
@@ -75,9 +74,7 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
         getSession().save();
     }
 
-    private void setProperty(final Node node,
-                             final String propertyName,
-                             final Object propertyValue)
+    private void setProperty(final Node node, final String propertyName, final Object propertyValue)
             throws RepositoryException {
         if (propertyValue == null) {
             node.setProperty(propertyName, (String) null);
@@ -94,8 +91,7 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
         }
     }
 
-    Value createValue(final Object value, final Session session)
-            throws RepositoryException {
+    Value createValue(final Object value, final Session session) throws RepositoryException {
         Value val;
         ValueFactory fac = session.getValueFactory();
         if (value instanceof Calendar) {
@@ -151,11 +147,13 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
         pvm.put("binary", stream);
         getSession().save();
         final ValueMap valueMap2 = new JcrValueMap(this.rootNode, getHelperData());
-        assertEquals("The read stream is not what we wrote.", IOUtils.toString(valueMap2.get("binary", InputStream.class)), TEST_BYTE_ARRAY_TO_STRING);
+        assertEquals(
+                "The read stream is not what we wrote.",
+                IOUtils.toString(valueMap2.get("binary", InputStream.class)),
+                TEST_BYTE_ARRAY_TO_STRING);
     }
 
-    public void testPut()
-            throws Exception {
+    public void testPut() throws Exception {
         getSession().refresh(false);
         final ModifiableValueMap pvm = new JcrModifiableValueMap(this.rootNode, getHelperData());
         assertContains(pvm, initialSet());
@@ -177,8 +175,7 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
         assertContains(pvm2, currentlyStored);
     }
 
-    public void testRemove()
-            throws Exception {
+    public void testRemove() throws Exception {
         getSession().refresh(false);
         final ModifiableValueMap pvm = new JcrModifiableValueMap(this.rootNode, getHelperData());
 
@@ -193,8 +190,7 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
         assertFalse(pvm.containsKey(key));
     }
 
-    public void testSerializable()
-            throws Exception {
+    public void testSerializable() throws Exception {
         this.rootNode.getSession().refresh(false);
         final ModifiableValueMap pvm = new JcrModifiableValueMap(this.rootNode, getHelperData());
         assertContains(pvm, initialSet());
@@ -207,16 +203,17 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
         pvm.put("something", strings);
 
         // check if we get the list again
-        @SuppressWarnings("unchecked") final List<String> strings2 = (List<String>) pvm.get("something");
+        @SuppressWarnings("unchecked")
+        final List<String> strings2 = (List<String>) pvm.get("something");
         assertEquals(strings, strings2);
 
         getSession().save();
 
         final ValueMap pvm2 = new JcrValueMap(this.rootNode, getHelperData());
         // check if we get the list again
-        @SuppressWarnings("unchecked") final List<String> strings3 = (List<String>) pvm2.get("something", Serializable.class);
+        @SuppressWarnings("unchecked")
+        final List<String> strings3 = (List<String>) pvm2.get("something", Serializable.class);
         assertEquals(strings, strings3);
-
     }
 
     public void testExceptions() throws Exception {
@@ -242,7 +239,9 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
             pvm.put("something", new TestClass("somevalue"));
             fail("Put with class not serializable at run time");
         } catch (IllegalArgumentException iae) {
-            assertEquals(NotSerializableException.class, ExceptionUtils.getRootCause(iae).getClass());
+            assertEquals(
+                    NotSerializableException.class,
+                    ExceptionUtils.getRootCause(iae).getClass());
         }
     }
 
@@ -253,7 +252,6 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
         public TestClass(final String name) {
             this.name = Optional.of(name);
         }
-
     }
 
     private Set<String> getMixinNodeTypes(final Node node) throws RepositoryException {
@@ -333,8 +331,7 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
     public void testNamesUpdate() throws Exception {
         this.rootNode.getSession().refresh(false);
 
-        final Node testNode = this.rootNode.addNode("nameUpdateTest"
-                + System.currentTimeMillis());
+        final Node testNode = this.rootNode.addNode("nameUpdateTest" + System.currentTimeMillis());
         testNode.setProperty(PROP3, VALUE);
         testNode.getSession().save();
 
@@ -352,8 +349,11 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
 
         // read properties
         assertEquals(VALUE3, testNode.getProperty(PROP3).getString());
-        assertEquals(VALUE3, testNode.getProperty("jcr:" + Text.escapeIllegalJcrChars("a:b")).getString());
-        assertEquals(VALUE3, testNode.getProperty(Text.escapeIllegalJcrChars("jcr:")).getString());
+        assertEquals(
+                VALUE3,
+                testNode.getProperty("jcr:" + Text.escapeIllegalJcrChars("a:b")).getString());
+        assertEquals(
+                VALUE3, testNode.getProperty(Text.escapeIllegalJcrChars("jcr:")).getString());
         assertFalse(testNode.hasProperty(Text.escapeIllegalJcrChars(PROP3)));
         assertFalse(testNode.hasProperty(Text.escapeIllegalJcrChars("jcr:a:b")));
     }
@@ -415,7 +415,6 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
         // read properties
         assertEqualsCalendar(calendarValue1, testNode.getProperty(PROP1).getDate());
         assertEqualsCalendar(calendarValue3, testNode.getProperty(PROP3).getDate());
-
     }
 
     /**
@@ -455,15 +454,12 @@ public class JcrModifiableValueMapTest extends SlingRepositoryTestBase {
 
         // from ZonedDateTime
         assertEqualsCalendar(calendar, vm.get(PROP2, Calendar.class)); // to Calendar
-        assertEquals(calendar.getTime(), vm.get(PROP2, Date.class));   // to Date
-        assertEquals(dateAsIso8601, vm.get(PROP2, String.class));      // to String
-
+        assertEquals(calendar.getTime(), vm.get(PROP2, Date.class)); // to Date
+        assertEquals(dateAsIso8601, vm.get(PROP2, String.class)); // to String
 
         // read properties
         assertEqualsCalendar(calendar, testNode.getProperty(PROP1).getDate());
         assertEqualsCalendar(calendar, testNode.getProperty(PROP2).getDate());
         assertEqualsCalendar(calendar, testNode.getProperty(PROP3).getDate());
-
     }
-
 }

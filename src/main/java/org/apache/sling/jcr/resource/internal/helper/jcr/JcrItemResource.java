@@ -18,15 +18,15 @@
  */
 package org.apache.sling.jcr.resource.internal.helper.jcr;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Iterator;
-
 import javax.jcr.Item;
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.PropertyType;
 import javax.jcr.RepositoryException;
 import javax.jcr.ValueFormatException;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
 
 import org.apache.sling.api.resource.AbstractResource;
 import org.apache.sling.api.resource.Resource;
@@ -40,7 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 abstract class JcrItemResource<T extends Item> // this should be package private, see SLING-1414
-    extends AbstractResource {
+        extends AbstractResource {
 
     /**
      * default log
@@ -57,11 +57,12 @@ abstract class JcrItemResource<T extends Item> // this should be package private
 
     private final ResourceMetadata metadata;
 
-    protected JcrItemResource(final @NotNull ResourceResolver resourceResolver,
-                              final @NotNull String path,
-                              final @Nullable String version,
-                              final @NotNull T item,
-                              final @NotNull ResourceMetadata metadata) {
+    protected JcrItemResource(
+            final @NotNull ResourceResolver resourceResolver,
+            final @NotNull String path,
+            final @Nullable String version,
+            final @NotNull T item,
+            final @NotNull ResourceMetadata metadata) {
 
         this.resourceResolver = resourceResolver;
         this.path = path;
@@ -163,6 +164,6 @@ abstract class JcrItemResource<T extends Item> // this should be package private
      * Returns an iterator over the child resources or <code>null</code> if
      * there are none.
      */
-    @Nullable abstract Iterator<Resource> listJcrChildren();
-
+    @Nullable
+    abstract Iterator<Resource> listJcrChildren();
 }

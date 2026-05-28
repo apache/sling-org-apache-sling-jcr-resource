@@ -18,16 +18,16 @@
  */
 package org.apache.sling.jcr.resource.internal;
 
-import java.io.Closeable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.observation.Event;
 import javax.jcr.observation.EventListener;
 import javax.jcr.observation.ObservationManager;
+
+import java.io.Closeable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 import org.apache.jackrabbit.api.observation.JackrabbitEventFilter;
 import org.apache.jackrabbit.api.observation.JackrabbitObservationManager;
@@ -55,7 +55,8 @@ public class JcrListenerBaseConfig implements Closeable {
     private final ObservationReporter reporter;
 
     @SuppressWarnings("deprecation")
-    public JcrListenerBaseConfig(final @NotNull ObservationReporter reporter, final @NotNull SlingRepository repository) throws RepositoryException {
+    public JcrListenerBaseConfig(final @NotNull ObservationReporter reporter, final @NotNull SlingRepository repository)
+            throws RepositoryException {
         this.reporter = reporter;
         // The session should have read access on the whole repository
         this.session = repository.loginService("observation", repository.getDefaultWorkspace());
@@ -76,7 +77,8 @@ public class JcrListenerBaseConfig implements Closeable {
      * @param config The configuration
      * @throws RepositoryException If registration fails.
      */
-    public void register(final @NotNull EventListener listener, final @NotNull ObserverConfiguration config) throws RepositoryException {
+    public void register(final @NotNull EventListener listener, final @NotNull ObserverConfiguration config)
+            throws RepositoryException {
         final ObservationManager mgr = this.session.getWorkspace().getObservationManager();
         if (mgr instanceof JackrabbitObservationManager) {
             final OakEventFilter filter = FilterFactory.wrap(new JackrabbitEventFilter());
@@ -98,7 +100,7 @@ public class JcrListenerBaseConfig implements Closeable {
             filter.setEventTypes(getTypes(config));
 
             // nt:file handling
-            filter.withNodeTypeAggregate(new String[]{"nt:file"}, new String[]{"", "jcr:content"});
+            filter.withNodeTypeAggregate(new String[] {"nt:file"}, new String[] {"", "jcr:content"});
 
             // ancestors remove
             filter.withIncludeAncestorsRemove();
@@ -107,9 +109,8 @@ public class JcrListenerBaseConfig implements Closeable {
         } else {
             throw new RepositoryException("Observation manager is not a JackrabbitObservationManager");
         }
-
     }
-    
+
     protected static void setFilterPaths(@NotNull OakEventFilter filter, @NotNull ObserverConfiguration config) {
         final Set<String> paths = config.getPaths().toStringSet();
         // avoid any resizing of these lists

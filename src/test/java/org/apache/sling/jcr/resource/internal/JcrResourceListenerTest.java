@@ -1,27 +1,22 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with this
- * work for additional information regarding copyright ownership. The ASF
- * licenses this file to You under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 package org.apache.sling.jcr.resource.internal;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 import javax.jcr.AccessDeniedException;
 import javax.jcr.Credentials;
@@ -33,6 +28,13 @@ import javax.jcr.Value;
 import javax.jcr.lock.LockException;
 import javax.jcr.nodetype.ConstraintViolationException;
 import javax.jcr.version.VersionException;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.apache.jackrabbit.commons.JcrUtils;
 import org.apache.sling.api.resource.observation.ResourceChange;
@@ -90,85 +92,87 @@ public class JcrResourceListenerTest {
         unregisterListener();
         events.clear();
         ObservationReporter observationReporter = getObservationReporter(paths);
-        this.config = new JcrListenerBaseConfig(observationReporter,
-                new SlingRepository() {
+        this.config = new JcrListenerBaseConfig(observationReporter, new SlingRepository() {
 
-                    @Override
-                    public Session login(Credentials credentials, String workspaceName) throws RepositoryException {
-                        return repository.login(credentials, workspaceName);
-                    }
+            @Override
+            public Session login(Credentials credentials, String workspaceName) throws RepositoryException {
+                return repository.login(credentials, workspaceName);
+            }
 
-                    @Override
-                    public Session login(String workspaceName) throws RepositoryException {
-                        return repository.login(workspaceName);
-                    }
+            @Override
+            public Session login(String workspaceName) throws RepositoryException {
+                return repository.login(workspaceName);
+            }
 
-                    @Override
-                    public Session login(Credentials credentials) throws RepositoryException {
-                        return repository.login(credentials);
-                    }
+            @Override
+            public Session login(Credentials credentials) throws RepositoryException {
+                return repository.login(credentials);
+            }
 
-                    @Override
-                    public Session login() throws RepositoryException {
-                        return repository.login();
-                    }
+            @Override
+            public Session login() throws RepositoryException {
+                return repository.login();
+            }
 
-                    @Override
-                    public boolean isStandardDescriptor(String key) {
-                        return repository.isStandardDescriptor(key);
-                    }
+            @Override
+            public boolean isStandardDescriptor(String key) {
+                return repository.isStandardDescriptor(key);
+            }
 
-                    @Override
-                    public boolean isSingleValueDescriptor(String key) {
-                        return repository.isSingleValueDescriptor(key);
-                    }
+            @Override
+            public boolean isSingleValueDescriptor(String key) {
+                return repository.isSingleValueDescriptor(key);
+            }
 
-                    @Override
-                    public Value[] getDescriptorValues(String key) {
-                        return repository.getDescriptorValues(key);
-                    }
+            @Override
+            public Value[] getDescriptorValues(String key) {
+                return repository.getDescriptorValues(key);
+            }
 
-                    @Override
-                    public Value getDescriptorValue(String key) {
-                        return repository.getDescriptorValue(key);
-                    }
+            @Override
+            public Value getDescriptorValue(String key) {
+                return repository.getDescriptorValue(key);
+            }
 
-                    @Override
-                    public String[] getDescriptorKeys() {
-                        return repository.getDescriptorKeys();
-                    }
+            @Override
+            public String[] getDescriptorKeys() {
+                return repository.getDescriptorKeys();
+            }
 
-                    @Override
-                    public String getDescriptor(String key) {
-                        return repository.getDescriptor(key);
-                    }
+            @Override
+            public String getDescriptor(String key) {
+                return repository.getDescriptor(key);
+            }
 
-                    @Override
-                    public Session loginService(String subServiceName, String workspace) throws RepositoryException {
-                        return repository.loginAdministrative(workspace);
-                    }
+            @Override
+            public Session loginService(String subServiceName, String workspace) throws RepositoryException {
+                return repository.loginAdministrative(workspace);
+            }
 
-                    @Override
-                    public Session loginAdministrative(String workspace) throws RepositoryException {
-                        return repository.loginAdministrative(workspace);
-                    }
+            @Override
+            public Session loginAdministrative(String workspace) throws RepositoryException {
+                return repository.loginAdministrative(workspace);
+            }
 
-                    @Override
-                    public String getDefaultWorkspace() {
-                        return repository.getDefaultWorkspace();
-                    }
+            @Override
+            public String getDefaultWorkspace() {
+                return repository.getDefaultWorkspace();
+            }
 
-                    @Override
-                    public Session impersonateFromService(String s, Credentials credentials, String s1) throws LoginException, RepositoryException {
-                        return loginAdministrative(s1).impersonate(credentials);
-                    }
-                });
-        this.listener = new JcrResourceListener(this.config,
-                observationReporter.getObserverConfigurations().get(0));
+            @Override
+            public Session impersonateFromService(String s, Credentials credentials, String s1)
+                    throws LoginException, RepositoryException {
+                return loginAdministrative(s1).impersonate(credentials);
+            }
+        });
+        this.listener = new JcrResourceListener(
+                this.config, observationReporter.getObserverConfigurations().get(0));
     }
 
     @After
-    public void tearDown() throws AccessDeniedException, VersionException, LockException, ConstraintViolationException, RepositoryException {
+    public void tearDown()
+            throws AccessDeniedException, VersionException, LockException, ConstraintViolationException,
+                    RepositoryException {
         unregisterListener();
         if (adminSession.itemExists("/apps")) {
             adminSession.removeItem("/apps");
@@ -237,9 +241,11 @@ public class JcrResourceListenerTest {
         adminSession.save();
         Thread.sleep(3500);
 
-        assertTrue("Events must contain \"added\" for path \"" + movedPath + "\"",
+        assertTrue(
+                "Events must contain \"added\" for path \"" + movedPath + "\"",
                 events.stream().anyMatch(e -> e.getPath().equals(movedPath) && e.getType() == ChangeType.ADDED));
-        assertTrue("Events must contain \"removed\" for path \"" + createdPath + "\"",
+        assertTrue(
+                "Events must contain \"removed\" for path \"" + createdPath + "\"",
                 events.stream().anyMatch(e -> e.getPath().equals(createdPath) && e.getType() == ChangeType.REMOVED));
     }
 
@@ -255,9 +261,11 @@ public class JcrResourceListenerTest {
 
         // 1 added + 1 removed event for roots
         assertEquals("Events must only contain 2 events but has " + events.toString(), 2, events.size());
-        assertTrue("Events must contain \"added\" for path \"/apps2\"",
+        assertTrue(
+                "Events must contain \"added\" for path \"/apps2\"",
                 events.stream().anyMatch(e -> e.getPath().equals("/apps2") && e.getType() == ChangeType.ADDED));
-        assertTrue("Events must contain \"removed\" for path \"/apps\"",
+        assertTrue(
+                "Events must contain \"removed\" for path \"/apps\"",
                 events.stream().anyMatch(e -> e.getPath().equals("/apps") && e.getType() == ChangeType.REMOVED));
     }
 
@@ -269,9 +277,12 @@ public class JcrResourceListenerTest {
         adminSession.save();
         Thread.sleep(3500);
         String expectedAddedPath = "/apps/test" + createdPath;
-        assertTrue("Events must contain \"added\" for path \"" + expectedAddedPath + "\"",
-                events.stream().anyMatch(e -> e.getPath().equals(expectedAddedPath) && e.getType() == ChangeType.ADDED));
-        assertFalse("Events must not contain any \"removed\" events",
+        assertTrue(
+                "Events must contain \"added\" for path \"" + expectedAddedPath + "\"",
+                events.stream()
+                        .anyMatch(e -> e.getPath().equals(expectedAddedPath) && e.getType() == ChangeType.ADDED));
+        assertFalse(
+                "Events must not contain any \"removed\" events",
                 events.stream().anyMatch(e -> e.getType() == ChangeType.REMOVED));
     }
 
@@ -286,7 +297,8 @@ public class JcrResourceListenerTest {
         String expectedPath = "/apps";
         // 1 removed events for the moved root only
         assertEquals("Events must only contain 1 events but has " + events.toString(), 1, events.size());
-        assertTrue("Events must contain \"removed\" for path \"" + expectedPath + "\"",
+        assertTrue(
+                "Events must contain \"removed\" for path \"" + expectedPath + "\"",
                 events.stream().anyMatch(e -> e.getPath().equals(expectedPath) && e.getType() == ChangeType.REMOVED));
     }
 
@@ -300,7 +312,8 @@ public class JcrResourceListenerTest {
 
         // only an added event for the root is received
         assertEquals("Events must only contain 1 event but has " + events.toString(), 1, events.size());
-        assertTrue("Events must contain \"added\" for root path \"/apps/test\"",
+        assertTrue(
+                "Events must contain \"added\" for root path \"/apps/test\"",
                 events.stream().anyMatch(e -> e.getPath().equals("/apps/test") && e.getType() == ChangeType.ADDED));
     }
 
@@ -316,8 +329,11 @@ public class JcrResourceListenerTest {
 
         // 2 removed events for the whole subgraph below the observed path is received
         assertEquals("Events must only contain 2 events but has " + events.toString(), 2, events.size());
-        assertTrue("Events must contain \"added\" for root path \"/apps/test\"",
-                events.stream().anyMatch(e -> e.getPath().equals("/apps/test" + createdPath) && e.getType() == ChangeType.REMOVED));
+        assertTrue(
+                "Events must contain \"added\" for root path \"/apps/test\"",
+                events.stream()
+                        .anyMatch(e ->
+                                e.getPath().equals("/apps/test" + createdPath) && e.getType() == ChangeType.REMOVED));
     }
 
     @Test
@@ -394,7 +410,7 @@ public class JcrResourceListenerTest {
 
         try (final JcrResourceListener l = new JcrResourceListener(this.config, observerConfig)) {
             final String rootName = "test_" + System.currentTimeMillis();
-            for (final String path : new String[]{"/libs", "/", "/apps", "/content"}) {
+            for (final String path : new String[] {"/libs", "/", "/apps", "/content"}) {
                 final Node parent;
                 if (!session.nodeExists(path)) {
                     parent = createNode(session, path);
@@ -481,9 +497,11 @@ public class JcrResourceListenerTest {
     private class SimpleObservationReporter implements ObservationReporter {
 
         private final String[] paths;
+
         public SimpleObservationReporter(String... paths) {
             this.paths = paths;
         }
+
         @Override
         public void reportChanges(Iterable<ResourceChange> changes, boolean distribute) {
             for (ResourceChange c : changes) {
@@ -529,9 +547,9 @@ public class JcrResourceListenerTest {
         }
 
         @Override
-        public void reportChanges(@NotNull ObserverConfiguration config, @NotNull Iterable<ResourceChange> changes, boolean distribute) {
+        public void reportChanges(
+                @NotNull ObserverConfiguration config, @NotNull Iterable<ResourceChange> changes, boolean distribute) {
             this.reportChanges(changes, distribute);
         }
     }
-
 }

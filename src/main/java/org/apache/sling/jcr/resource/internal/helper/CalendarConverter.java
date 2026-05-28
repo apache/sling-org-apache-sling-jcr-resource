@@ -39,7 +39,8 @@ public class CalendarConverter extends NumberConverter implements Converter {
 
     @Override
     public @NotNull ZonedDateTime toZonedDateTime() {
-        return ZonedDateTime.ofInstant(this.value.toInstant(), this.value.getTimeZone().toZoneId().normalized());
+        return ZonedDateTime.ofInstant(
+                this.value.toInstant(), this.value.getTimeZone().toZoneId().normalized());
     }
 
     /**

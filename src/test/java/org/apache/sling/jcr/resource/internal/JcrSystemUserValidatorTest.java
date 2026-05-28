@@ -1,31 +1,29 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 package org.apache.sling.jcr.resource.internal;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.Collections;
-
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 
 import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.jackrabbit.api.security.user.Group;
@@ -38,6 +36,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class JcrSystemUserValidatorTest {
 
@@ -53,8 +55,9 @@ public class JcrSystemUserValidatorTest {
     public final SlingContext context = new SlingContext(ResourceResolverType.JCR_OAK);
 
     @Before
-    public void setUp() throws IllegalArgumentException, IllegalAccessException, RepositoryException,
-            NoSuchFieldException, SecurityException {
+    public void setUp()
+            throws IllegalArgumentException, IllegalAccessException, RepositoryException, NoSuchFieldException,
+                    SecurityException {
         jcrSystemUserValidator = new JcrSystemUserValidator();
         final Field repositoryField = jcrSystemUserValidator.getClass().getDeclaredField("repository");
         repositoryField.setAccessible(true);
@@ -90,7 +93,6 @@ public class JcrSystemUserValidatorTest {
             public boolean allow_only_system_user() {
                 return allowOnlySystemUsers;
             }
-
         };
         jcrSystemUserValidator.activate(config);
     }
@@ -99,11 +101,11 @@ public class JcrSystemUserValidatorTest {
     public void testIsValidWithEnforcementOfSystemUsersEnabled() throws Exception {
         setAllowOnlySystemUsers(true);
 
-        //testing null user
+        // testing null user
         assertFalse(jcrSystemUserValidator.isValid((String) null, null, null));
-        //testing not existing user     
+        // testing not existing user
         assertFalse(jcrSystemUserValidator.isValid("notExisting", null, null));
-        //administrators group is not a valid user  (also not a system user)
+        // administrators group is not a valid user  (also not a system user)
         assertFalse(jcrSystemUserValidator.isValid(group.getID(), null, null));
         // systemUser is valid
         assertTrue(jcrSystemUserValidator.isValid(systemUser.getID(), null, null));
@@ -113,23 +115,25 @@ public class JcrSystemUserValidatorTest {
     public void testIsValidPrincipalNamesWithEnforcementOfSystemUsersEnabled() throws Exception {
         setAllowOnlySystemUsers(true);
 
-        //testing null principal names
+        // testing null principal names
         assertFalse(jcrSystemUserValidator.isValid((Iterable<String>) null, null, null));
-        //testing not existing user
+        // testing not existing user
         assertFalse(jcrSystemUserValidator.isValid(Collections.singleton("notExisting"), null, null));
-        //administrators group is not a valid user  (also not a system user)
-        assertFalse(jcrSystemUserValidator.isValid(Collections.singleton(group.getPrincipal().getName()), null, null));
+        // administrators group is not a valid user  (also not a system user)
+        assertFalse(jcrSystemUserValidator.isValid(
+                Collections.singleton(group.getPrincipal().getName()), null, null));
         // systemUser is valid
-        assertTrue(jcrSystemUserValidator.isValid(Collections.singleton(systemUser.getPrincipal().getName()), null, null));
+        assertTrue(jcrSystemUserValidator.isValid(
+                Collections.singleton(systemUser.getPrincipal().getName()), null, null));
     }
 
     @Test
     public void testIsValidWithEnforcementOfSystemUsersDisabled() throws Exception {
         setAllowOnlySystemUsers(false);
 
-        //testing null user
+        // testing null user
         assertFalse(jcrSystemUserValidator.isValid((String) null, null, null));
-        //testing not existing user (is considered valid here)
+        // testing not existing user (is considered valid here)
         assertTrue(jcrSystemUserValidator.isValid("notExisting", null, null));
         // administrators group is not a user at all (but considered valid)
         assertTrue(jcrSystemUserValidator.isValid(group.getID(), null, null));
@@ -141,14 +145,16 @@ public class JcrSystemUserValidatorTest {
     public void testIsValidPrincipalNamesWithEnforcementOfSystemUsersDisabled() throws Exception {
         setAllowOnlySystemUsers(false);
 
-        //testing null principal names
+        // testing null principal names
         assertFalse(jcrSystemUserValidator.isValid((Iterable<String>) null, null, null));
-        //testing not existing user (is considered valid here)
+        // testing not existing user (is considered valid here)
         assertTrue(jcrSystemUserValidator.isValid(Collections.singleton("notExisting"), null, null));
         // administrators group is not a user at all (but considered valid)
-        assertTrue(jcrSystemUserValidator.isValid(Collections.singleton(group.getPrincipal().getName()), null, null));
+        assertTrue(jcrSystemUserValidator.isValid(
+                Collections.singleton(group.getPrincipal().getName()), null, null));
         // systemUser is valid
-        assertTrue(jcrSystemUserValidator.isValid(Collections.singleton(systemUser.getPrincipal().getName()), null, null));
+        assertTrue(jcrSystemUserValidator.isValid(
+                Collections.singleton(systemUser.getPrincipal().getName()), null, null));
     }
 
     @Test
@@ -167,7 +173,9 @@ public class JcrSystemUserValidatorTest {
 
         // Validation information is cached internally - need to test twice
         // to activate all code paths
-        assertTrue(jcrSystemUserValidator.isValid(Collections.singleton(systemUser.getPrincipal().getName()), null, null));
-        assertTrue(jcrSystemUserValidator.isValid(Collections.singleton(systemUser.getPrincipal().getName()), null, null));
+        assertTrue(jcrSystemUserValidator.isValid(
+                Collections.singleton(systemUser.getPrincipal().getName()), null, null));
+        assertTrue(jcrSystemUserValidator.isValid(
+                Collections.singleton(systemUser.getPrincipal().getName()), null, null));
     }
 }

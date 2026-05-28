@@ -18,15 +18,15 @@
  */
 package org.apache.sling.jcr.resource.internal.helper.jcr;
 
-import java.lang.reflect.Proxy;
-import java.util.concurrent.atomic.AtomicReference;
-
 import javax.jcr.GuestCredentials;
 import javax.jcr.Item;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.security.Privilege;
+
+import java.lang.reflect.Proxy;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.commons.JcrUtils;
@@ -63,7 +63,7 @@ public class JcrItemResourceFactoryTest extends SlingRepositoryTestBase {
 
         nonJackrabbitSession = (Session) Proxy.newProxyInstance(
                 getClass().getClassLoader(),
-                new Class<?>[]{Session.class},
+                new Class<?>[] {Session.class},
                 (proxy, method, args) -> method.invoke(session, args));
 
         AccessControlUtils.allow(node, EveryonePrincipal.NAME, Privilege.JCR_READ);
@@ -149,7 +149,8 @@ public class JcrItemResourceFactoryTest extends SlingRepositoryTestBase {
 
     public void testGetNodeByIdentifierConfigEnabled() throws Exception {
         ComponentContext ctx = mock(ComponentContext.class);
-        when(ctx.locateService(ArgumentMatchers.anyString(), Mockito.any())).thenReturn(SlingRepositoryProvider.getRepository());
+        when(ctx.locateService(ArgumentMatchers.anyString(), Mockito.any()))
+                .thenReturn(SlingRepositoryProvider.getRepository());
 
         JcrResourceProvider.Configuration configuration = mock(JcrResourceProvider.Configuration.class);
         when(configuration.resource_addressingById()).thenReturn(true);
@@ -160,14 +161,15 @@ public class JcrItemResourceFactoryTest extends SlingRepositoryTestBase {
         String identifier = referenceableNode.getIdentifier();
         String uuid = referenceableNode.getProperty(JcrConstants.JCR_UUID).getString();
         assertEquals(identifier, uuid);
-        Item referenceableItem =
-                new JcrItemResourceFactory(session, helper).getItemOrNull(JcrItemResourceFactory.SEARCH_BY_ID_PREFIX + referenceableNode.getIdentifier());
+        Item referenceableItem = new JcrItemResourceFactory(session, helper)
+                .getItemOrNull(JcrItemResourceFactory.SEARCH_BY_ID_PREFIX + referenceableNode.getIdentifier());
         assertNotNull(referenceableItem);
         assertTrue(referenceableItem.isNode());
         assertEquals(REFERENCEABLE_NODE_PATH, referenceableItem.getPath());
 
         // the node identifier in this case is the path
-        Item nodeItem = new JcrItemResourceFactory(session, helper).getItemOrNull(JcrItemResourceFactory.SEARCH_BY_ID_PREFIX + node.getIdentifier());
+        Item nodeItem = new JcrItemResourceFactory(session, helper)
+                .getItemOrNull(JcrItemResourceFactory.SEARCH_BY_ID_PREFIX + node.getIdentifier());
         assertNotNull(nodeItem);
         assertTrue(nodeItem.isNode());
         assertEquals(EXISTING_NODE_PATH, nodeItem.getPath());
@@ -178,8 +180,8 @@ public class JcrItemResourceFactoryTest extends SlingRepositoryTestBase {
         String identifier = referenceableNode.getIdentifier();
         String uuid = referenceableNode.getProperty(JcrConstants.JCR_UUID).getString();
         assertEquals(identifier, uuid);
-        Item referenceableItem =
-                new JcrItemResourceFactory(session, helper).getItemOrNull(JcrItemResourceFactory.SEARCH_BY_ID_PREFIX + referenceableNode.getIdentifier());
+        Item referenceableItem = new JcrItemResourceFactory(session, helper)
+                .getItemOrNull(JcrItemResourceFactory.SEARCH_BY_ID_PREFIX + referenceableNode.getIdentifier());
         assertNull(referenceableItem);
     }
 

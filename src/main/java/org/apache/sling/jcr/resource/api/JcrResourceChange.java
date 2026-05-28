@@ -28,10 +28,12 @@ public final class JcrResourceChange extends ResourceChange {
     private final String userId;
     private final String userData;
 
-    public JcrResourceChange(final ResourceChange.ChangeType changeType,
-                             final String path,
-                             final boolean isExternal,
-                             final String userId, String userData) {
+    public JcrResourceChange(
+            final ResourceChange.ChangeType changeType,
+            final String path,
+            final boolean isExternal,
+            final String userId,
+            String userData) {
         super(changeType, path, isExternal);
         this.userId = userId;
         this.userData = userData;

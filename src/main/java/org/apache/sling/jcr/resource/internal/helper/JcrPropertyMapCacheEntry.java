@@ -1,20 +1,30 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with this
- * work for additional information regarding copyright ownership. The ASF
- * licenses this file to You under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 package org.apache.sling.jcr.resource.internal.helper;
+
+import javax.jcr.Node;
+import javax.jcr.Property;
+import javax.jcr.PropertyType;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.Value;
+import javax.jcr.ValueFormatException;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -32,14 +42,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-
-import javax.jcr.Node;
-import javax.jcr.Property;
-import javax.jcr.PropertyType;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.Value;
-import javax.jcr.ValueFormatException;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
@@ -83,7 +85,8 @@ public class JcrPropertyMapCacheEntry {
      * @param node the node
      * @throws RepositoryException if the provided value cannot be stored
      */
-    public JcrPropertyMapCacheEntry(final @NotNull Object value, final @NotNull Node node) throws IOException, RepositoryException {
+    public JcrPropertyMapCacheEntry(final @NotNull Object value, final @NotNull Node node)
+            throws IOException, RepositoryException {
         this.property = null;
         this.propertyValue = value;
         this.isArray = value.getClass().isArray();
@@ -98,7 +101,8 @@ public class JcrPropertyMapCacheEntry {
         }
     }
 
-    private static void failIfCannotStore(final @NotNull Object value, final @NotNull Node node) throws IOException, RepositoryException {
+    private static void failIfCannotStore(final @NotNull Object value, final @NotNull Node node)
+            throws IOException, RepositoryException {
         if (value instanceof InputStream) {
             // InputStream is storable and calling createValue for nothing
             // eats its contents
@@ -106,7 +110,8 @@ public class JcrPropertyMapCacheEntry {
         }
         final Value val = createValue(value, node);
         if (val == null) {
-            throw new IllegalArgumentException("Value can't be stored in the repository as it is having an unsupported type " + value.getClass());
+            throw new IllegalArgumentException(
+                    "Value can't be stored in the repository as it is having an unsupported type " + value.getClass());
         }
     }
 
@@ -120,7 +125,8 @@ public class JcrPropertyMapCacheEntry {
      * @param  node the node
      * @return the converted value
      */
-    private static @Nullable Value createValue(final @NotNull Object obj, final @NotNull Node node) throws IOException, RepositoryException {
+    private static @Nullable Value createValue(final @NotNull Object obj, final @NotNull Node node)
+            throws IOException, RepositoryException {
         final Session session = node.getSession();
         Value value = JcrResourceUtil.createValue(obj, session);
         if (value == null && obj instanceof Serializable) {
@@ -129,7 +135,8 @@ public class JcrPropertyMapCacheEntry {
             oos.writeObject(obj);
             oos.close();
             final ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-            value = session.getValueFactory().createValue(session.getValueFactory().createBinary(bais));
+            value = session.getValueFactory()
+                    .createValue(session.getValueFactory().createBinary(bais));
         }
         return value;
     }
@@ -201,9 +208,8 @@ public class JcrPropertyMapCacheEntry {
      * @return The converted object
      */
     @SuppressWarnings("unchecked")
-    public @Nullable<T> T convertToType(final @NotNull Class<T> type,
-                                        final @NotNull Node node,
-                                        final @Nullable ClassLoader dynamicClassLoader){
+    public @Nullable <T> T convertToType(
+            final @NotNull Class<T> type, final @NotNull Node node, final @Nullable ClassLoader dynamicClassLoader) {
         T result = null;
 
         try {
@@ -238,11 +244,12 @@ public class JcrPropertyMapCacheEntry {
         return result;
     }
 
-    private @NotNull<T> T[] convertToArray(final @NotNull Object source,
-                                           final @NotNull Class<T> type,
-                                           final @NotNull Node node,
-                                           final @Nullable ClassLoader dynamicClassLoader)
-    throws IOException, RepositoryException {
+    private @NotNull <T> T[] convertToArray(
+            final @NotNull Object source,
+            final @NotNull Class<T> type,
+            final @NotNull Node node,
+            final @Nullable ClassLoader dynamicClassLoader)
+            throws IOException, RepositoryException {
         List<T> values = new ArrayList<>();
         T value = convertToType(-1, source, type, node, dynamicClassLoader);
         if (value != null) {
@@ -254,11 +261,12 @@ public class JcrPropertyMapCacheEntry {
         return values.toArray(result);
     }
 
-    private @NotNull<T> T[] convertToArray(final @NotNull Object[] sourceArray,
-                                           final @NotNull Class<T> type,
-                                           final @NotNull Node node,
-                                           final @Nullable ClassLoader dynamicClassLoader)
-    throws IOException, RepositoryException {
+    private @NotNull <T> T[] convertToArray(
+            final @NotNull Object[] sourceArray,
+            final @NotNull Class<T> type,
+            final @NotNull Node node,
+            final @Nullable ClassLoader dynamicClassLoader)
+            throws IOException, RepositoryException {
         List<T> values = new ArrayList<>();
         for (int i = 0; i < sourceArray.length; i++) {
             T value = convertToType(i, sourceArray[i], type, node, dynamicClassLoader);
@@ -274,12 +282,13 @@ public class JcrPropertyMapCacheEntry {
     }
 
     @SuppressWarnings("unchecked")
-    private @Nullable<T> T convertToType(final int index,
-                                         final @NotNull Object initialValue,
-                                         final @NotNull Class<T> type,
-                                         final @NotNull Node node,
-                                         final @Nullable ClassLoader dynamicClassLoader)
-    throws IOException, RepositoryException {
+    private @Nullable <T> T convertToType(
+            final int index,
+            final @NotNull Object initialValue,
+            final @NotNull Class<T> type,
+            final @NotNull Node node,
+            final @Nullable ClassLoader dynamicClassLoader)
+            throws IOException, RepositoryException {
         if (type.isInstance(initialValue)) {
             return (T) initialValue;
         }
@@ -291,12 +300,13 @@ public class JcrPropertyMapCacheEntry {
         }
     }
 
-    private @Nullable <T> T convertInputStream(int index,
-                                               final @NotNull InputStream value,
-                                               final @NotNull Class<T> type,
-                                               final @NotNull Node node,
-                                               final @Nullable ClassLoader dynamicClassLoader)
-    throws IOException, RepositoryException {
+    private @Nullable <T> T convertInputStream(
+            int index,
+            final @NotNull InputStream value,
+            final @NotNull Class<T> type,
+            final @NotNull Node node,
+            final @Nullable ClassLoader dynamicClassLoader)
+            throws IOException, RepositoryException {
         // object input stream
         if (ObjectInputStream.class.isAssignableFrom(type)) {
             try {
@@ -305,7 +315,7 @@ public class JcrPropertyMapCacheEntry {
                 // ignore and use fallback
             }
 
-        // any number: length of binary
+            // any number: length of binary
         } else if (Number.class.isAssignableFrom(type)) {
             // avoid NPE if this instance has not been created from a property (see SLING-11465)
             if (property == null) {
@@ -313,11 +323,11 @@ public class JcrPropertyMapCacheEntry {
             }
             return convert(propertyToLength(property, index), type, node);
 
-        // string: read binary
+            // string: read binary
         } else if (String.class == type) {
             return (T) inputStreamToString(value);
 
-        // any serializable
+            // any serializable
         } else if (Serializable.class.isAssignableFrom(type)) {
             try (ObjectInputStream ois = new PropertyObjectInputStream(value, dynamicClassLoader)) {
                 final Object obj = ois.readObject();
@@ -359,10 +369,8 @@ public class JcrPropertyMapCacheEntry {
         }
     }
 
-    private @Nullable <T> T convert(final @NotNull Object value,
-                                   final @NotNull Class<T> type,
-                                   final @NotNull Node node)
-    throws IOException, RepositoryException {
+    private @Nullable <T> T convert(final @NotNull Object value, final @NotNull Class<T> type, final @NotNull Node node)
+            throws IOException, RepositoryException {
         if (String.class == type) {
             return (T) getConverter(value).toString();
 
@@ -398,7 +406,8 @@ public class JcrPropertyMapCacheEntry {
 
         } else if (ZonedDateTime.class == type) {
             Calendar calendar = getConverter(value).toCalendar();
-            return (T) ZonedDateTime.ofInstant(calendar.toInstant(), calendar.getTimeZone().toZoneId().normalized());
+            return (T) ZonedDateTime.ofInstant(
+                    calendar.toInstant(), calendar.getTimeZone().toZoneId().normalized());
 
         } else if (Value.class == type) {
             return (T) createValue(value, node);
@@ -442,7 +451,8 @@ public class JcrPropertyMapCacheEntry {
 
         private final ClassLoader classloader;
 
-        public PropertyObjectInputStream(final @NotNull InputStream in, final @Nullable ClassLoader classLoader) throws IOException {
+        public PropertyObjectInputStream(final @NotNull InputStream in, final @Nullable ClassLoader classLoader)
+                throws IOException {
             super(in);
             this.classloader = classLoader;
         }
@@ -451,8 +461,7 @@ public class JcrPropertyMapCacheEntry {
          * @see java.io.ObjectInputStream#resolveClass(java.io.ObjectStreamClass)
          */
         @Override
-        protected Class<?> resolveClass(final ObjectStreamClass classDesc)
-                throws IOException, ClassNotFoundException {
+        protected Class<?> resolveClass(final ObjectStreamClass classDesc) throws IOException, ClassNotFoundException {
             if (this.classloader != null) {
                 return this.classloader.loadClass(classDesc.getName());
             }

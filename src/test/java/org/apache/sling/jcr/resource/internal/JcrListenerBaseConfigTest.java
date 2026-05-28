@@ -18,11 +18,6 @@
  */
 package org.apache.sling.jcr.resource.internal;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import org.apache.jackrabbit.oak.jcr.observation.filter.OakEventFilter;
 import org.apache.sling.api.resource.path.Path;
 import org.apache.sling.api.resource.path.PathSet;
@@ -30,6 +25,10 @@ import org.apache.sling.spi.resource.provider.ObserverConfiguration;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class JcrListenerBaseConfigTest {
 
@@ -40,14 +39,13 @@ public class JcrListenerBaseConfigTest {
         Path globbed = new Path("glob:/globbed/path");
         Path nonglobbed = new Path("/nonglobbed/path");
         ObserverConfiguration config = mock(ObserverConfiguration.class);
-        when(config.getPaths()).thenReturn(PathSet.fromPaths(globbed,nonglobbed));
+        when(config.getPaths()).thenReturn(PathSet.fromPaths(globbed, nonglobbed));
 
         JcrListenerBaseConfig.setFilterPaths(filter, config);
 
         ArgumentCaptor<String> pathCaptor = ArgumentCaptor.forClass(String.class);
         verify(filter).setAdditionalPaths(pathCaptor.capture());
         assertEquals("/nonglobbed/path", pathCaptor.getValue());
-
 
         ArgumentCaptor<String> globPathCaptor = ArgumentCaptor.forClass(String.class);
         verify(filter).withIncludeGlobPaths(globPathCaptor.capture());

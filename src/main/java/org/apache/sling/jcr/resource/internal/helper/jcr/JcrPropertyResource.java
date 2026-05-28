@@ -18,11 +18,6 @@
  */
 package org.apache.sling.jcr.resource.internal.helper.jcr;
 
-import java.io.InputStream;
-import java.math.BigDecimal;
-import java.util.Calendar;
-import java.util.Iterator;
-
 import javax.jcr.Item;
 import javax.jcr.Node;
 import javax.jcr.Property;
@@ -30,6 +25,11 @@ import javax.jcr.PropertyType;
 import javax.jcr.RepositoryException;
 import javax.jcr.Value;
 import javax.jcr.ValueFormatException;
+
+import java.io.InputStream;
+import java.math.BigDecimal;
+import java.util.Calendar;
+import java.util.Iterator;
 
 import org.apache.sling.adapter.annotations.Adaptable;
 import org.apache.sling.adapter.annotations.Adapter;
@@ -41,11 +41,33 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Adaptable(adaptableClass = Resource.class, adapters = {
-        @Adapter(value = { Item.class, Property.class, Value.class, String.class, Boolean.class, Long.class,
-                Double.class, BigDecimal.class, Calendar.class, InputStream.class, Value[].class, String[].class,
-                Boolean[].class, Long[].class, Double[].class, BigDecimal[].class }),
-        @Adapter(value = Node.class, condition = "If the resource is a JcrPropertyResource and the property is a reference or weak reference property.") })
+@Adaptable(
+        adaptableClass = Resource.class,
+        adapters = {
+            @Adapter(
+                    value = {
+                        Item.class,
+                        Property.class,
+                        Value.class,
+                        String.class,
+                        Boolean.class,
+                        Long.class,
+                        Double.class,
+                        BigDecimal.class,
+                        Calendar.class,
+                        InputStream.class,
+                        Value[].class,
+                        String[].class,
+                        Boolean[].class,
+                        Long[].class,
+                        Double[].class,
+                        BigDecimal[].class
+                    }),
+            @Adapter(
+                    value = Node.class,
+                    condition =
+                            "If the resource is a JcrPropertyResource and the property is a reference or weak reference property.")
+        })
 class JcrPropertyResource extends JcrItemResource<Property> { // this should be package private, see SLING-1414
 
     /** default log */
@@ -53,13 +75,14 @@ class JcrPropertyResource extends JcrItemResource<Property> { // this should be 
 
     private final String resourceType;
 
-    public JcrPropertyResource(final @NotNull ResourceResolver resourceResolver,
-                               final @NotNull String path,
-                               final @Nullable String version,
-                               final @NotNull Property property) throws RepositoryException {
+    public JcrPropertyResource(
+            final @NotNull ResourceResolver resourceResolver,
+            final @NotNull String path,
+            final @Nullable String version,
+            final @NotNull Property property)
+            throws RepositoryException {
         super(resourceResolver, path, version, property, new ResourceMetadata());
-        this.resourceType = getResourceTypeForNode(property.getParent())
-                + "/" + property.getName();
+        this.resourceType = getResourceTypeForNode(property.getParent()) + "/" + property.getName();
         if (PropertyType.BINARY != getProperty().getType()) {
             this.getResourceMetadata().setContentType("text/plain");
             this.getResourceMetadata().setCharacterEncoding("UTF-8");
@@ -109,8 +132,8 @@ class JcrPropertyResource extends JcrItemResource<Property> { // this should be 
                 return (AdapterType) getProperty().getValue();
 
             } else if (type == Node.class
-                    && (getProperty().getType() == PropertyType.REFERENCE ||
-                    getProperty().getType() == PropertyType.WEAKREFERENCE)) {
+                    && (getProperty().getType() == PropertyType.REFERENCE
+                            || getProperty().getType() == PropertyType.WEAKREFERENCE)) {
                 return (AdapterType) getProperty().getNode();
 
             } else if (type == InputStream.class) {
@@ -125,7 +148,7 @@ class JcrPropertyResource extends JcrItemResource<Property> { // this should be 
                     }
                     return (AdapterType) result;
                 }
-                return (AdapterType) new String[]{getProperty().getString()};
+                return (AdapterType) new String[] {getProperty().getString()};
 
             } else if (type == Boolean[].class) {
                 if (getProperty().getDefinition().isMultiple()) {
@@ -136,7 +159,7 @@ class JcrPropertyResource extends JcrItemResource<Property> { // this should be 
                     }
                     return (AdapterType) result;
                 }
-                return (AdapterType) new Boolean[]{getProperty().getBoolean()};
+                return (AdapterType) new Boolean[] {getProperty().getBoolean()};
 
             } else if (type == Long[].class) {
                 if (getProperty().getDefinition().isMultiple()) {
@@ -147,7 +170,7 @@ class JcrPropertyResource extends JcrItemResource<Property> { // this should be 
                     }
                     return (AdapterType) result;
                 }
-                return (AdapterType) new Long[]{getProperty().getLong()};
+                return (AdapterType) new Long[] {getProperty().getLong()};
 
             } else if (type == Double[].class) {
                 if (getProperty().getDefinition().isMultiple()) {
@@ -158,7 +181,7 @@ class JcrPropertyResource extends JcrItemResource<Property> { // this should be 
                     }
                     return (AdapterType) result;
                 }
-                return (AdapterType) new Double[]{getProperty().getDouble()};
+                return (AdapterType) new Double[] {getProperty().getDouble()};
 
             } else if (type == BigDecimal[].class) {
                 if (getProperty().getDefinition().isMultiple()) {
@@ -169,7 +192,7 @@ class JcrPropertyResource extends JcrItemResource<Property> { // this should be 
                     }
                     return (AdapterType) result;
                 }
-                return (AdapterType) new BigDecimal[]{getProperty().getDecimal()};
+                return (AdapterType) new BigDecimal[] {getProperty().getDecimal()};
 
             } else if (type == Calendar[].class) {
                 if (getProperty().getDefinition().isMultiple()) {
@@ -180,14 +203,13 @@ class JcrPropertyResource extends JcrItemResource<Property> { // this should be 
                     }
                     return (AdapterType) result;
                 }
-                return (AdapterType) new Calendar[]{getProperty().getDate()};
+                return (AdapterType) new Calendar[] {getProperty().getDate()};
 
             } else if (type == Value[].class) {
                 if (getProperty().getDefinition().isMultiple()) {
                     return (AdapterType) getProperty().getValues();
                 }
-                return (AdapterType) new Value[]{getProperty().getValue()};
-
+                return (AdapterType) new Value[] {getProperty().getValue()};
             }
 
         } catch (ValueFormatException vfe) {
@@ -225,7 +247,8 @@ class JcrPropertyResource extends JcrItemResource<Property> { // this should be 
     }
 
     @Override
-    @Nullable Iterator<Resource> listJcrChildren() {
+    @Nullable
+    Iterator<Resource> listJcrChildren() {
         return null;
     }
 

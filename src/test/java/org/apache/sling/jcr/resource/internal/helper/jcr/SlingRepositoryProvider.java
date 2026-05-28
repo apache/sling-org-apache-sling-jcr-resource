@@ -30,10 +30,9 @@ public class SlingRepositoryProvider {
 
     private static OakMockSlingRepository INSTANCE;
 
-    private SlingRepositoryProvider() {
-    }
+    private SlingRepositoryProvider() {}
 
-    public synchronized static SlingRepository getRepository() throws Exception {
+    public static synchronized SlingRepository getRepository() throws Exception {
         if (INSTANCE == null) {
             OakMockSlingRepository r = new OakMockSlingRepository();
             Method activateMethod = OakMockSlingRepository.class.getDeclaredMethod("activate", BundleContext.class);
@@ -44,13 +43,11 @@ public class SlingRepositoryProvider {
         return INSTANCE;
     }
 
-
     public static void shutdown() throws Exception {
         Method deactivateMethod = OakMockSlingRepository.class.getDeclaredMethod("deactivate", ComponentContext.class);
         deactivateMethod.setAccessible(true);
         deactivateMethod.invoke(getRepository(), (ComponentContext) null);
     }
-
 
     private static BundleContext getFakeContext() {
         return Mockito.mock(BundleContext.class);

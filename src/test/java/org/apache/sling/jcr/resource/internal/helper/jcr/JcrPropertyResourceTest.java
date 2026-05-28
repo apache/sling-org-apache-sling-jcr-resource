@@ -18,17 +18,15 @@
  */
 package org.apache.sling.jcr.resource.internal.helper.jcr;
 
-import static org.junit.Assert.assertEquals;
+import javax.jcr.Property;
+import javax.jcr.PropertyType;
+import javax.jcr.RepositoryException;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map.Entry;
-
-import javax.jcr.Property;
-import javax.jcr.PropertyType;
-import javax.jcr.RepositoryException;
 
 import org.apache.sling.api.resource.ResourceResolver;
 import org.jmock.Expectations;
@@ -37,6 +35,8 @@ import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * JcrPropertyResourceTest ...
@@ -48,37 +48,45 @@ public class JcrPropertyResourceTest {
 
     @Test
     public void testCorrectUTF8ByteLength() throws RepositoryException, UnsupportedEncodingException {
-        final HashMap<Object, Integer> testData = new HashMap<Object, Integer>() {{
-            put("some random ascii string", PropertyType.STRING);
-            put("русский язык", PropertyType.STRING);
-            put("贛語", PropertyType.STRING);
-            put("string with ümlaut", PropertyType.STRING);
-            put(true, PropertyType.BOOLEAN);
-            put(1000L, PropertyType.LONG);
-            put(BigDecimal.TEN, PropertyType.DECIMAL);
-        }};
+        final HashMap<Object, Integer> testData = new HashMap<Object, Integer>() {
+            {
+                put("some random ascii string", PropertyType.STRING);
+                put("русский язык", PropertyType.STRING);
+                put("贛語", PropertyType.STRING);
+                put("string with ümlaut", PropertyType.STRING);
+                put(true, PropertyType.BOOLEAN);
+                put(1000L, PropertyType.LONG);
+                put(BigDecimal.TEN, PropertyType.DECIMAL);
+            }
+        };
 
         final ResourceResolver resolver = this.context.mock(ResourceResolver.class);
         for (final Entry<Object, Integer> data : testData.entrySet()) {
             final String stringValue = data.getKey().toString();
             final long stringByteLength = stringValue.getBytes(StandardCharsets.UTF_8).length;
             final Property property = this.context.mock(Property.class, stringValue);
-            this.context.checking(new Expectations() {{
-                ignoring(resolver);
-                allowing(property).getParent();
-                allowing(property).getName();
-                allowing(property).isMultiple();
-                will(returnValue(false));
-                allowing(property).getLength();
-                will(returnValue((long) stringValue.length()));
+            this.context.checking(new Expectations() {
+                {
+                    ignoring(resolver);
+                    allowing(property).getParent();
+                    allowing(property).getName();
+                    allowing(property).isMultiple();
+                    will(returnValue(false));
+                    allowing(property).getLength();
+                    will(returnValue((long) stringValue.length()));
 
-                allowing(property).getType();
-                will(returnValue(data.getValue()));
-                allowing(property).getString();
-                will(returnValue(stringValue));
-            }});
-            final JcrPropertyResource propResource = new JcrPropertyResource(resolver, "/path/to/string-property", null, property);
-            assertEquals("Byte length of " + stringValue, stringByteLength, propResource.getResourceMetadata().getContentLength());
+                    allowing(property).getType();
+                    will(returnValue(data.getValue()));
+                    allowing(property).getString();
+                    will(returnValue(stringValue));
+                }
+            });
+            final JcrPropertyResource propResource =
+                    new JcrPropertyResource(resolver, "/path/to/string-property", null, property);
+            assertEquals(
+                    "Byte length of " + stringValue,
+                    stringByteLength,
+                    propResource.getResourceMetadata().getContentLength());
         }
     }
 }

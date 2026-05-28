@@ -21,12 +21,11 @@ package org.apache.sling.jcr.resource.internal.helper.jcr;
 import javax.jcr.Node;
 import javax.jcr.Session;
 
+import junit.framework.TestCase;
 import org.apache.sling.jcr.api.SlingRepository;
 
-import junit.framework.TestCase;
-
 public abstract class SlingRepositoryTestBase extends TestCase {
-    
+
     protected Node testRoot;
     protected Session session;
     private int counter;
@@ -46,7 +45,7 @@ public abstract class SlingRepositoryTestBase extends TestCase {
         }
         return session;
     }
-    
+
     /** Return a test root node, created on demand, with a unique path */
     protected Node getTestRootNode() throws Exception {
         if (testRoot == null) {
@@ -57,13 +56,9 @@ public abstract class SlingRepositoryTestBase extends TestCase {
         return testRoot;
     }
 
-    /** Return a Repository 
+    /** Return a Repository
      * @throws Exception */
     protected SlingRepository getRepository() throws Exception {
         return SlingRepositoryProvider.getRepository();
     }
-
-    
-
-
 }

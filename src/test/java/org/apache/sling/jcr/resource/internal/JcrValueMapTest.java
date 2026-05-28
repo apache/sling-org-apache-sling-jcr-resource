@@ -25,39 +25,34 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 public class JcrValueMapTest extends SlingRepositoryTestBase {
-    
+
     private Node rootNode;
     HelperData helperData;
-    
+
     @Override
     protected void setUp() throws Exception {
         super.setUp();
         String rootPath = "/test_" + System.currentTimeMillis();
-        rootNode = getSession().getRootNode().addNode(rootPath.substring(1),
-                "nt:unstructured");
+        rootNode = getSession().getRootNode().addNode(rootPath.substring(1), "nt:unstructured");
         rootNode.setProperty("string", "test");
         getSession().save();
         helperData = Mockito.mock(HelperData.class);
     }
-    
-    
+
     //  Tests with null as default value and class must pass, see https://issues.apache.org/jira/browse/SLING-11567
-    
+
     @Test
     public void testGetWithDefaultValue() {
-       JcrValueMap vm = new JcrValueMap(rootNode, helperData);
-       assertEquals("test", vm.get("string","default"));
-       assertEquals("default", vm.get("nonexistent","default"));
-       assertNull(vm.get("nonexistent",null));
+        JcrValueMap vm = new JcrValueMap(rootNode, helperData);
+        assertEquals("test", vm.get("string", "default"));
+        assertEquals("default", vm.get("nonexistent", "default"));
+        assertNull(vm.get("nonexistent", null));
     }
-    
+
     @Test
     public void testGetWithClass() {
         JcrValueMap vm = new JcrValueMap(rootNode, helperData);
-        assertEquals("test", vm.get("string",String.class));
-        assertEquals("test", vm.get("string",null)); 
+        assertEquals("test", vm.get("string", String.class));
+        assertEquals("test", vm.get("string", null));
     }
-    
-   
-
 }

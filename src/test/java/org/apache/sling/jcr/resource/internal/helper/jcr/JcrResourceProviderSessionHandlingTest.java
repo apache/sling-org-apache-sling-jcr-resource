@@ -18,16 +18,16 @@
  */
 package org.apache.sling.jcr.resource.internal.helper.jcr;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import javax.jcr.Credentials;
 import javax.jcr.LoginException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ResourceResolverFactory;
@@ -63,7 +63,11 @@ import static org.mockito.Mockito.when;
 @RunWith(Parameterized.class)
 public class JcrResourceProviderSessionHandlingTest {
 
-    private enum LoginStyle {USER, SESSION, SERVICE}
+    private enum LoginStyle {
+        USER,
+        SESSION,
+        SERVICE
+    }
 
     private static final String AUTH_USER = "admin";
     private static final char[] AUTH_PASSWORD = "admin".toCharArray();
@@ -73,8 +77,8 @@ public class JcrResourceProviderSessionHandlingTest {
     public static List<Object[]> data() {
 
         LoginStyle[] loginStyles = LoginStyle.values();
-        boolean[] sudoOptions = new boolean[]{false, true};
-        boolean[] cloneOptions = new boolean[]{false, true};
+        boolean[] sudoOptions = new boolean[] {false, true};
+        boolean[] cloneOptions = new boolean[] {false, true};
 
         // Generate all possible combinations into data.
         List<Object[]> data = new ArrayList<>();
@@ -190,7 +194,8 @@ public class JcrResourceProviderSessionHandlingTest {
         }
 
         @Override
-        public Session impersonateFromService(String s, Credentials credentials, String s1) throws LoginException, RepositoryException {
+        public Session impersonateFromService(String s, Credentials credentials, String s1)
+                throws LoginException, RepositoryException {
             return loginAdministrative(s1).impersonate(credentials);
         }
     }
@@ -310,5 +315,4 @@ public class JcrResourceProviderSessionHandlingTest {
 
         assertNotSame(explicitSession, jcrProviderState.getSession());
     }
-
 }

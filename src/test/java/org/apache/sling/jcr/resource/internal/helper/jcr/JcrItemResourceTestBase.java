@@ -18,11 +18,11 @@
  */
 package org.apache.sling.jcr.resource.internal.helper.jcr;
 
-import java.io.IOException;
-import java.io.InputStream;
-
 import javax.jcr.NamespaceRegistry;
 import javax.jcr.Node;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 import org.apache.sling.api.SlingConstants;
 import org.apache.sling.jcr.resource.api.JcrResourceConstants;
@@ -35,8 +35,7 @@ public abstract class JcrItemResourceTestBase extends SlingRepositoryTestBase {
 
     protected static final String TEST_ENCODING = "ISO-8859-1";
 
-    protected static final byte[] TEST_DATA = {'S', 'o', 'm', 'e', ' ', 'T',
-            'e', 's', 't'};
+    protected static final byte[] TEST_DATA = {'S', 'o', 'm', 'e', ' ', 'T', 'e', 's', 't'};
 
     protected String rootPath;
 
@@ -51,15 +50,13 @@ public abstract class JcrItemResourceTestBase extends SlingRepositoryTestBase {
 
         try {
             NamespaceRegistry nsr = session.getWorkspace().getNamespaceRegistry();
-            nsr.registerNamespace(SlingConstants.NAMESPACE_PREFIX,
-                    JcrResourceConstants.SLING_NAMESPACE_URI);
+            nsr.registerNamespace(SlingConstants.NAMESPACE_PREFIX, JcrResourceConstants.SLING_NAMESPACE_URI);
         } catch (Exception e) {
             // don't care for now
         }
 
         rootPath = "/test" + System.currentTimeMillis();
-        rootNode = getSession().getRootNode().addNode(rootPath.substring(1),
-                "nt:unstructured");
+        rootNode = getSession().getRootNode().addNode(rootPath.substring(1), "nt:unstructured");
         getSession().save();
     }
 
@@ -73,8 +70,7 @@ public abstract class JcrItemResourceTestBase extends SlingRepositoryTestBase {
         super.tearDown();
     }
 
-    protected void assertEquals(byte[] expected, InputStream actual)
-            throws IOException {
+    protected void assertEquals(byte[] expected, InputStream actual) throws IOException {
         if (actual == null) {
             fail("Resource stream is null");
         } else {

@@ -18,14 +18,6 @@
  */
 package org.apache.sling.jcr.resource.internal.helper;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.io.InputStream;
-import java.math.BigDecimal;
-import java.time.ZonedDateTime;
-import java.util.Calendar;
-
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.PropertyType;
@@ -37,13 +29,21 @@ import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
 import javax.jcr.query.QueryResult;
 
+import java.io.InputStream;
+import java.math.BigDecimal;
+import java.time.ZonedDateTime;
+import java.util.Calendar;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 /**
  * The <code>JcrResourceUtil</code> class provides helper methods used
  * throughout this bundle.
  *
  */
 public class JcrResourceUtil {
-    
+
     private JcrResourceUtil() {}
 
     /**
@@ -55,7 +55,8 @@ public class JcrResourceUtil {
      * @return the query's result
      * @throws RepositoryException if the {@link QueryManager} cannot be retrieved
      */
-    public static @NotNull QueryResult query(@NotNull Session session, @NotNull String query, @NotNull String language) throws RepositoryException {
+    public static @NotNull QueryResult query(@NotNull Session session, @NotNull String query, @NotNull String language)
+            throws RepositoryException {
         QueryManager qManager = session.getWorkspace().getQueryManager();
         Query q = qManager.createQuery(query, language);
         return q.execute();
@@ -82,7 +83,8 @@ public class JcrResourceUtil {
                 return value.getDouble();
             case PropertyType.LONG:
                 return value.getLong();
-            // all other types (NAME, PATH, REFERENCE, WEAKREFERENCE, STRING, URI, UNDEFINED) fallback to string representation
+            // all other types (NAME, PATH, REFERENCE, WEAKREFERENCE, STRING, URI, UNDEFINED) fallback to string
+            // representation
             default:
                 return value.getString();
         }
@@ -97,8 +99,7 @@ public class JcrResourceUtil {
      * @throws RepositoryException if the conversion cannot take place
      * @return the Object resulting from the conversion
      */
-    public static @NotNull Object toJavaObject(@NotNull Property property)
-            throws RepositoryException {
+    public static @NotNull Object toJavaObject(@NotNull Property property) throws RepositoryException {
         // multi-value property: return an array of values
         if (property.isMultiple()) {
             Value[] values = property.getValues();
@@ -116,7 +117,7 @@ public class JcrResourceUtil {
         // single value property
         return toJavaObject(property.getValue());
     }
-    
+
     private static @NotNull Object[] createArray(@Nullable Object firstValue, int length) {
         Object[] result;
         if (firstValue instanceof Boolean) {
@@ -148,7 +149,8 @@ public class JcrResourceUtil {
      * @return the value or null if not convertible to a valid PropertyType
      * @throws RepositoryException in case of error, accessing the Repository
      */
-    public static @Nullable Value createValue(final @NotNull Object value, final @NotNull Session session) throws RepositoryException {
+    public static @Nullable Value createValue(final @NotNull Object value, final @NotNull Session session)
+            throws RepositoryException {
         Value val;
         ValueFactory fac = session.getValueFactory();
         if (value instanceof ZonedDateTime) {

@@ -18,24 +18,23 @@
  */
 package org.apache.sling.jcr.resource.internal.helper;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.NoSuchElementException;
-import java.util.concurrent.atomic.AtomicReference;
-
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.NoSuchElementException;
+import java.util.concurrent.atomic.AtomicReference;
+
+import junit.framework.TestCase;
 import org.apache.jackrabbit.commons.JcrUtils;
 import org.apache.jackrabbit.commons.iterator.NodeIteratorAdapter;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.jcr.resource.internal.HelperData;
 import org.apache.sling.jcr.resource.internal.helper.jcr.JcrNodeResourceIterator;
 import org.apache.sling.testing.mock.jcr.MockJcr;
-
-import junit.framework.TestCase;
 
 public class JcrNodeResourceIteratorTest extends TestCase {
 

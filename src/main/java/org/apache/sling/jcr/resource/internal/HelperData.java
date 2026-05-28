@@ -18,10 +18,10 @@
  */
 package org.apache.sling.jcr.resource.internal;
 
-import java.util.concurrent.atomic.AtomicReference;
-
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.sling.api.resource.external.URIProvider;
 import org.apache.sling.commons.classloader.DynamicClassLoaderManager;
@@ -41,8 +41,9 @@ public class HelperData {
 
     private volatile String[] namespacePrefixes;
 
-    public HelperData(final @NotNull AtomicReference<DynamicClassLoaderManager> dynamicClassLoaderManagerReference,
-                      @NotNull AtomicReference<URIProvider[]> uriProviderReference) {
+    public HelperData(
+            final @NotNull AtomicReference<DynamicClassLoaderManager> dynamicClassLoaderManagerReference,
+            @NotNull AtomicReference<URIProvider[]> uriProviderReference) {
         this.dynamicClassLoaderManagerReference = dynamicClassLoaderManagerReference;
         this.uriProviderReference = uriProviderReference;
     }
