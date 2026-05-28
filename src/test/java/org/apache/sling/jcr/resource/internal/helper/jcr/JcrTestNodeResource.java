@@ -18,19 +18,23 @@
  */
 package org.apache.sling.jcr.resource.internal.helper.jcr;
 
-import java.util.concurrent.atomic.AtomicReference;
-
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
+
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.jcr.resource.internal.HelperData;
 
 public class JcrTestNodeResource extends JcrNodeResource {
 
-    public JcrTestNodeResource(ResourceResolver resourceResolver, Node node,
-                               ClassLoader dynamicClassLoader) throws RepositoryException {
-        super(resourceResolver, node.getPath(), null, node, new HelperData(new AtomicReference<>(), new AtomicReference<>()));
+    public JcrTestNodeResource(ResourceResolver resourceResolver, Node node, ClassLoader dynamicClassLoader)
+            throws RepositoryException {
+        super(
+                resourceResolver,
+                node.getPath(),
+                null,
+                node,
+                new HelperData(new AtomicReference<>(), new AtomicReference<>()));
     }
-
 }

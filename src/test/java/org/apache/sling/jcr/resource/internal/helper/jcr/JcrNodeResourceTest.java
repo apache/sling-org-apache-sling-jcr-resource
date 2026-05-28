@@ -18,6 +18,10 @@
  */
 package org.apache.sling.jcr.resource.internal.helper.jcr;
 
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -26,10 +30,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
-
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.resource.ModifiableValueMap;
@@ -60,17 +60,16 @@ public class JcrNodeResourceTest extends JcrItemResourceTestBase {
         linkedFile.setProperty(JcrConstants.JCR_CONTENT, file);
         session.save();
 
-        JcrNodeResource linkedFileResource = new JcrNodeResource(null, linkedFile.getPath(), null, linkedFile, getHelperData());
+        JcrNodeResource linkedFileResource =
+                new JcrNodeResource(null, linkedFile.getPath(), null, linkedFile, getHelperData());
         assertEquals(TEST_DATA, linkedFileResource.adaptTo(InputStream.class));
-
     }
 
     public void testNtFileNtResource() throws Exception {
 
         String name = "file";
         Node file = rootNode.addNode(name, JcrConstants.NT_FILE);
-        Node res = file.addNode(JcrConstants.JCR_CONTENT,
-                JcrConstants.NT_RESOURCE);
+        Node res = file.addNode(JcrConstants.JCR_CONTENT, JcrConstants.NT_RESOURCE);
         setupResource(res);
         getSession().save();
 
@@ -87,8 +86,7 @@ public class JcrNodeResourceTest extends JcrItemResourceTestBase {
 
         String name = "fileunstructured";
         Node file = rootNode.addNode(name, JcrConstants.NT_FILE);
-        Node res = file.addNode(JcrConstants.JCR_CONTENT,
-                JcrConstants.NT_UNSTRUCTURED);
+        Node res = file.addNode(JcrConstants.JCR_CONTENT, JcrConstants.NT_UNSTRUCTURED);
         setupResource(res);
         getSession().save();
 
@@ -182,7 +180,8 @@ public class JcrNodeResourceTest extends JcrItemResourceTestBase {
         assertEquals(otherSuperTypeName, jnr.getResourceSuperType());
 
         // remove direct property to get supertype again
-        node.getProperty(JcrResourceConstants.SLING_RESOURCE_SUPER_TYPE_PROPERTY).remove();
+        node.getProperty(JcrResourceConstants.SLING_RESOURCE_SUPER_TYPE_PROPERTY)
+                .remove();
         getSession().save();
 
         jnr = new JcrNodeResource(null, node.getPath(), null, node, getHelperData());
@@ -254,8 +253,7 @@ public class JcrNodeResourceTest extends JcrItemResourceTestBase {
         byte[] utf8bytes = "Übersättigung".getBytes(StandardCharsets.UTF_8);
         String name = "utf8file";
         Node file = rootNode.addNode(name, JcrConstants.NT_FILE);
-        Node res = file.addNode(JcrConstants.JCR_CONTENT,
-                JcrConstants.NT_RESOURCE);
+        Node res = file.addNode(JcrConstants.JCR_CONTENT, JcrConstants.NT_RESOURCE);
 
         res.setProperty(JcrConstants.JCR_LASTMODIFIED, TEST_MODIFIED);
         res.setProperty(JcrConstants.JCR_MIMETYPE, TEST_TYPE);
@@ -271,13 +269,11 @@ public class JcrNodeResourceTest extends JcrItemResourceTestBase {
         assertEquals(utf8bytes.length, jnr.getResourceMetadata().getContentLength());
     }
 
-
     private void setupResource(Node res) throws RepositoryException {
         res.setProperty(JcrConstants.JCR_LASTMODIFIED, TEST_MODIFIED);
         res.setProperty(JcrConstants.JCR_MIMETYPE, TEST_TYPE);
         res.setProperty(JcrConstants.JCR_ENCODING, TEST_ENCODING);
-        res.setProperty(JcrConstants.JCR_DATA, new ByteArrayInputStream(
-                TEST_DATA));
+        res.setProperty(JcrConstants.JCR_DATA, new ByteArrayInputStream(TEST_DATA));
     }
 
     private void assertResourceMetaData(ResourceMetadata rm) {

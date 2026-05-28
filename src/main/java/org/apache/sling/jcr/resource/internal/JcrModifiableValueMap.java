@@ -18,14 +18,14 @@
  */
 package org.apache.sling.jcr.resource.internal;
 
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.Map;
-
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Value;
+
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.Map;
 
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.resource.ModifiableValueMap;
@@ -65,7 +65,8 @@ public class JcrModifiableValueMap extends JcrValueMap implements ModifiableValu
             this.cache.put(key, entry);
             final String name = escapeKeyName(key);
             if (JcrConstants.JCR_MIXINTYPES.equals(name)) {
-                NodeUtil.handleMixinTypes(node, entry.convertToType(String[].class, node, this.helper.getDynamicClassLoader()));
+                NodeUtil.handleMixinTypes(
+                        node, entry.convertToType(String[].class, node, this.helper.getDynamicClassLoader()));
             } else if ("jcr:primaryType".equals(name)) {
                 node.setPrimaryType(entry.convertToType(String.class, node, this.helper.getDynamicClassLoader()));
             } else if (entry.isArray()) {
@@ -74,7 +75,10 @@ public class JcrModifiableValueMap extends JcrValueMap implements ModifiableValu
                 node.setProperty(name, entry.convertToType(Value.class, node, this.helper.getDynamicClassLoader()));
             }
         } catch (final IOException | RepositoryException re) {
-            throw new IllegalArgumentException("Value of class '" + value.getClass() + "' for property '" + key + "' can't be put into node '" + getPath() + "'.", re);
+            throw new IllegalArgumentException(
+                    "Value of class '" + value.getClass() + "' for property '" + key + "' can't be put into node '"
+                            + getPath() + "'.",
+                    re);
         }
         this.valueCache.put(key, value);
 
@@ -89,7 +93,9 @@ public class JcrModifiableValueMap extends JcrValueMap implements ModifiableValu
         if (t != null) {
             final Iterator<?> i = t.entrySet().iterator();
             while (i.hasNext()) {
-                @SuppressWarnings("unchecked") final Map.Entry<? extends String, ? extends Object> entry = (Map.Entry<? extends String, ? extends Object>) i.next();
+                @SuppressWarnings("unchecked")
+                final Map.Entry<? extends String, ? extends Object> entry =
+                        (Map.Entry<? extends String, ? extends Object>) i.next();
                 put(entry.getKey(), entry.getValue());
             }
         }
@@ -111,7 +117,8 @@ public class JcrModifiableValueMap extends JcrValueMap implements ModifiableValu
                 property.remove();
             }
         } catch (final RepositoryException re) {
-            throw new IllegalArgumentException("Property '" + key + "' can't be removed from node '" + getPath() + "'.", re);
+            throw new IllegalArgumentException(
+                    "Property '" + key + "' can't be removed from node '" + getPath() + "'.", re);
         }
 
         return oldValue;

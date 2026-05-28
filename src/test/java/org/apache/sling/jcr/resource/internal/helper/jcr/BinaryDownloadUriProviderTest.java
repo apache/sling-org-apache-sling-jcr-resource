@@ -18,20 +18,16 @@
  */
 package org.apache.sling.jcr.resource.internal.helper.jcr;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
+import javax.jcr.Node;
+import javax.jcr.Property;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
-
-import javax.jcr.Node;
-import javax.jcr.Property;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 
 import org.apache.jackrabbit.api.binary.BinaryDownload;
 import org.apache.jackrabbit.api.binary.BinaryDownloadOptions;
@@ -51,6 +47,10 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 
 @RunWith(MockitoJUnitRunner.class)
 public class BinaryDownloadUriProviderTest {
@@ -87,7 +87,8 @@ public class BinaryDownloadUriProviderTest {
         };
         Mockito.when(property.getBinary()).thenReturn(binaryDownload);
         URI myUri = new URI("https://example.com/mybinary");
-        Mockito.when(binaryDownload.getURI(ArgumentMatchers.any(BinaryDownloadOptions.class))).thenReturn(myUri);
+        Mockito.when(binaryDownload.getURI(ArgumentMatchers.any(BinaryDownloadOptions.class)))
+                .thenReturn(myUri);
 
         assertEquals(myUri, uriProvider.toURI(fileResource, Scope.EXTERNAL, Operation.READ));
         ArgumentCaptor<BinaryDownloadOptions> argumentCaptor = ArgumentCaptor.forClass(BinaryDownloadOptions.class);
@@ -99,26 +100,38 @@ public class BinaryDownloadUriProviderTest {
 
     @Test
     public void testPropertyWithoutExternallyAccessibleBlobStore() {
-        IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> uriProvider.toURI(fileResource, Scope.EXTERNAL, Operation.READ));
-        assertEquals("Cannot provide url for downloading the binary property at '/test/jcr:content/jcr:data'", e.getMessage());
+        IllegalArgumentException e = assertThrows(
+                IllegalArgumentException.class, () -> uriProvider.toURI(fileResource, Scope.EXTERNAL, Operation.READ));
+        assertEquals(
+                "Cannot provide url for downloading the binary property at '/test/jcr:content/jcr:data'",
+                e.getMessage());
     }
 
     @Test
     public void testNoPrimaryPropertyUri() {
-        Resource resource = context.create().resource("/content/test1", Collections.singletonMap("jcr:primaryProperty", "nt:folder"));
-        IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> uriProvider.toURI(resource, Scope.PUBLIC, Operation.READ));
+        Resource resource = context.create()
+                .resource("/content/test1", Collections.singletonMap("jcr:primaryProperty", "nt:folder"));
+        IllegalArgumentException e = assertThrows(
+                IllegalArgumentException.class, () -> uriProvider.toURI(resource, Scope.PUBLIC, Operation.READ));
         assertEquals("Node does not have a primary property", e.getMessage());
     }
 
     @Test
     public void testUnsupportedScope() {
-        IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> uriProvider.toURI(fileResource, Scope.INTERNAL, Operation.READ));
-        assertEquals("This provider only provides URIs for 'READ' operations in scope 'PUBLIC' or 'EXTERNAL', but not for scope 'INTERNAL' and operation 'READ'", e.getMessage());
+        IllegalArgumentException e = assertThrows(
+                IllegalArgumentException.class, () -> uriProvider.toURI(fileResource, Scope.INTERNAL, Operation.READ));
+        assertEquals(
+                "This provider only provides URIs for 'READ' operations in scope 'PUBLIC' or 'EXTERNAL', but not for scope 'INTERNAL' and operation 'READ'",
+                e.getMessage());
     }
 
     @Test
     public void testUnsupportedOperation() {
-        IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> uriProvider.toURI(fileResource, Scope.EXTERNAL, Operation.UPDATE));
-        assertEquals("This provider only provides URIs for 'READ' operations in scope 'PUBLIC' or 'EXTERNAL', but not for scope 'EXTERNAL' and operation 'UPDATE'", e.getMessage());
+        IllegalArgumentException e = assertThrows(
+                IllegalArgumentException.class,
+                () -> uriProvider.toURI(fileResource, Scope.EXTERNAL, Operation.UPDATE));
+        assertEquals(
+                "This provider only provides URIs for 'READ' operations in scope 'PUBLIC' or 'EXTERNAL', but not for scope 'EXTERNAL' and operation 'UPDATE'",
+                e.getMessage());
     }
 }

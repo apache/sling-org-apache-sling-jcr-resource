@@ -18,10 +18,10 @@
  */
 package org.apache.sling.jcr.resource.internal.helper;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.time.ZonedDateTime;
 import java.util.GregorianCalendar;
+
+import org.jetbrains.annotations.NotNull;
 
 public class ZonedDateTimeConverter extends CalendarConverter {
 

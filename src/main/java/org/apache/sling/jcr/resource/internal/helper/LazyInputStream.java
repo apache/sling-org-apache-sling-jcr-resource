@@ -18,13 +18,13 @@
  */
 package org.apache.sling.jcr.resource.internal.helper;
 
-import org.jetbrains.annotations.NotNull;
+import javax.jcr.RepositoryException;
+import javax.jcr.Value;
 
 import java.io.IOException;
 import java.io.InputStream;
 
-import javax.jcr.RepositoryException;
-import javax.jcr.Value;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Lazily acquired InputStream which only accesses the JCR Value InputStream if
@@ -112,5 +112,4 @@ public class LazyInputStream extends InputStream {
         }
         return delegatee;
     }
-
 }

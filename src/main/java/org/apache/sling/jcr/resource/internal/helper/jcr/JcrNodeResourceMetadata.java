@@ -18,6 +18,23 @@
  */
 package org.apache.sling.jcr.resource.internal.helper.jcr;
 
+import javax.jcr.Item;
+import javax.jcr.Node;
+import javax.jcr.Property;
+import javax.jcr.RepositoryException;
+import javax.jcr.ValueFormatException;
+
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.sling.api.resource.ResourceMetadata;
+import org.apache.sling.jcr.resource.internal.NodeUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import static javax.jcr.Property.JCR_CONTENT;
 import static javax.jcr.Property.JCR_CREATED;
 import static javax.jcr.Property.JCR_DATA;
@@ -27,23 +44,6 @@ import static javax.jcr.Property.JCR_LAST_MODIFIED;
 import static javax.jcr.Property.JCR_MIMETYPE;
 import static javax.jcr.nodetype.NodeType.NT_FILE;
 import static javax.jcr.nodetype.NodeType.NT_FROZEN_NODE;
-
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
-
-import javax.jcr.Item;
-import javax.jcr.Node;
-import javax.jcr.Property;
-import javax.jcr.RepositoryException;
-import javax.jcr.ValueFormatException;
-
-import org.apache.sling.api.resource.ResourceMetadata;
-import org.apache.sling.jcr.resource.internal.NodeUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 class JcrNodeResourceMetadata extends ResourceMetadata {
 
@@ -65,10 +65,12 @@ class JcrNodeResourceMetadata extends ResourceMetadata {
     private @NotNull Node promoteNode() {
         // check stuff for nt:file nodes
         try {
-            if ((!nodePromotionChecked) &&
-                    (node.isNodeType(NT_FILE) ||
-                            (node.isNodeType(NT_FROZEN_NODE) &&
-                                    node.getProperty(JCR_FROZEN_PRIMARY_TYPE).getString().equals(NT_FILE)))) {
+            if ((!nodePromotionChecked)
+                    && (node.isNodeType(NT_FILE)
+                            || (node.isNodeType(NT_FROZEN_NODE)
+                                    && node.getProperty(JCR_FROZEN_PRIMARY_TYPE)
+                                            .getString()
+                                            .equals(NT_FILE)))) {
                 creationTime = node.getProperty(JCR_CREATED).getLong();
 
                 // continue our stuff with the jcr:content node
@@ -154,7 +156,7 @@ class JcrNodeResourceMetadata extends ResourceMetadata {
         }
         return -1;
     }
-    
+
     private long getContentLength(@NotNull Node node) {
         try {
             // if the node has a jcr:data property, use that property
@@ -182,7 +184,7 @@ class JcrNodeResourceMetadata extends ResourceMetadata {
         }
         return -1;
     }
-    
+
     private static @Nullable Item getPrimaryItem(final @NotNull Node node) throws RepositoryException {
         String name = node.getPrimaryNodeType().getPrimaryItemName();
         if (name == null) {
@@ -245,11 +247,11 @@ class JcrNodeResourceMetadata extends ResourceMetadata {
         if (super.containsKey(key)) {
             return true;
         }
-        return CREATION_TIME.equals(key) ||
-                CONTENT_TYPE.equals(key) ||
-                CHARACTER_ENCODING.equals(key) ||
-                MODIFICATION_TIME.equals(key) ||
-                CONTENT_LENGTH.equals(key);
+        return CREATION_TIME.equals(key)
+                || CONTENT_TYPE.equals(key)
+                || CHARACTER_ENCODING.equals(key)
+                || MODIFICATION_TIME.equals(key)
+                || CONTENT_LENGTH.equals(key);
     }
 
     @Override

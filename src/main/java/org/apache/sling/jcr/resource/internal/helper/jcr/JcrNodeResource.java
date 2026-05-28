@@ -1,26 +1,22 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 package org.apache.sling.jcr.resource.internal.helper.jcr;
-
-import java.io.InputStream;
-import java.net.URI;
-import java.security.AccessControlException;
-import java.util.Iterator;
-import java.util.Map;
 
 import javax.jcr.Item;
 import javax.jcr.ItemNotFoundException;
@@ -28,6 +24,12 @@ import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
+
+import java.io.InputStream;
+import java.net.URI;
+import java.security.AccessControlException;
+import java.util.Iterator;
+import java.util.Map;
 
 import org.apache.sling.adapter.annotations.Adaptable;
 import org.apache.sling.adapter.annotations.Adapter;
@@ -49,11 +51,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** A Resource that wraps a JCR Node */
-@Adaptable(adaptableClass=Resource.class, adapters={
-        @Adapter({Node.class, Map.class, Item.class, ValueMap.class}),
-        @Adapter(value=InputStream.class, condition="If the resource is a JcrNodeResource and has a jcr:data property or is an nt:file node."),
-        @Adapter(value=ExternalizableInputStream.class, condition="If the resource is a JcrNodeResource and has a jcr:data property or is an nt:file node, and can be read using a secure URL.")
-})
+@Adaptable(
+        adaptableClass = Resource.class,
+        adapters = {
+            @Adapter({Node.class, Map.class, Item.class, ValueMap.class}),
+            @Adapter(
+                    value = InputStream.class,
+                    condition =
+                            "If the resource is a JcrNodeResource and has a jcr:data property or is an nt:file node."),
+            @Adapter(
+                    value = ExternalizableInputStream.class,
+                    condition =
+                            "If the resource is a JcrNodeResource and has a jcr:data property or is an nt:file node, and can be read using a secure URL.")
+        })
 class JcrNodeResource extends JcrItemResource<Node> { // this should be package private, see SLING-1414
 
     /** marker value for the resourceSuperType before trying to evaluate */
@@ -75,11 +85,12 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
      * @param node The Node underlying this resource
      * @param helper The helper providing access to dynamic class loader for loading serialized objects and uri provider reference.
      */
-    public JcrNodeResource(final @NotNull ResourceResolver resourceResolver,
-                           final @NotNull String path,
-                           final @Nullable String version,
-                           final @NotNull Node node,
-                           final @NotNull HelperData helper) {
+    public JcrNodeResource(
+            final @NotNull ResourceResolver resourceResolver,
+            final @NotNull String path,
+            final @Nullable String version,
+            final @NotNull Node node,
+            final @NotNull HelperData helper) {
         super(resourceResolver, path, version, node, new JcrNodeResourceMetadata(node));
         this.helper = helper;
         this.resourceSuperType = UNSET_RESOURCE_SUPER_TYPE;
@@ -110,7 +121,8 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
         // Yes, this isn't how you're supposed to compare Strings, but this is intentional.
         if (resourceSuperType == UNSET_RESOURCE_SUPER_TYPE) {
             try {
-                Property property = NodeUtil.getPropertyOrNull(getNode(), JcrResourceConstants.SLING_RESOURCE_SUPER_TYPE_PROPERTY);
+                Property property =
+                        NodeUtil.getPropertyOrNull(getNode(), JcrResourceConstants.SLING_RESOURCE_SUPER_TYPE_PROPERTY);
                 if (property != null) {
                     resourceSuperType = property.getValue().getString();
                 }
@@ -141,14 +153,10 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
                 return (Type) new JcrModifiableValueMap(getNode(), this.helper);
             } catch (AccessControlException ace) {
                 // the user has no write permission, cannot adapt
-                LOGGER.debug(
-                        "adaptTo(ModifiableValueMap): Cannot set properties on {}",
-                        this);
+                LOGGER.debug("adaptTo(ModifiableValueMap): Cannot set properties on {}", this);
             } catch (RepositoryException e) {
                 // some other problem, cannot adapt
-                LOGGER.debug(
-                        "adaptTo(ModifiableValueMap): Unexpected problem for {}",
-                        this);
+                LOGGER.debug("adaptTo(ModifiableValueMap): Unexpected problem for {}", this);
             }
         }
 
@@ -197,8 +205,7 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
             }
 
         } catch (RepositoryException re) {
-            LOGGER.error("getInputStream: Cannot get InputStream for " + this,
-                    re);
+            LOGGER.error("getInputStream: Cannot get InputStream for " + this, re);
         }
 
         // fallback to non-streamable resource
@@ -222,12 +229,12 @@ class JcrNodeResource extends JcrItemResource<Node> { // this should be package 
     }
 
     @Override
-    @Nullable Iterator<Resource> listJcrChildren() {
+    @Nullable
+    Iterator<Resource> listJcrChildren() {
         try {
-        	NodeIterator iter = getNode().getNodes();
+            NodeIterator iter = getNode().getNodes();
             if (iter.hasNext()) {
-                return new JcrNodeResourceIterator(getResourceResolver(), path, version,
-                        iter, this.helper, null);
+                return new JcrNodeResourceIterator(getResourceResolver(), path, version, iter, this.helper, null);
             }
         } catch (final RepositoryException re) {
             LOGGER.error("listChildren: Cannot get children of " + this, re);

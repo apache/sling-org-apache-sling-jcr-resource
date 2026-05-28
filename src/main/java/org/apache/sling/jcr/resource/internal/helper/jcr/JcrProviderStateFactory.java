@@ -18,13 +18,13 @@
  */
 package org.apache.sling.jcr.resource.internal.helper.jcr;
 
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
-
 import javax.jcr.Credentials;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.SimpleCredentials;
+
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.sling.api.resource.LoginException;
 import org.apache.sling.api.resource.ResourceResolver;
@@ -56,10 +56,11 @@ public class JcrProviderStateFactory {
     private final AtomicReference<DynamicClassLoaderManager> dynamicClassLoaderManagerReference;
     private final AtomicReference<URIProvider[]> uriProviderReference;
 
-    public JcrProviderStateFactory(final ServiceReference<SlingRepository> repositoryReference,
-                                   final SlingRepository repository,
-                                   final AtomicReference<DynamicClassLoaderManager> dynamicClassLoaderManagerReference,
-                                   final AtomicReference<URIProvider[]> uriProviderReference) {
+    public JcrProviderStateFactory(
+            final ServiceReference<SlingRepository> repositoryReference,
+            final SlingRepository repository,
+            final AtomicReference<DynamicClassLoaderManager> dynamicClassLoaderManagerReference,
+            final AtomicReference<URIProvider[]> uriProviderReference) {
         this.repository = repository;
         this.repositoryReference = repositoryReference;
         this.dynamicClassLoaderManagerReference = dynamicClassLoaderManagerReference;
@@ -79,7 +80,8 @@ public class JcrProviderStateFactory {
     }
 
     @SuppressWarnings("deprecation")
-    @NotNull JcrProviderState createProviderState(final @NotNull Map<String, Object> authenticationInfo) throws LoginException {
+    @NotNull
+    JcrProviderState createProviderState(final @NotNull Map<String, Object> authenticationInfo) throws LoginException {
         boolean isLoginAdministrative = Boolean.TRUE.equals(authenticationInfo.get(ResourceProvider.AUTH_ADMIN));
 
         // check whether a session is provided in the authenticationInfo
@@ -98,7 +100,8 @@ public class JcrProviderStateFactory {
                 bc = bundle.getBundleContext();
                 final SlingRepository repo = bc == null ? null : bc.getService(repositoryReference);
                 if (repo == null) {
-                    logger.warn("Cannot login {} because cannot get SlingRepository on behalf of bundle {} ({})",
+                    logger.warn(
+                            "Cannot login {} because cannot get SlingRepository on behalf of bundle {} ({})",
                             isLoginAdministrative ? "admin" : "service",
                             bundle.getSymbolicName(),
                             bundle.getBundleId());
@@ -120,15 +123,15 @@ public class JcrProviderStateFactory {
                             // ResourceResolver provides it when a session was impersonated; in the actual
                             // implementation it will be retrieved from the session when calling {@link
                             // ResourceResolver#getAttribute(String)} with {@link ResourceResolver#USER_IMPERSONATOR}
-                            creds.setAttribute(ResourceResolver.USER_IMPERSONATOR, subServiceName == null ?
-                                    bundle.getSymbolicName() : subServiceName);
+                            creds.setAttribute(
+                                    ResourceResolver.USER_IMPERSONATOR,
+                                    subServiceName == null ? bundle.getSymbolicName() : subServiceName);
                             session = repo.impersonateFromService(subServiceName, creds, null);
                             // if the impersonation worked we should have a session now; let's remove the sudo user
                             // from the authentication info to skip the impersonation logic below
                             authenticationInfo.remove(ResourceResolverFactory.USER_IMPERSONATION);
                         } else {
                             session = repo.loginService(subServiceName, null);
-
                         }
                     }
                 } catch (Throwable t) {
@@ -155,11 +158,15 @@ public class JcrProviderStateFactory {
         return createJcrProviderState(session, true, authenticationInfo, bc);
     }
 
-    private @NotNull JcrProviderState createJcrProviderState(@NotNull final Session session, final boolean logoutSession,
-                                                             @NotNull final Map<String, Object> authenticationInfo,
-                                                             @Nullable final BundleContext ctx) throws LoginException {
+    private @NotNull JcrProviderState createJcrProviderState(
+            @NotNull final Session session,
+            final boolean logoutSession,
+            @NotNull final Map<String, Object> authenticationInfo,
+            @Nullable final BundleContext ctx)
+            throws LoginException {
         boolean explicitSessionUsed = (getSession(authenticationInfo) != null);
-        final Session impersonatedSession = handleImpersonation(session, authenticationInfo, logoutSession, explicitSessionUsed);
+        final Session impersonatedSession =
+                handleImpersonation(session, authenticationInfo, logoutSession, explicitSessionUsed);
         if (impersonatedSession != session && explicitSessionUsed) {
             // update the session in the auth info map in case the resolver gets cloned in the future
             authenticationInfo.put(JcrResourceConstants.AUTHENTICATION_INFO_SESSION, impersonatedSession);
@@ -168,7 +175,8 @@ public class JcrProviderStateFactory {
         // of what the original logoutSession value was.
         boolean doLogoutSession = logoutSession || (impersonatedSession != session);
         final HelperData data = new HelperData(this.dynamicClassLoaderManagerReference, this.uriProviderReference);
-        return new JcrProviderState(impersonatedSession, data, doLogoutSession, ctx, ctx == null ? null : repositoryReference);
+        return new JcrProviderState(
+                impersonatedSession, data, doLogoutSession, ctx, ctx == null ? null : repositoryReference);
     }
 
     /**
@@ -191,15 +199,21 @@ public class JcrProviderStateFactory {
      * @throws LoginException
      *             If something goes wrong.
      */
-    private static Session handleImpersonation(final Session session, final Map<String, Object> authenticationInfo,
-                                               final boolean logoutSession, boolean explicitSessionUsed) throws LoginException {
+    private static Session handleImpersonation(
+            final Session session,
+            final Map<String, Object> authenticationInfo,
+            final boolean logoutSession,
+            boolean explicitSessionUsed)
+            throws LoginException {
         final String sudoUser = getSudoUser(authenticationInfo);
         // Do we need session.impersonate() because we are asked to impersonate another user?
         boolean needsSudo = (sudoUser != null) && !session.getUserID().equals(sudoUser);
         // Do we need session.impersonate() to get an independent copy of the session we were given in the auth info?
-        boolean needsCloning = !needsSudo && explicitSessionUsed && authenticationInfo.containsKey(ResourceProvider.AUTH_CLONE);
+        boolean needsCloning =
+                !needsSudo && explicitSessionUsed && authenticationInfo.containsKey(ResourceProvider.AUTH_CLONE);
         if (!needsSudo && !needsCloning) {
-            // Nothing to do, but we need to make sure not to enter the try-finally below because it could close the session.
+            // Nothing to do, but we need to make sure not to enter the try-finally below because it could close the
+            // session.
             return session;
         }
         try {
@@ -258,8 +272,8 @@ public class JcrProviderStateFactory {
         Credentials creds = null;
         if (authenticationInfo != null) {
 
-            final Object credentialsObject = authenticationInfo
-                    .get(JcrResourceConstants.AUTHENTICATION_INFO_CREDENTIALS);
+            final Object credentialsObject =
+                    authenticationInfo.get(JcrResourceConstants.AUTHENTICATION_INFO_CREDENTIALS);
 
             if (credentialsObject instanceof Credentials) {
                 creds = (Credentials) credentialsObject;
@@ -269,8 +283,8 @@ public class JcrProviderStateFactory {
                 final Object userId = authenticationInfo.get(ResourceResolverFactory.USER);
                 if (userId instanceof String) {
                     final Object password = authenticationInfo.get(ResourceResolverFactory.PASSWORD);
-                    final SimpleCredentials credentials = new SimpleCredentials((String) userId,
-                            ((password instanceof char[]) ? (char[]) password : new char[0]));
+                    final SimpleCredentials credentials = new SimpleCredentials(
+                            (String) userId, ((password instanceof char[]) ? (char[]) password : new char[0]));
 
                     // add attributes
                     copyAttributes(credentials, authenticationInfo);
@@ -358,5 +372,4 @@ public class JcrProviderStateFactory {
         }
         return null;
     }
-
 }

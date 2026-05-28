@@ -18,22 +18,16 @@
  */
 package org.apache.sling.jcr.resource.internal;
 
-import static javax.jcr.observation.Event.NODE_ADDED;
-import static javax.jcr.observation.Event.NODE_REMOVED;
-import static javax.jcr.observation.Event.PROPERTY_ADDED;
-import static javax.jcr.observation.Event.PROPERTY_CHANGED;
-import static javax.jcr.observation.Event.PROPERTY_REMOVED;
+import javax.jcr.RepositoryException;
+import javax.jcr.observation.Event;
+import javax.jcr.observation.EventIterator;
+import javax.jcr.observation.EventListener;
 
 import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import javax.jcr.RepositoryException;
-import javax.jcr.observation.Event;
-import javax.jcr.observation.EventIterator;
-import javax.jcr.observation.EventListener;
 
 import org.apache.jackrabbit.api.observation.JackrabbitEvent;
 import org.apache.sling.api.resource.observation.ResourceChange;
@@ -43,6 +37,12 @@ import org.apache.sling.spi.resource.provider.ObservationReporter;
 import org.apache.sling.spi.resource.provider.ObserverConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static javax.jcr.observation.Event.NODE_ADDED;
+import static javax.jcr.observation.Event.NODE_REMOVED;
+import static javax.jcr.observation.Event.PROPERTY_ADDED;
+import static javax.jcr.observation.Event.PROPERTY_CHANGED;
+import static javax.jcr.observation.Event.PROPERTY_REMOVED;
 
 /**
  * The <code>JcrResourceListener</code> listens for JCR observation
@@ -57,8 +57,8 @@ public class JcrResourceListener implements EventListener, Closeable {
 
     private static final Logger logger = LoggerFactory.getLogger(JcrResourceListener.class);
 
-    public JcrResourceListener(final JcrListenerBaseConfig listenerConfig,
-                               final ObserverConfiguration config) throws RepositoryException {
+    public JcrResourceListener(final JcrListenerBaseConfig listenerConfig, final ObserverConfiguration config)
+            throws RepositoryException {
         this.baseConfig = listenerConfig;
         this.config = config;
         this.baseConfig.register(this, config);
@@ -123,9 +123,7 @@ public class JcrResourceListener implements EventListener, Closeable {
                 // add is stronger than update
                 changedEvents.remove(rsrcPath);
                 addedEvents.put(rsrcPath, createResourceChange(event, rsrcPath, ChangeType.ADDED));
-            } else if (type == PROPERTY_ADDED
-                    || type == PROPERTY_REMOVED
-                    || type == PROPERTY_CHANGED) {
+            } else if (type == PROPERTY_ADDED || type == PROPERTY_REMOVED || type == PROPERTY_CHANGED) {
                 final String rsrcPath;
                 if (identifier == null || !identifier.startsWith("/")) {
                     final int lastSlash = eventPath.lastIndexOf('/');
@@ -156,17 +154,15 @@ public class JcrResourceListener implements EventListener, Closeable {
         changes.addAll(removedEvents.values());
         changes.addAll(changedEvents.values());
         this.baseConfig.getReporter().reportChanges(this.config, changes, false);
-
     }
 
-    private static ResourceChange createResourceChange(final Event event,
-                                                       final String path,
-                                                       final ChangeType changeType) {
+    private static ResourceChange createResourceChange(
+            final Event event, final String path, final ChangeType changeType) {
         final boolean isExternal = isExternal(event);
         String userId = null;
         String userData = null;
         if (!isExternal) {
-            // In Jackrabbit Oak userId and userData are not available if the event 
+            // In Jackrabbit Oak userId and userData are not available if the event
             // is external
             userId = event.getUserID();
             try {

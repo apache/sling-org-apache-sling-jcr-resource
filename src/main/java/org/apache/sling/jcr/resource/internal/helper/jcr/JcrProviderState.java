@@ -18,9 +18,9 @@
  */
 package org.apache.sling.jcr.resource.internal.helper.jcr;
 
-import java.io.Closeable;
-
 import javax.jcr.Session;
+
+import java.io.Closeable;
 
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.internal.HelperData;
@@ -47,11 +47,12 @@ class JcrProviderState implements Closeable {
         this(session, helperData, logout, null, null);
     }
 
-    JcrProviderState(final @NotNull Session session,
-                     final @NotNull HelperData helperData,
-                     final boolean logout,
-                     final @Nullable BundleContext bundleContext,
-                     final @Nullable ServiceReference<SlingRepository> repositoryRef) {
+    JcrProviderState(
+            final @NotNull Session session,
+            final @NotNull HelperData helperData,
+            final boolean logout,
+            final @Nullable BundleContext bundleContext,
+            final @Nullable ServiceReference<SlingRepository> repositoryRef) {
         this.session = session;
         this.bundleContext = bundleContext;
         this.repositoryRef = repositoryRef;
@@ -60,15 +61,18 @@ class JcrProviderState implements Closeable {
         this.resourceFactory = new JcrItemResourceFactory(session, helperData);
     }
 
-    @NotNull Session getSession() {
+    @NotNull
+    Session getSession() {
         return session;
     }
 
-    @NotNull JcrItemResourceFactory getResourceFactory() {
+    @NotNull
+    JcrItemResourceFactory getResourceFactory() {
         return resourceFactory;
     }
 
-    @NotNull HelperData getHelperData() {
+    @NotNull
+    HelperData getHelperData() {
         return helperData;
     }
 

@@ -18,9 +18,6 @@
  */
 package org.apache.sling.jcr.resource.internal.helper.jcr;
 
-import java.util.LinkedList;
-import java.util.Map;
-
 import javax.jcr.Item;
 import javax.jcr.Node;
 import javax.jcr.Property;
@@ -29,6 +26,9 @@ import javax.jcr.Session;
 import javax.jcr.nodetype.NodeType;
 import javax.jcr.version.VersionHistory;
 import javax.jcr.version.VersionManager;
+
+import java.util.LinkedList;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jackrabbit.api.JackrabbitSession;
@@ -74,15 +74,19 @@ public class JcrItemResourceFactory {
      * @throws RepositoryException If an error occurs accessing checking the
      *             item in the repository.
      */
-    public @Nullable JcrItemResource<?> createResource(final @NotNull ResourceResolver resourceResolver, final @NotNull String resourcePath,
-                                                       final @Nullable Resource parent, final @Nullable Map<String, String> parameters) throws RepositoryException {
+    public @Nullable JcrItemResource<?> createResource(
+            final @NotNull ResourceResolver resourceResolver,
+            final @NotNull String resourcePath,
+            final @Nullable Resource parent,
+            final @Nullable Map<String, String> parameters)
+            throws RepositoryException {
         final String version;
         if (parameters != null && parameters.containsKey("v")) {
             version = parameters.get("v");
         } else {
             version = null;
         }
-        
+
         Item item = getItem(resourcePath, parent, version);
 
         if (item == null) {
@@ -106,15 +110,17 @@ public class JcrItemResourceFactory {
             return resource;
         }
     }
-    
-    private @Nullable Item getItem(@NotNull String resourcePath, @Nullable Resource parent, @Nullable String versionSpecifier) throws RepositoryException {
+
+    private @Nullable Item getItem(
+            @NotNull String resourcePath, @Nullable Resource parent, @Nullable String versionSpecifier)
+            throws RepositoryException {
         Node parentNode = null;
         String parentResourcePath = null;
         if (parent != null) {
             parentNode = parent.adaptTo(Node.class);
             parentResourcePath = parent.getPath();
         }
-        
+
         Item item;
         if (parentNode != null && resourcePath.startsWith(parentResourcePath)) {
             String subPath = resourcePath.substring(parentResourcePath.length());
@@ -131,7 +137,7 @@ public class JcrItemResourceFactory {
         }
         return item;
     }
-    
+
     private @Nullable Item getHistoricItem(Item item, String versionSpecifier) throws RepositoryException {
         Item currentItem = item;
         LinkedList<String> relPath = new LinkedList<>();
@@ -167,7 +173,8 @@ public class JcrItemResourceFactory {
         }
     }
 
-    private @Nullable Node getFrozenNode(@NotNull Node node, @NotNull String versionSpecifier) throws RepositoryException {
+    private @Nullable Node getFrozenNode(@NotNull Node node, @NotNull String versionSpecifier)
+            throws RepositoryException {
         final VersionManager versionManager = session.getWorkspace().getVersionManager();
         final VersionHistory history = versionManager.getVersionHistory(node.getPath());
         if (history.hasVersionLabel(versionSpecifier)) {
@@ -183,7 +190,8 @@ public class JcrItemResourceFactory {
         return item.isNode() && ((Node) item).isNodeType(NodeType.MIX_VERSIONABLE);
     }
 
-    @Nullable Item getItemOrNull(@NotNull String path) {
+    @Nullable
+    Item getItemOrNull(@NotNull String path) {
         // Check first if the path is absolute. If it isn't, then we return null because the previous itemExists method,
         // which was replaced by this method, would have returned null as well (instead of throwing an exception).
         if (path.isEmpty() || path.charAt(0) != '/') {
@@ -210,7 +218,8 @@ public class JcrItemResourceFactory {
         return item;
     }
 
-    @Nullable Node getParentOrNull(@NotNull Item child, @NotNull String parentPath) {
+    @Nullable
+    Node getParentOrNull(@NotNull Item child, @NotNull String parentPath) {
         Node parent = null;
         try {
             // Use fast getParentOrNull if session is a JackrabbitSession
@@ -226,5 +235,4 @@ public class JcrItemResourceFactory {
 
         return parent;
     }
-
 }

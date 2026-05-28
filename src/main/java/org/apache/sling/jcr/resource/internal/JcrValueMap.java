@@ -18,6 +18,12 @@
  */
 package org.apache.sling.jcr.resource.internal;
 
+import javax.jcr.Node;
+import javax.jcr.Property;
+import javax.jcr.PropertyIterator;
+import javax.jcr.RepositoryException;
+import javax.jcr.Value;
+
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
@@ -26,11 +32,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-import javax.jcr.Node;
-import javax.jcr.Property;
-import javax.jcr.PropertyIterator;
-import javax.jcr.RepositoryException;
-import javax.jcr.Value;
 
 import org.apache.jackrabbit.util.ISO9075;
 import org.apache.jackrabbit.util.Text;
@@ -85,17 +86,17 @@ public class JcrValueMap implements ValueMap {
 
     /**
      * @see org.apache.sling.api.resource.ValueMap#get(java.lang.String, java.lang.Class)
-     * 
+     *
      * Note: The {@code type} parameter is marked as @NonNull in the API documentation, but
      * https://issues.apache.org/jira/browse/SLING-11567 it got obvious that this assumption
      * does not hold true (this change actually broke b/w compatibility).
      * That means we still have to handle the case that {@code type} is null.
-     * 
+     *
      * This is also recommended by the API documentation of this method.
-     * 
+     *
      */
     @Override
-    @SuppressWarnings({"unchecked","java:S2583"})
+    @SuppressWarnings({"unchecked", "java:S2583"})
     public <T> T get(final @NotNull String aKey, @NotNull final Class<T> type) {
         final String key = checkKey(aKey);
         if (type == null) {
@@ -110,17 +111,17 @@ public class JcrValueMap implements ValueMap {
 
     /**
      * @see org.apache.sling.api.resource.ValueMap#get(java.lang.String, java.lang.Object)
-     * 
+     *
      * Note: The {@code defaultValue} parameter is marked as @NonNull in the API documentation, but
      * https://issues.apache.org/jira/browse/SLING-11567 it got obvious that this assumption
      * does not hold true (this change actually broke b/w compatibility).
      * That means we still have to handle the case that {@code defaultValue} is null.
-     * 
+     *
      * This is also recommended by the API documentation of this method.
-     * 
+     *
      */
     @Override
-    @SuppressWarnings({"unchecked","java:S2583"})
+    @SuppressWarnings({"unchecked", "java:S2583"})
     public <T> @NotNull T get(final @NotNull String aKey, @NotNull final T defaultValue) {
         final String key = checkKey(aKey);
         if (defaultValue == null) {
@@ -278,7 +279,8 @@ public class JcrValueMap implements ValueMap {
      * Read a single property.
      * @throws IllegalArgumentException if a repository exception occurs
      */
-    @Nullable JcrPropertyMapCacheEntry read(final @NotNull String name) {
+    @Nullable
+    JcrPropertyMapCacheEntry read(final @NotNull String name) {
         // check for empty key
         if (name.length() == 0) {
             return null;
@@ -296,7 +298,7 @@ public class JcrValueMap implements ValueMap {
 
         try {
             final String key = escapeKeyName(name);
-            Property property = NodeUtil.getPropertyOrNull(node,key);
+            Property property = NodeUtil.getPropertyOrNull(node, key);
             if (property != null) {
                 return cacheProperty(property);
             }
@@ -336,7 +338,7 @@ public class JcrValueMap implements ValueMap {
         }
         final String newPath = sb.toString();
         try {
-            Property property = NodeUtil.getPropertyOrNull(node,newPath);
+            Property property = NodeUtil.getPropertyOrNull(node, newPath);
             if (property != null) {
                 return new JcrPropertyMapCacheEntry(property);
             }
@@ -362,10 +364,7 @@ public class JcrValueMap implements ValueMap {
             final String prefix = key.substring(0, indexOfPrefix);
             for (final String existingPrefix : this.helper.getNamespacePrefixes(this.node.getSession())) {
                 if (existingPrefix.equals(prefix)) {
-                    return prefix
-                            + ":"
-                            + Text.escapeIllegalJcrChars(key
-                            .substring(indexOfPrefix + 1));
+                    return prefix + ":" + Text.escapeIllegalJcrChars(key.substring(indexOfPrefix + 1));
                 }
             }
         }
@@ -406,7 +405,8 @@ public class JcrValueMap implements ValueMap {
         return type;
     }
 
-    private static @NotNull Map<String, Object> transformEntries(final @NotNull Map<String, JcrPropertyMapCacheEntry> map) {
+    private static @NotNull Map<String, Object> transformEntries(
+            final @NotNull Map<String, JcrPropertyMapCacheEntry> map) {
 
         final Map<String, Object> transformedEntries = new LinkedHashMap<>(map.size());
         for (final Map.Entry<String, JcrPropertyMapCacheEntry> entry : map.entrySet())

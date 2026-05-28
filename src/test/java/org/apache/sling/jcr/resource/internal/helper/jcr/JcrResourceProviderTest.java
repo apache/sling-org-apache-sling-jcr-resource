@@ -18,14 +18,14 @@
  */
 package org.apache.sling.jcr.resource.internal.helper.jcr;
 
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+
 import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
-
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.commons.JcrUtils;
@@ -66,7 +66,8 @@ public class JcrResourceProviderTest extends SlingRepositoryTestBase {
         // create the session
         session = getSession();
         ctx = mock(ComponentContext.class);
-        when(ctx.locateService(ArgumentMatchers.anyString(), Mockito.any())).thenReturn(SlingRepositoryProvider.getRepository());
+        when(ctx.locateService(ArgumentMatchers.anyString(), Mockito.any()))
+                .thenReturn(SlingRepositoryProvider.getRepository());
         JcrResourceProvider.Configuration configuration = mock(JcrResourceProvider.Configuration.class);
         jcrResourceProvider = new JcrResourceProvider();
         jcrResourceProvider.activate(ctx, configuration);
@@ -146,10 +147,14 @@ public class JcrResourceProviderTest extends SlingRepositoryTestBase {
         session.save();
 
         ResolveContext ctx = mockResolveContext();
-        Resource rootResource = jcrResourceProvider.getResource(ctx, PathUtils.ROOT_PATH, ResourceContext.EMPTY_CONTEXT, null);
-        Resource parentResource = jcrResourceProvider.getResource(ctx, parentNode.getPath(), ResourceContext.EMPTY_CONTEXT, rootResource);
-        Resource childResource = jcrResourceProvider.getResource(ctx, child.getPath(), ResourceContext.EMPTY_CONTEXT, parentResource);
-        Resource grandChildResource = jcrResourceProvider.getResource(ctx, grandchild.getPath(), ResourceContext.EMPTY_CONTEXT, childResource);
+        Resource rootResource =
+                jcrResourceProvider.getResource(ctx, PathUtils.ROOT_PATH, ResourceContext.EMPTY_CONTEXT, null);
+        Resource parentResource =
+                jcrResourceProvider.getResource(ctx, parentNode.getPath(), ResourceContext.EMPTY_CONTEXT, rootResource);
+        Resource childResource =
+                jcrResourceProvider.getResource(ctx, child.getPath(), ResourceContext.EMPTY_CONTEXT, parentResource);
+        Resource grandChildResource = jcrResourceProvider.getResource(
+                ctx, grandchild.getPath(), ResourceContext.EMPTY_CONTEXT, childResource);
         assertResources(rootResource, parentResource, childResource, grandChildResource);
 
         assertParent(jcrResourceProvider.getParent(ctx, grandChildResource), child.getPath());
@@ -165,11 +170,11 @@ public class JcrResourceProviderTest extends SlingRepositoryTestBase {
         Resource parent = jcrResourceProvider.getParent(mockResolveContext(), r);
         assertFalse(parent instanceof JcrNodeResource);
     }
-    
+
     @Test
     public void testGetNodeType() throws RepositoryException {
-        
-        Map<String,Object> properties = new HashMap<>();
+
+        Map<String, Object> properties = new HashMap<>();
         ResolveContext<JcrProviderState> context = mock(ResolveContext.class);
         // wire a mock jcrProviderState into the existing session (backed by a real repo)
         JcrProviderState jcrProviderState = mock(JcrProviderState.class);
@@ -177,49 +182,49 @@ public class JcrResourceProviderTest extends SlingRepositoryTestBase {
         when(jcrProviderState.getSession()).thenReturn(session);
 
         assertEquals(null, JcrResourceProvider.getNodeType(null, null));
-        properties.put("sling:alias","alias");
+        properties.put("sling:alias", "alias");
         assertEquals(null, JcrResourceProvider.getNodeType(properties, context));
         properties.put(JcrConstants.JCR_PRIMARYTYPE, "nt:unstructured");
         assertEquals("nt:unstructured", JcrResourceProvider.getNodeType(properties, context));
-        
+
         properties.clear();
         properties.put(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY, "components/page");
         assertEquals(null, JcrResourceProvider.getNodeType(properties, context));
-        
+
         properties.put(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY, "nt:unstructured");
         assertEquals("nt:unstructured", JcrResourceProvider.getNodeType(properties, context));
-        
+
         properties.put(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY, "undefined:nodetype");
         assertEquals(null, JcrResourceProvider.getNodeType(properties, context));
     }
-    
-    @Test(expected=PersistenceException.class)
+
+    @Test(expected = PersistenceException.class)
     public void createWithNullPath() throws PersistenceException {
         jcrResourceProvider.create(null, null, null);
     }
-    
+
     @Test
     public void createResourceBelowRoot() throws PersistenceException, RepositoryException {
-        
-        Map<String,Object> properties = new HashMap<>();
+
+        Map<String, Object> properties = new HashMap<>();
         properties.put(JcrConstants.JCR_PRIMARYTYPE, "nt:file");
-        
+
         ResolveContext<JcrProviderState> context = mock(ResolveContext.class);
         JcrProviderState jcrProviderState = mock(JcrProviderState.class);
         when(context.getProviderState()).thenReturn(jcrProviderState);
         when(jcrProviderState.getSession()).thenReturn(session);
-        
+
         JcrNodeResource child = (JcrNodeResource) jcrResourceProvider.create(context, "/childnode", properties);
         assertNotNull(child);
         assertEquals("/childnode", child.getPath());
         assertEquals("nt:file", child.getItem().getPrimaryNodeType().getName());
-        
+
         properties.put("jcr:createdBy", "user");
-        JcrNodeResource grandchild = (JcrNodeResource) jcrResourceProvider.create(context, "/childnode/grandchild", properties);
+        JcrNodeResource grandchild =
+                (JcrNodeResource) jcrResourceProvider.create(context, "/childnode/grandchild", properties);
         assertNotNull(grandchild);
         assertEquals("/childnode/grandchild", grandchild.getPath());
-        assertEquals("admin",grandchild.getItem().getProperty("jcr:createdBy").getString());
-        
+        assertEquals("admin", grandchild.getItem().getProperty("jcr:createdBy").getString());
     }
 
     @Test
@@ -230,17 +235,23 @@ public class JcrResourceProviderTest extends SlingRepositoryTestBase {
 
         Node referenceable = JcrUtils.getOrCreateByPath("/root/referenceable", JcrConstants.NT_UNSTRUCTURED, session);
         referenceable.addMixin(JcrConstants.MIX_REFERENCEABLE);
-        Node nonReferenceable = JcrUtils.getOrCreateByPath("/root/non-referenceable", JcrConstants.NT_UNSTRUCTURED,
-                session);
+        Node nonReferenceable =
+                JcrUtils.getOrCreateByPath("/root/non-referenceable", JcrConstants.NT_UNSTRUCTURED, session);
         session.save();
 
-        Resource referenceableResource = jcrResourceProvider.getResource(mockResolveContext(),
-                JcrItemResourceFactory.SEARCH_BY_ID_PREFIX + referenceable.getIdentifier(), ResourceContext.EMPTY_CONTEXT, null);
+        Resource referenceableResource = jcrResourceProvider.getResource(
+                mockResolveContext(),
+                JcrItemResourceFactory.SEARCH_BY_ID_PREFIX + referenceable.getIdentifier(),
+                ResourceContext.EMPTY_CONTEXT,
+                null);
         assertNotNull(referenceableResource);
         assertEquals(referenceableResource.getPath(), referenceable.getPath());
 
-        Resource nonReferenceableResource = jcrResourceProvider.getResource(mockResolveContext(),
-                JcrItemResourceFactory.SEARCH_BY_ID_PREFIX + nonReferenceable.getIdentifier(), ResourceContext.EMPTY_CONTEXT, null);
+        Resource nonReferenceableResource = jcrResourceProvider.getResource(
+                mockResolveContext(),
+                JcrItemResourceFactory.SEARCH_BY_ID_PREFIX + nonReferenceable.getIdentifier(),
+                ResourceContext.EMPTY_CONTEXT,
+                null);
         assertNotNull(nonReferenceableResource);
         assertEquals(nonReferenceableResource.getPath(), nonReferenceable.getPath());
     }
@@ -249,19 +260,24 @@ public class JcrResourceProviderTest extends SlingRepositoryTestBase {
     public void getResourceByIdentifierConfigurationNotEnabled() throws RepositoryException {
         Node referenceable = JcrUtils.getOrCreateByPath("/root/referenceable", JcrConstants.NT_UNSTRUCTURED, session);
         referenceable.addMixin(JcrConstants.MIX_REFERENCEABLE);
-        Node nonReferenceable = JcrUtils.getOrCreateByPath("/root/non-referenceable", JcrConstants.NT_UNSTRUCTURED,
-                session);
+        Node nonReferenceable =
+                JcrUtils.getOrCreateByPath("/root/non-referenceable", JcrConstants.NT_UNSTRUCTURED, session);
         session.save();
 
-        Resource referenceableResource = jcrResourceProvider.getResource(mockResolveContext(),
-                JcrItemResourceFactory.SEARCH_BY_ID_PREFIX + referenceable.getIdentifier(), ResourceContext.EMPTY_CONTEXT, null);
+        Resource referenceableResource = jcrResourceProvider.getResource(
+                mockResolveContext(),
+                JcrItemResourceFactory.SEARCH_BY_ID_PREFIX + referenceable.getIdentifier(),
+                ResourceContext.EMPTY_CONTEXT,
+                null);
         assertNull(referenceableResource);
 
-        Resource nonReferenceableResource = jcrResourceProvider.getResource(mockResolveContext(),
-                JcrItemResourceFactory.SEARCH_BY_ID_PREFIX + nonReferenceable.getIdentifier(), ResourceContext.EMPTY_CONTEXT, null);
+        Resource nonReferenceableResource = jcrResourceProvider.getResource(
+                mockResolveContext(),
+                JcrItemResourceFactory.SEARCH_BY_ID_PREFIX + nonReferenceable.getIdentifier(),
+                ResourceContext.EMPTY_CONTEXT,
+                null);
         assertNull(nonReferenceableResource);
     }
-    
 
     private static void assertResources(Resource... resources) {
         for (Resource r : resources) {
@@ -276,5 +292,3 @@ public class JcrResourceProviderTest extends SlingRepositoryTestBase {
         assertEquals(expectedPath, parent.getPath());
     }
 }
-
-

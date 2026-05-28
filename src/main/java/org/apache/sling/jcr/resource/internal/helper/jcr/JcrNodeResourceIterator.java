@@ -18,12 +18,12 @@
  */
 package org.apache.sling.jcr.resource.internal.helper.jcr;
 
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
+
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
@@ -74,12 +74,13 @@ public class JcrNodeResourceIterator implements Iterator<Resource> {
      * @param helper the helper
      * @param excludedPaths the set of excluded paths
      */
-    public JcrNodeResourceIterator(final ResourceResolver resourceResolver,
-                                   final String parentPath,
-                                   final String parentVersion,
-                                   final NodeIterator nodes,
-                                   final HelperData helper,
-                                   final PathSet excludedPaths) {
+    public JcrNodeResourceIterator(
+            final ResourceResolver resourceResolver,
+            final String parentPath,
+            final String parentVersion,
+            final NodeIterator nodes,
+            final HelperData helper,
+            final PathSet excludedPaths) {
         this.resourceResolver = resourceResolver;
         this.parentPath = parentPath;
         this.parentVersion = parentVersion;
@@ -120,8 +121,7 @@ public class JcrNodeResourceIterator implements Iterator<Resource> {
                 final Node n = nodes.nextNode();
                 final String path = getPath(n);
                 if (this.excludedPaths.matches(path) == null) {
-                    final Resource resource = new JcrNodeResource(resourceResolver,
-                            path, parentVersion, n, helper);
+                    final Resource resource = new JcrNodeResource(resourceResolver, path, parentVersion, n, helper);
                     LOGGER.debug("seek: Returning Resource {}", resource);
                     return resource;
                 }

@@ -1,28 +1,30 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 package org.apache.sling.jcr.resource.internal;
+
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 
 import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
-
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 
 import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.jackrabbit.api.security.user.Authorizable;
@@ -51,21 +53,23 @@ import org.slf4j.LoggerFactory;
  * @see org.apache.jackrabbit.api.security.user.User#isSystemUser()
  */
 @Designate(ocd = JcrSystemUserValidator.Config.class)
-@Component(service = {ServiceUserValidator.class, ServicePrincipalsValidator.class},
-           property = {
-                   Constants.SERVICE_VENDOR + "=The Apache Software Foundation"
-           })
+@Component(
+        service = {ServiceUserValidator.class, ServicePrincipalsValidator.class},
+        property = {Constants.SERVICE_VENDOR + "=The Apache Software Foundation"})
 public class JcrSystemUserValidator implements ServiceUserValidator, ServicePrincipalsValidator {
 
     public static final String VALIDATION_SERVICE_USER = "validation";
 
     @ObjectClassDefinition(
             name = "Apache Sling JCR System User Validator",
-            description = "Enforces the usage of JCR system users for all user mappings being used in the 'Sling Service User Mapper Service'")
+            description =
+                    "Enforces the usage of JCR system users for all user mappings being used in the 'Sling Service User Mapper Service'")
     public @interface Config {
 
-        @AttributeDefinition(name = "Allow only JCR System Users",
-                description="If set to true, only user IDs bound to JCR system users are allowed in the user mappings of the 'Sling Service User Mapper Service'. Otherwise all users are allowed!")
+        @AttributeDefinition(
+                name = "Allow only JCR System Users",
+                description =
+                        "If set to true, only user IDs bound to JCR system users are allowed in the user mappings of the 'Sling Service User Mapper Service'. Otherwise all users are allowed!")
         boolean allow_only_system_user() default true;
     }
     /**
@@ -84,12 +88,12 @@ public class JcrSystemUserValidator implements ServiceUserValidator, ServicePrin
     private boolean allowOnlySystemUsers;
 
     /*
-    * We have to prevent a cycle if we are trying to login ourselves. The main idea is that we set the
-    * cycleDetection to true for the current thread before we try to loginService('validation', null).
-    * That way, if we are asked if a user is valid and the cycleDetection is true we know we are in a
-    * cycle and have to shotcut by allowing the user. This should make it so that we use a service user
-    * to valid all service users except our own.
-    */
+     * We have to prevent a cycle if we are trying to login ourselves. The main idea is that we set the
+     * cycleDetection to true for the current thread before we try to loginService('validation', null).
+     * That way, if we are asked if a user is valid and the cycleDetection is true we know we are in a
+     * cycle and have to shotcut by allowing the user. This should make it so that we use a service user
+     * to valid all service users except our own.
+     */
     private final ThreadLocal<Boolean> cycleDetection = new ThreadLocal<Boolean>() {
         @Override
         protected Boolean initialValue() {
@@ -123,11 +127,15 @@ public class JcrSystemUserValidator implements ServiceUserValidator, ServicePrin
             return false;
         }
         if (!allowOnlySystemUsers) {
-            log.debug("There is no enforcement of JCR system users, therefore service user id '{}' is valid", serviceUserId);
+            log.debug(
+                    "There is no enforcement of JCR system users, therefore service user id '{}' is valid",
+                    serviceUserId);
             return true;
         }
         if (validIds.contains(serviceUserId)) {
-            log.debug("The provided service user id '{}' has been already validated and is a known JCR system user id", serviceUserId);
+            log.debug(
+                    "The provided service user id '{}' has been already validated and is a known JCR system user id",
+                    serviceUserId);
             return true;
         } else {
             Session session = null;
@@ -159,7 +167,9 @@ public class JcrSystemUserValidator implements ServiceUserValidator, ServicePrin
                     session.logout();
                 }
             }
-            log.warn("The provided service user id '{}' is not a known JCR system user id and therefore not allowed in the Sling Service User Mapper.", serviceUserId);
+            log.warn(
+                    "The provided service user id '{}' is not a known JCR system user id and therefore not allowed in the Sling Service User Mapper.",
+                    serviceUserId);
             return false;
         }
     }
@@ -175,7 +185,9 @@ public class JcrSystemUserValidator implements ServiceUserValidator, ServicePrin
             return false;
         }
         if (!allowOnlySystemUsers) {
-            log.debug("There is no enforcement of JCR system users, therefore service principal names '{}' are valid", servicePrincipalNames);
+            log.debug(
+                    "There is no enforcement of JCR system users, therefore service principal names '{}' are valid",
+                    servicePrincipalNames);
             return true;
         }
 
@@ -185,7 +197,9 @@ public class JcrSystemUserValidator implements ServiceUserValidator, ServicePrin
         try {
             for (final String pName : servicePrincipalNames) {
                 if (validPrincipalNames.contains(pName)) {
-                    log.debug("The provided service principal name '{}' has been already validated and is a known JCR system user", pName);
+                    log.debug(
+                            "The provided service principal name '{}' has been already validated and is a known JCR system user",
+                            pName);
                 } else {
                     if (session == null) {
                         /*
@@ -210,7 +224,9 @@ public class JcrSystemUserValidator implements ServiceUserValidator, ServicePrin
                         validPrincipalNames.add(pName);
                         log.debug("The provided service principal name {} is a known JCR system user", pName);
                     } else {
-                        log.warn("The provided service principal name '{}' is not a known JCR system user id and therefore not allowed in the Sling Service User Mapper.", pName);
+                        log.warn(
+                                "The provided service principal name '{}' is not a known JCR system user id and therefore not allowed in the Sling Service User Mapper.",
+                                pName);
                         invalid.add(pName);
                     }
                 }

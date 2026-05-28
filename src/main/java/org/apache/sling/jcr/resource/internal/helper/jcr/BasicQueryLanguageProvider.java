@@ -18,17 +18,17 @@
  */
 package org.apache.sling.jcr.resource.internal.helper.jcr;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.NoSuchElementException;
-
 import javax.jcr.RepositoryException;
 import javax.jcr.Value;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryResult;
 import javax.jcr.query.Row;
 import javax.jcr.query.RowIterator;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.NoSuchElementException;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.sling.api.SlingException;
@@ -77,13 +77,14 @@ public class BasicQueryLanguageProvider implements QueryLanguageProvider<JcrProv
     }
 
     @Override
-    public Iterator<Resource> findResources(final @NotNull ResolveContext<JcrProviderState> ctx,
-                                            final String query,
-                                            final String language) {
+    public Iterator<Resource> findResources(
+            final @NotNull ResolveContext<JcrProviderState> ctx, final String query, final String language) {
         try {
             final QueryResult res = JcrResourceUtil.query(getSession(ctx), query, language);
-            return new JcrNodeResourceIterator(ctx.getResourceResolver(),
-                    null, null,
+            return new JcrNodeResourceIterator(
+                    ctx.getResourceResolver(),
+                    null,
+                    null,
                     res.getNodes(),
                     getHelperData(ctx),
                     this.providerContext.getExcludedPaths());
@@ -95,10 +96,10 @@ public class BasicQueryLanguageProvider implements QueryLanguageProvider<JcrProv
     }
 
     @Override
-    public Iterator<ValueMap> queryResources(final @NotNull ResolveContext<JcrProviderState> ctx,
-                                             final String query,
-                                             final String language) {
-        final String queryLanguage = ArrayUtils.contains(getSupportedLanguages(ctx), language) ? language : DEFAULT_QUERY_LANGUAGE;
+    public Iterator<ValueMap> queryResources(
+            final @NotNull ResolveContext<JcrProviderState> ctx, final String query, final String language) {
+        final String queryLanguage =
+                ArrayUtils.contains(getSupportedLanguages(ctx), language) ? language : DEFAULT_QUERY_LANGUAGE;
 
         try {
             final QueryResult result = JcrResourceUtil.query(getSession(ctx), query, queryLanguage);
@@ -131,7 +132,7 @@ public class BasicQueryLanguageProvider implements QueryLanguageProvider<JcrProv
 
         @Override
         public ValueMap next() {
-            if ( next == null ) {
+            if (next == null) {
                 throw new NoSuchElementException();
             }
             final ValueMap result = next;
@@ -145,7 +146,8 @@ public class BasicQueryLanguageProvider implements QueryLanguageProvider<JcrProv
                 try {
                     final Row jcrRow = rows.nextRow();
                     final String resourcePath = jcrRow.getPath();
-                    if (resourcePath != null && providerContext.getExcludedPaths().matches(resourcePath) == null) {
+                    if (resourcePath != null
+                            && providerContext.getExcludedPaths().matches(resourcePath) == null) {
                         result = new ValueMapDecorator(getRow(jcrRow));
                     }
                 } catch (final RepositoryException re) {

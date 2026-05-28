@@ -1,28 +1,30 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 package org.apache.sling.jcr.resource.internal.helper.jcr;
-
-import java.net.URI;
 
 import javax.jcr.Binary;
 import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
+
+import java.net.URI;
 
 import org.apache.jackrabbit.api.binary.BinaryDownload;
 import org.apache.jackrabbit.api.binary.BinaryDownloadOptions;
@@ -41,7 +43,7 @@ import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 
 /**
  * Provides URIs for direct binary read-access based on the Jackrabbit API {@link BinaryDownload}.
- * 
+ *
  * @see <a href="https://jackrabbit.apache.org/oak/docs/features/direct-binary-access.html">Oak Direct Binary Access</a>
  *
  */
@@ -57,7 +59,8 @@ public class BinaryDownloadUriProvider implements URIProvider {
 
     @ObjectClassDefinition(
             name = "Apache Sling Binary Download URI Provider",
-            description = "Provides URIs for resources containing a primary JCR binary property backed by a blob store allowing direct HTTP access")
+            description =
+                    "Provides URIs for resources containing a primary JCR binary property backed by a blob store allowing direct HTTP access")
     public static @interface Configuration {
         @AttributeDefinition(
                 name = "Content-Disposition",
@@ -79,7 +82,9 @@ public class BinaryDownloadUriProvider implements URIProvider {
     @Override
     public @NotNull URI toURI(@NotNull Resource resource, @NotNull Scope scope, @NotNull Operation operation) {
         if (!isRelevantScopeAndOperation(scope, operation)) {
-            throw new IllegalArgumentException("This provider only provides URIs for 'READ' operations in scope 'PUBLIC' or 'EXTERNAL', but not for scope '" + scope + "' and operation '" + operation + "'");
+            throw new IllegalArgumentException(
+                    "This provider only provides URIs for 'READ' operations in scope 'PUBLIC' or 'EXTERNAL', but not for scope '"
+                            + scope + "' and operation '" + operation + "'");
         }
         Node node = resource.adaptTo(Node.class);
         if (node == null) {
@@ -91,7 +96,8 @@ public class BinaryDownloadUriProvider implements URIProvider {
             try {
                 return getUriFromProperty(resource, node, primaryProperty);
             } catch (RepositoryException e) {
-                throw new IllegalArgumentException("Error getting URI for property '" + primaryProperty.getPath() + "'", e);
+                throw new IllegalArgumentException(
+                        "Error getting URI for property '" + primaryProperty.getPath() + "'", e);
             }
         } catch (ItemNotFoundException e) {
             throw new IllegalArgumentException("Node does not have a primary property", e);
@@ -108,18 +114,22 @@ public class BinaryDownloadUriProvider implements URIProvider {
         return ((Scope.PUBLIC.equals(scope) || Scope.EXTERNAL.equals(scope)) && Operation.READ.equals(operation));
     }
 
-    private @NotNull URI getUriFromProperty(@NotNull Resource resource, @NotNull Node node, @NotNull Property binaryProperty) throws RepositoryException {
+    private @NotNull URI getUriFromProperty(
+            @NotNull Resource resource, @NotNull Node node, @NotNull Property binaryProperty)
+            throws RepositoryException {
         Binary binary = binaryProperty.getBinary();
         if (!(binary instanceof BinaryDownload)) {
             binary.dispose();
-            throw new IllegalArgumentException("The property " + binaryProperty.getPath() + " is not backed by a blob store allowing direct HTTP access");
+            throw new IllegalArgumentException("The property " + binaryProperty.getPath()
+                    + " is not backed by a blob store allowing direct HTTP access");
         }
         BinaryDownload binaryDownload = BinaryDownload.class.cast(binary);
         try {
             String encoding = resource.getResourceMetadata().getCharacterEncoding();
             String fileName = node.getName();
             String mediaType = resource.getResourceMetadata().getContentType();
-            BinaryDownloadOptionsBuilder optionsBuilder = BinaryDownloadOptions.builder().withFileName(fileName);
+            BinaryDownloadOptionsBuilder optionsBuilder =
+                    BinaryDownloadOptions.builder().withFileName(fileName);
             if (encoding != null) {
                 optionsBuilder.withCharacterEncoding(encoding);
             }
@@ -133,12 +143,12 @@ public class BinaryDownloadUriProvider implements URIProvider {
             }
             URI uri = binaryDownload.getURI(optionsBuilder.build());
             if (uri == null) {
-                throw new IllegalArgumentException("Cannot provide url for downloading the binary property at '" + binaryProperty.getPath() + "'");
+                throw new IllegalArgumentException(
+                        "Cannot provide url for downloading the binary property at '" + binaryProperty.getPath() + "'");
             }
             return uri;
         } finally {
             binaryDownload.dispose();
         }
     }
-
 }
