@@ -2,8 +2,70 @@
 
 &#32;[![Build Status](https://ci-builds.apache.org/job/Sling/job/modules/job/sling-org-apache-sling-jcr-resource/job/master/badge/icon)](https://ci-builds.apache.org/job/Sling/job/modules/job/sling-org-apache-sling-jcr-resource/job/master/)&#32;[![Test Status](https://img.shields.io/jenkins/tests.svg?jobUrl=https://ci-builds.apache.org/job/Sling/job/modules/job/sling-org-apache-sling-jcr-resource/job/master/)](https://ci-builds.apache.org/job/Sling/job/modules/job/sling-org-apache-sling-jcr-resource/job/master/test/?width=800&height=600)&#32;[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=apache_sling-org-apache-sling-jcr-resource&metric=coverage)](https://sonarcloud.io/dashboard?id=apache_sling-org-apache-sling-jcr-resource)&#32;[![Sonarcloud Status](https://sonarcloud.io/api/project_badges/measure?project=apache_sling-org-apache-sling-jcr-resource&metric=alert_status)](https://sonarcloud.io/dashboard?id=apache_sling-org-apache-sling-jcr-resource)&#32;[![JavaDoc](https://www.javadoc.io/badge/org.apache.sling/org.apache.sling.jcr.resource.svg)](https://www.javadoc.io/doc/org.apache.sling/org.apache.sling.jcr.resource)&#32;[![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.apache.sling/org.apache.sling.jcr.resource/badge.svg)](https://search.maven.org/#search%7Cga%7C1%7Cg%3A%22org.apache.sling%22%20a%3A%22org.apache.sling.jcr.resource%22)&#32;[![jcr](https://sling.apache.org/badges/group-jcr.svg)](https://github.com/apache/sling-aggregator/blob/master/docs/groups/jcr.md) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
-# Apache Sling JCR Resource Resolver
+# Apache Sling JCR Resource
 
 This module is part of the [Apache Sling](https://sling.apache.org) project.
 
-This bundle provides the JCR based Resource Resolver.
+This bundle provides Sling's JCR-backed resource provider and resolver internals.
+It maps JCR nodes and properties to Sling `Resource` objects, handles provider/session lifecycle, supports query and binary download integrations, and emits resource change events from JCR observation.
+
+## Build and test
+
+```bash
+# Build and package (skip tests)
+mvn clean package -DskipTests
+
+# Full build (including tests)
+mvn clean install
+
+# Run all tests
+mvn test
+
+# Run a single test class
+mvn test -Dtest=JcrResourceProviderTest
+
+# Run a single test method
+mvn test -Dtest=JcrValueMapTest#testPutMultipleValues
+```
+
+## Development checks
+
+```bash
+# Apply formatting
+mvn spotless:apply
+
+# Check formatting
+mvn spotless:check
+
+# Verify license headers
+mvn apache-rat:check
+
+# Check API baseline compatibility
+mvn bnd-baseline:baseline
+```
+
+## Repository layout
+
+```text
+pom.xml                          Maven build descriptor
+bnd.bnd                          OSGi metadata and package instructions
+src/
+  main/
+    java/org/apache/sling/jcr/resource/
+      api/                       Public API (for example JcrResourceChange, constants)
+      internal/                  Internal implementation (resource/provider/listener/value map helpers)
+        helper/jcr/              Core JCR ResourceProvider and resource wrappers
+        scripting/               Optional scripting bindings integration
+    resources/SLING-INF/nodetypes/
+                                 Sling/JCR node type definitions
+  test/
+    java/                        JUnit 4 tests (Mockito, Hamcrest, JMock, sling-mock-oak)
+```
+
+## Key technical details
+
+- Java source/target level is Java 8 (`sling.java.version=8`).
+- Parent POM is `org.apache.sling:sling-bundle-parent:66`.
+- Oak baseline is `1.44.0` (minimum required for `JackrabbitNode.getPropertyOrNull` support).
+- `org.apache.sling.scripting.api` is optional at runtime (`resolution:=optional` in `bnd.bnd`).
+- Bundle nodetypes are provided from `src/main/resources/SLING-INF/nodetypes/`.
