@@ -131,3 +131,10 @@ target/                              Build output (generated classes, OSGI-INF, 
 - **Scripting API is optional**: `org.apache.sling.scripting.api` is optional at runtime; code must handle its absence.
 - **Adapter metadata generation**: `sling-maven-plugin` generates adapter metadata during `process-classes`; do not hand-maintain generated metadata.
 - **No standalone runner**: the bundle cannot run standalone; deploy into Sling/Felix or use `sling-mock-oak` for repository-backed tests.
+
+# Security
+
+<!-- sling-security-default:start -->
+The threat model for this project is https://github.com/apache/sling/blob/master/docs/threat-model.md .
+<!-- sling-security-default:end -->
+
